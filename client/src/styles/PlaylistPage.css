@@ -1,11 +1,11 @@
-.dashboard {
+.playlist {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 24px 80px;
   min-height: 100vh;
 }
 
-.dashboard-header {
+.playlist-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -32,7 +32,7 @@
   transform: translateX(-4px);
 }
 
-.dashboard-title {
+.playlist-title {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 5vw, 3rem);
   font-weight: 800;
@@ -54,11 +54,11 @@
     gap: 16px;
   }
 
-  .dashboard-header {
+  .playlist-header {
     margin-bottom: 40px;
   }
 
-  .dashboard-title {
+  .playlist-title {
     font-size: 1.5rem;
   }
 }
@@ -69,11 +69,11 @@
     gap: 12px;
   }
 
-  .dashboard {
+  .playlist {
     padding: 24px 16px 60px;
   }
 
-  .dashboard-header {
+  .playlist-header {
     flex-direction: column;
     margin-bottom: 30px;
   }

@@ -1,7 +1,7 @@
 import PlaylistCard from "../components/PlaylistCard";
-import "../styles/DashboardPage.css";
+import "../styles/playlistPage.css";
 
-const DashboardPage = ({ onBack }) => {
+const PlaylistPage = ({ onBack }) => {
   const playlists = [
     {
       id: 1,
@@ -54,12 +54,12 @@ const DashboardPage = ({ onBack }) => {
   ];
 
   return (
-    <main className="dashboard" aria-label="Dashboard Playlist">
-      <div className="dashboard-header">
+    <main className="playlist" aria-label="Playlist">
+      <div className="playlist-header">
         <button className="back-button" onClick={onBack} aria-label="Kembali ke beranda">
           ← Kembali
         </button>
-        <h1 className="dashboard-title">Playlist Saya</h1>
+        <h1 className="playlist-title">Playlist Saya</h1>
         <div style={{ width: "80px" }}></div>
       </div>
 
@@ -74,4 +74,4 @@ const DashboardPage = ({ onBack }) => {
   );
 };
 
-export default DashboardPage;
+export default PlaylistPage;
