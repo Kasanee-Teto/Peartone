@@ -1,18 +1,11 @@
 import MusicCard from "./MusicCard";
 
-/**
- * 
- * @param {Array} charts 
- * @param {boolean} loading
- * @param {string|null} error
- */
 const ChartList = ({ charts = [], loading, error }) => {
   if (loading) {
     return (
       <section className="charts" aria-label="Top Charts">
         <h2 className="section-title">Top Charts</h2>
         <div className="skeleton-list" aria-busy="true" aria-live="polite">
-          {/* Skeleton placeholder sebanyak 5 item */}
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="skeleton-card" aria-hidden="true" />
           ))}
@@ -53,12 +46,8 @@ const ChartList = ({ charts = [], loading, error }) => {
 
       <ol className="chart-list" aria-label="Daftar top charts">
         {charts.map((track, index) => (
-          <li key={track.id ?? index} className="chart-list__item">
-            <MusicCard
-              track={track}
-              variant="chart"
-              rank={index + 1}
-            />
+          <li key={track?.id ?? index} className="chart-list__item">
+            <MusicCard track={track} variant="chart" rank={index + 1} />
           </li>
         ))}
       </ol>

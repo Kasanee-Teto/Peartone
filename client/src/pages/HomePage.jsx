@@ -2,7 +2,6 @@ import ChartList from "../components/ChartList";
 import PopularList from "../components/PopularList";
 import useFetch from "../hooks/useFetch";
 
-
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const HomePage = () => {
@@ -28,8 +27,6 @@ const HomePage = () => {
 
   return (
     <main className="home" aria-label="Halaman Utama Peartone">
-
-      {/* ── Hero / Banner Section ─────────────────────────────────────── */}
       <section className="home__hero" aria-label="Banner Peartone">
         <div className="home__hero-content">
           <h1 className="home__hero-title">
@@ -45,20 +42,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ── Top Charts Section ────────────────────────────────────────── */}
-      <ChartList
-        charts={charts}
-        loading={chartsLoading}
-        error={chartsError}
-      />
-
-      {/* ── Popular Now Section ───────────────────────────────────────── */}
-      <PopularList
-        popular={popular}
-        loading={popularLoading}
-        error={popularError}
-      />
-
+      <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
+      <PopularList popular={popular} loading={popularLoading} error={popularError} />
     </main>
   );
 };
