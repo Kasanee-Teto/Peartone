@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization || "";

@@ -2,9 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "db.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node db.js",
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "sequelize db:migrate"
   },

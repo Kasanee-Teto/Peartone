@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 import BaseService from "./base.service.js";
 
 const { User } = db;
@@ -48,10 +48,13 @@ class AuthService extends BaseService {
   }
 
   _signToken(user) {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error("JWT_SECRET must be set");
+    }
     return jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || "dev_secret",
-      { expiresIn: "7d" }
+      jwtSecret,
     );
   }
 

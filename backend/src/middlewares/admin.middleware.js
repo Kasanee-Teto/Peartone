@@ -1,4 +1,4 @@
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 const adminMiddleware = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
