@@ -1,48 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState } from 'react'
 
-/**
- * 
- * @param {string} url 
- * @param {object} options 
- * @returns {{ data, loading, error, refetch }}
- */
-const useFetch = (url, options = {}) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-        ...options,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setData(result);
-    } catch (err) {
-      setError(err.message || "Terjadi kesalahan saat mengambil data.");
-    } finally {
-      setLoading(false);
-    }
-  }, [url]);
+export default function useFetch(url) {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!url) return;
-    fetchData();
-  }, [fetchData]);
+    const controller = new AbortController()
 
-  return { data, loading, error, refetch: fetchData };
-};
+    async function fetchData() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(url, { signal: controller.signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
+        setData(json)
+      } catch (err) {
+        if (err.name !== 'AbortError') setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-export default useFetch;
+    fetchData()
+    return () => controller.abort()
+  }, [url])
+
+  return { data, loading, error }
+}
