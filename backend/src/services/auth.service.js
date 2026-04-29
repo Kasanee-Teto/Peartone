@@ -52,10 +52,17 @@ class AuthService extends BaseService {
     if (!jwtSecret) {
       throw new Error("JWT_SECRET must be set");
     }
-    return jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      jwtSecret,
-    );
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role
+    };
+    return jwt.sign(payload, jwtSecret, {
+      algorithm: "HS256",
+      expiresIn: "7d",
+      issuer: process.env.JWT_ISSUER || "Peartone API",
+      audience: process.env.JWT_AUDIENCE || "Peartone Client"
+    });
   }
 
   _sanitizeUser(user) {
