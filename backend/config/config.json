@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "B4s1sD4t4",
+    "database": "peartone",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "b4s1sd4t4",
+    "database": "peartone_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "b4s1sd4t4",
+    "database": "peartone_prod",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
