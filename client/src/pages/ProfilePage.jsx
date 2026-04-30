@@ -1,78 +1,137 @@
 import { useState } from "react";
+import { FiMusic, FiHeart, FiEdit2, FiMapPin, FiCalendar } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
+import "../styles/ProfilePage.css";
 
 const ProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#0d0d0f] text-white">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#7c6af7] opacity-20 blur-[120px]" />
-          <div className="absolute bottom-6 right-0 h-72 w-72 rounded-full bg-[#c8f560] opacity-15 blur-[140px]" />
+    <main className="profile__page">
+      {/* Blur blobs */}
+      <div className="profile__blobs" aria-hidden="true">
+        <div className="profile__blob profile__blob--purple" />
+        <div className="profile__blob profile__blob--green" />
+      </div>
+
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+        type="button"
+        aria-label="Tutup menu samping"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className="home__sidebar-toggle"
+        type="button"
+        aria-label="Buka menu samping"
+        aria-controls="home-sidebar"
+        aria-expanded={isSidebarOpen}
+        onClick={() => setIsSidebarOpen(true)}
+      >
+        ≡
+      </button>
+
+      <div className="profile__container">
+
+        {/* Hero Banner */}
+        <div className="profile__hero">
+          <div className="profile__avatar">P</div>
+          <div className="profile__hero-info">
+            <span className="profile__hero-type">Profil Publik</span>
+            <h1 className="profile__hero-name">Peartone User</h1>
+            <div className="profile__hero-meta">
+              <span className="profile__hero-meta-item">
+                <FiMusic size={13} /> 12 Playlist
+              </span>
+              <span className="profile__hero-meta-item">
+                <FiHeart size={13} /> 84 Liked Songs
+              </span>
+            </div>
+          </div>
         </div>
 
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={() => setIsSidebarOpen(false)}
-        />
+        {/* Action Bar */}
+        <div className="profile__actions">
+          <button type="button" className="profile__btn-edit">
+            <FiEdit2 size={14} />
+            Edit Profil
+          </button>
+        </div>
 
-        <button
-          className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
-          type="button"
-          aria-label="Tutup menu samping"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        {/* Content Grid */}
+        <div className="profile__content">
 
-        <button
-          className="home__sidebar-toggle"
-          type="button"
-          aria-label="Buka menu samping"
-          aria-controls="home-sidebar"
-          aria-expanded={isSidebarOpen}
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          ≡
-        </button>
-
-        <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-              Profile
-            </h1>
-            <p className="mt-4 max-w-md text-sm text-white/60 sm:text-base">
-              Kelola informasi akun, aktivitas terbaru, dan preferensi musikmu.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
-            <div className="flex items-center gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold">Peartone User</h2>
-                <p className="mt-1 text-sm text-white/60">peartone@email.com</p>
-              </div>
+          {/* Kolom Kiri */}
+          <aside className="profile__sidebar-info">
+            <div className="profile__info-card">
+              <h2 className="profile__info-card-title">Informasi</h2>
+              <ul className="profile__info-list">
+                <li className="profile__info-item">
+                  <span className="profile__info-icon"><FiMapPin size={14} /></span>
+                  <span>Jakarta, Indonesia</span>
+                </li>
+                <li className="profile__info-item">
+                  <span className="profile__info-icon"><FiCalendar size={14} /></span>
+                  <span>Bergabung April 2025</span>
+                </li>
+              </ul>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-[#111114] p-4">
-                <p className="text-sm text-white/50">Playlists</p>
-                <p className="mt-2 text-2xl font-semibold">12</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-[#111114] p-4">
-                <p className="text-sm text-white/50">Liked Songs</p>
-                <p className="mt-2 text-2xl font-semibold">84</p>
-              </div>
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-white/10 bg-[#111114] p-4">
-              <p className="text-sm text-white/50">Bio</p>
-              <p className="mt-2 text-sm leading-6 text-white/75">
+            <div className="profile__info-card">
+              <h2 className="profile__info-card-title">Bio</h2>
+              <p className="profile__bio-text">
                 Pendengar musik aktif yang suka eksplorasi playlist baru setiap hari.
               </p>
             </div>
-          </div>
-        </section>
+
+            <div className="profile__stats-row">
+              <div className="profile__stat">
+                <span className="profile__stat-icon profile__stat-icon--purple">
+                  <FiMusic size={16} />
+                </span>
+                <p className="profile__stat-value">12</p>
+                <p className="profile__stat-label">Playlists</p>
+              </div>
+              <div className="profile__stat">
+                <span className="profile__stat-icon profile__stat-icon--green">
+                  <FiHeart size={16} />
+                </span>
+                <p className="profile__stat-value">84</p>
+                <p className="profile__stat-label">Liked Songs</p>
+              </div>
+            </div>
+          </aside>
+
+          {/* Kolom Kanan */}
+          <section className="profile__main">
+            <h2 className="profile__section-title">Aktivitas Terbaru</h2>
+            <ul className="profile__activity-list" role="list">
+              {[
+                { title: "Lo-fi Morning Vibes",  sub: "Playlist · Diperbarui 2 jam lalu" },
+                { title: "Favourite Indie Picks", sub: "Playlist · Diperbarui kemarin" },
+                { title: "Late Night Drive",       sub: "Playlist · Diperbarui 3 hari lalu" },
+              ].map((item) => (
+                <li key={item.title} className="profile__activity-item">
+                  <div className="profile__activity-thumb">
+                    <FiMusic size={16} />
+                  </div>
+                  <div className="profile__activity-info">
+                    <p className="profile__activity-title">{item.title}</p>
+                    <p className="profile__activity-sub">{item.sub}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+        </div>
       </div>
     </main>
   );
