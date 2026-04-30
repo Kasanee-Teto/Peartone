@@ -369,9 +369,6 @@ body {
   height: 220px;
 }
 
-.charts {
-  /* section wrapper */
-}
 
 .chart-list {
   list-style: none;
@@ -380,13 +377,6 @@ body {
   gap: 10px;
 }
 
-.chart-list__item {
-  /* wrapper per item chart */
-}
-
-.popular {
-  /* section wrapper */
-}
 
 .popular-grid {
   display: grid;
