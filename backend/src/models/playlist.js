@@ -19,6 +19,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING, 
         allowNull: true 
       },
+      trackNumbers: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+      },
       isPublic: { 
         type: DataTypes.BOOLEAN, 
         allowNull: false, 

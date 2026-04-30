@@ -25,6 +25,11 @@ module.exports = {
         type: Sequelize.STRING, 
         allowNull: true 
       },
+      trackNumbers: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+      },
       isPublic: { 
         type: Sequelize.BOOLEAN, 
         allowNull: false, 

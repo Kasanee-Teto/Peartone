@@ -13,6 +13,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
       },
+      genre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "unknown" 
+      },
       duration: {
         type: DataTypes.INTEGER,
         allowNull: true
@@ -51,6 +56,11 @@ export default (sequelize, DataTypes) => {
       uploadedBy: { 
         type: DataTypes.UUID, 
         allowNull: true
+      },
+      listeners: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     },
     {

@@ -14,6 +14,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      genre: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: "unknown" 
+      },
       duration: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -68,6 +73,11 @@ module.exports = {
         references: { model: "Users", key: "id" },
         onDelete: "SET NULL",
         onUpdate: "CASCADE"
+      },
+      listeners: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0
       }
     });
 

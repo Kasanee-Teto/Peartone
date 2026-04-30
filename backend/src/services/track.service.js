@@ -36,18 +36,34 @@ class TrackService extends BaseService {
     if (!query) return this.success([], "Empty query");
 
     const tracks = await Track.findAll({
+      where: {
+        isPublished: true,
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${query}%` } },
+          { genre: { [Op.iLike]: `%${query}%` } } 
+        ]
+      },
+      include: this._include(),
+      order: [["createdAt", "DESC"]]
+    });
+
+    const tracksByRelation = await Track.findAll({
       where: { isPublished: true },
       include: [
-        { model: Album, as: "Album", where: { title: { [Op.iLike]: `%${query}%` } }, required: false },
+        { 
+          model: Album, 
+          as: "Album", 
+          where: { title: { [Op.iLike]: `%${query}%` } }, 
+          required: true 
+        },
         {
           model: Artist,
           as: "Artists",
           through: { attributes: ["artistOrder", "role"] },
           where: { name: { [Op.iLike]: `%${query}%` } },
-          required: false
+          required: true 
         }
       ],
-      having: undefined,
       order: [["createdAt", "DESC"]]
     });
 
@@ -58,7 +74,7 @@ class TrackService extends BaseService {
     });
 
     const map = new Map();
-    [...tracks, ...tracksByTitle].forEach((t) => map.set(t.id, t));
+    [...tracks, ...tracksByRelation,...tracksByTitle].forEach((t) => map.set(t.id, t));
     return this.success([...map.values()], "Search results");
   }
 }

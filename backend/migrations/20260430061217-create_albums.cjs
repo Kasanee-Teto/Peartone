@@ -37,6 +37,11 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: true
       },
+      trackNumbers: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

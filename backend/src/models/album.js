@@ -29,6 +29,11 @@ export default (sequelize, DataTypes) => {
       releaseDate: {
         type: DataTypes.DATEONLY,
         allowNull: true
+      },
+      trackNumbers: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
       }
     },
     {
