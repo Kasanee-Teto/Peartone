@@ -6,7 +6,6 @@
   z-index: 300;
   height: 88px;
   background: rgba(13, 13, 15, 0.96);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   display: flex;
@@ -358,4 +357,181 @@
   opacity: 0;
   cursor: pointer;
   margin: 0;
+}
+
+.player__toggle,
+.player__collapsed-toggle {
+  pointer-events: auto;
+}
+
+.player__toggle:hover,
+.player__collapsed-toggle:hover {
+  color: #fff;
+}
+
+.player--collapsed {
+  justify-content: flex-end;
+  padding-right: 24px;
+  height: auto;
+  background: transparent;
+  border-top: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 1024px) {
+  .player__left {
+    width: 200px !important;
+  }
+
+  .player__right {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    max-width: 440px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .player {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .player__body {
+    height: auto !important;
+    padding: 14px 14px 12px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .player__toggle {
+    align-self: flex-start !important;
+  }
+
+  .player__left {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    gap: 10px;
+  }
+
+  .player__title {
+    font-size: 12px;
+  }
+
+  .player__artist {
+    font-size: 10px;
+  }
+
+  .player__controls {
+    gap: 10px !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player__btn--shuffle,
+  .player__btn--repeat {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    max-width: none !important;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .player__time {
+    min-width: 28px;
+  }
+
+  .player__center {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .player {
+    height: auto;
+    padding: 10px 12px 12px;
+  }
+
+  .player--collapsed {
+    padding-right: 12px;
+  }
+
+  .player__toggle {
+    margin-left: auto !important;
+    align-self: flex-end !important;
+  }
+
+  .player__left {
+    width: 100% !important;
+    flex: 1 1 auto;
+  }
+
+  .player__body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 16px 14px 14px !important;
+    height: auto !important;
+  }
+
+  .player__center {
+    width: 100%;
+    gap: 10px !important;
+    order: 2;
+  }
+
+  .player__left {
+    order: 1;
+  }
+
+  .player__controls {
+    width: 100%;
+    justify-content: center;
+    gap: 8px !important;
+  }
+
+  .player__btn--skip,
+  .player__btn--extra {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    width: 100%;
+  }
+
+  .player__time {
+    min-width: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .player__left {
+    gap: 8px;
+  }
+
+  .player__art {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .player__play {
+    width: 34px;
+    height: 34px;
+  }
+
+  .player__progress-row {
+    gap: 4px;
+  }
+
+  .player__time {
+    font-size: 10px;
+  }
 }
