@@ -14,6 +14,7 @@ module.exports = {
             username: "peartone21",
             passwordHash,
             role: "admin",
+            location: "Jakarta, Indonesia",
             createdAt: new Date(),
             updatedAt: new Date()
           }
