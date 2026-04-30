@@ -8,6 +8,8 @@ import TopChartsPage from './pages/TopChartsPage.jsx'
 import ArtistsPage from './pages/ArtistsPage.jsx'
 import AlbumsPage from './pages/AlbumsPage.jsx'
 import LikedSongsPage from './pages/LikedSongsPage.jsx'
+import RegisterPage from "./pages/RegisterPage.jsx";
+
 
 function PlaylistRoute() {
   const navigate = useNavigate()
@@ -33,6 +35,7 @@ function App() {
         <Route path="/playlists" element={<PlaylistRoute />} />
         <Route path="/profile" element={<ProfileRoute />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </BrowserRouter>
   )
