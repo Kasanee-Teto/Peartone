@@ -6,12 +6,21 @@ export default (sequelize, DataTypes) => {
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true
+      },
+      artistId: {
+        type: Sequelize.UUID,
+        allowNull: false
       },
       title: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      description: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        unique: true
       },
       coverUrl: {
         type: DataTypes.STRING,
@@ -29,7 +38,11 @@ export default (sequelize, DataTypes) => {
   );
 
   Album.associate = (models) => {
-    Album.hasMany(models.Track, {
+    Album.belongsTo(models.Artist, { 
+      foreignKey: "artistId"
+    });
+    
+    Album.hasMany(models.Track, { 
       foreignKey: "albumId"
     });
   };

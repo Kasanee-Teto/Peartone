@@ -43,6 +43,15 @@ module.exports = {
       },
     });
 
+
+    await queryInterface.addConstraint("TrackArtists", {
+      fields: ["trackId", "artistId"],
+      type: "unique",
+      name: "unique_track_artist_pairing"
+    });
+
+    await queryInterface.addIndex("TrackArtists", ["artistId"]);
+
   },
 
   async down(queryInterface, Sequelize) {

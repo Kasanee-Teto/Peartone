@@ -6,7 +6,7 @@ export default (sequelize, DataTypes) => {
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true
       },
       trackId: {
@@ -16,6 +16,11 @@ export default (sequelize, DataTypes) => {
       artistId: {
         type: DataTypes.UUID,
         allowNull: false
+      },
+      role: { 
+        type: DataTypes.STRING, 
+        allowNull: false, 
+        defaultValue: "primary" 
       }
     },
     {
