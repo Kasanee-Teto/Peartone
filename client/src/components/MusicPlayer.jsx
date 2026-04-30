@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FiPlay,
   FiPause,
@@ -10,10 +10,13 @@ import {
   FiVolume2,
   FiList,
   FiMic,
+  FiPlus,
   FiChevronUp,
   FiChevronDown,
 } from "react-icons/fi";
 import "../styles/MusicPlayer.css";
+import LyricsPanel from "./LyricsPanel";
+import QueueList from "./QueueList";
 
 // Data lagu dummy — nanti diganti dari state/context/API
 const CURRENT_TRACK = {
@@ -37,8 +40,61 @@ const MusicPlayer = () => {
   const [progress, setProgress] = useState(40);
   const [volume, setVolume] = useState(75);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [queue, setQueue] = useState(() => {
+    try {
+      const raw = localStorage.getItem("pt_queue");
+      return raw ? JSON.parse(raw) : [CURRENT_TRACK];
+    } catch {
+      return [CURRENT_TRACK];
+    }
+  });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentTrack = queue[currentIndex] || CURRENT_TRACK;
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
 
-  const currentTime = Math.floor((progress / 100) * CURRENT_TRACK.duration);
+  const currentTime = Math.floor((progress / 100) * currentTrack.duration);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pt_queue", JSON.stringify(queue));
+    } catch (e) {
+      // ignore
+    }
+  }, [queue]);
+
+  function addToQueue(track) {
+    setQueue((q) => [...q, track]);
+    setShowQueue(true);
+  }
+
+  function removeFromQueue(idx) {
+    setQueue((q) => {
+      const copy = q.slice();
+      copy.splice(idx, 1);
+      return copy;
+    });
+    // adjust current index bounds
+    setCurrentIndex((i) => Math.max(0, Math.min(i, queue.length - 2)));
+  }
+
+  function playTrack(idx) {
+    if (idx < 0 || idx >= queue.length) return;
+    setCurrentIndex(idx);
+    setIsPlaying(true);
+  }
+
+  function playNext() {
+    if (isRepeat) return setIsPlaying(true);
+    if (isShuffle) return setCurrentIndex(() => Math.floor(Math.random() * queue.length));
+    setCurrentIndex((i) => Math.min(queue.length - 1, i + 1));
+    setIsPlaying(true);
+  }
+
+  function playPrev() {
+    setCurrentIndex((i) => Math.max(0, i - 1));
+    setIsPlaying(true);
+  }
 
   return (
     <div
@@ -145,29 +201,40 @@ const MusicPlayer = () => {
             </div>
             <div style={{ minWidth: 0 }}>
               <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {CURRENT_TRACK.title}
+                {currentTrack.title}
               </p>
               <p style={{ margin: 0, fontSize: "11px", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {CURRENT_TRACK.artist}
+                {currentTrack.artist}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsLiked(!isLiked)}
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                color: isLiked ? "#c8f560" : "rgba(255,255,255,0.4)",
-                display: "flex",
-                padding: "4px",
-                flexShrink: 0,
-                transition: "color 0.15s",
-              }}
-              aria-label={isLiked ? "Unlike" : "Like"}
-            >
-              <FiHeart size={16} fill={isLiked ? "currentColor" : "none"} />
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={() => setIsLiked(!isLiked)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: isLiked ? "#c8f560" : "rgba(255,255,255,0.4)",
+                  display: "flex",
+                  padding: "4px",
+                  flexShrink: 0,
+                  transition: "color 0.15s",
+                }}
+                aria-label={isLiked ? "Unlike" : "Like"}
+              >
+                <FiHeart size={16} fill={isLiked ? "currentColor" : "none"} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => addToQueue(currentTrack)}
+                title="Add to queue"
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 4 }}
+              >
+                <FiPlus size={14} />
+              </button>
+            </div>
           </div>
 
           <div className="player__center" style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", order: 2, minWidth: 0 }}>
@@ -277,7 +344,7 @@ const MusicPlayer = () => {
                 />
               </div>
               <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", flexShrink: 0, minWidth: "32px" }}>
-                {formatTime(CURRENT_TRACK.duration)}
+                {formatTime(currentTrack.duration)}
               </span>
             </div>
           </div>
@@ -286,7 +353,8 @@ const MusicPlayer = () => {
             <button
               type="button"
               className="player__btn player__btn--extra"
-              style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
+              onClick={() => setShowLyrics((s) => !s)}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: showLyrics ? "#c8f560" : "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
               aria-label="Lirik"
               title="Lirik"
             >
@@ -296,7 +364,8 @@ const MusicPlayer = () => {
             <button
               type="button"
               className="player__btn player__btn--extra"
-              style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
+              onClick={() => setShowQueue((s) => !s)}
+              style={{ background: "transparent", border: "none", cursor: "pointer", color: showQueue ? "#c8f560" : "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
               aria-label="Queue"
               title="Queue"
             >
@@ -329,6 +398,19 @@ const MusicPlayer = () => {
             </div>
           </div>
         </div>
+      )}
+      {showQueue && (
+        <QueueList
+          queue={queue}
+          currentIndex={currentIndex}
+          onPlay={(i) => playTrack(i)}
+          onRemove={(i) => removeFromQueue(i)}
+          onClear={() => setQueue([])}
+        />
+      )}
+
+      {showLyrics && (
+        <LyricsPanel artist={currentTrack.artist} title={currentTrack.title} open={showLyrics} onClose={() => setShowLyrics(false)} />
       )}
     </div>
   );
