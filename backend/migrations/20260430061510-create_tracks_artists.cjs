@@ -4,12 +4,6 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("TrackArtists", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
-        allowNull: false,
-        primaryKey: true
-      },
       trackId: {
         type: Sequelize.UUID,
         allowNull: false,

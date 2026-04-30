@@ -4,18 +4,15 @@ export default (sequelize, DataTypes) => {
   const TrackArtist = sequelize.define(
     "TrackArtist",
     {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
-      },
       trackId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        primaryKey: true
       },
       artistId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        primaryKey: true
       },
       artistOrder: { 
         type: DataTypes.INTEGER, 
@@ -23,7 +20,7 @@ export default (sequelize, DataTypes) => {
         defaultValue: 1
       },
       role: { 
-        type: DataTypes.STRING, 
+        type: DataTypes.ENUM("primary", "featured", "producer", "writer"), 
         allowNull: false, 
         defaultValue: "primary" 
       }

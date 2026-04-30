@@ -10,7 +10,7 @@ export default (sequelize, DataTypes) => {
         primaryKey: true
       },
       artistId: {
-        type: Sequelize.UUID,
+        type: DataTypes.UUID,
         allowNull: false
       },
       title: {
@@ -18,7 +18,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false
       },
       description: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
         unique: true
       },

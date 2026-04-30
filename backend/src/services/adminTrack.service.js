@@ -1,5 +1,4 @@
 import path from "path";
-import fs from "fs";
 import db from "../models/index.js";
 import ApiError from "../utils/apiError.js";
 import BaseService from "./base.service.js";
