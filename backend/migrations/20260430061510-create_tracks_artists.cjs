@@ -15,14 +15,16 @@ module.exports = {
         allowNull: false,
         references: { model: "Tracks", key: "id" },
         onDelete: "CASCADE",
-        onUpdate: "CASCADE"
+        onUpdate: "CASCADE",
+        primaryKey: true
       },
       artistId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: { model: "Artists", key: "id" },
         onDelete: "CASCADE",
-        onUpdate: "CASCADE"
+        onUpdate: "CASCADE",
+        primaryKey: true
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -40,6 +42,7 @@ module.exports = {
         defaultValue: "primary"
       },
     });
+
   },
 
   async down(queryInterface, Sequelize) {

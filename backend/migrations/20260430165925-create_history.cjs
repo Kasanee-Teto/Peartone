@@ -41,6 +41,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable("play_history");
+    await queryInterface.dropTable("History");
   }
 };
