@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
 
         {/* ── Grup Discover ── */}
         <p className="home__sidebar-group-title">Discover</p>
-        <ul className="home__sidebar-list" role="list">
+        <ul className="home__sidebar-list list-none" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/"
@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
 
         {/* ── Grup Library ── */}
         <p className="home__sidebar-group-title">Library</p>
-        <ul className="home__sidebar-list" role="list">
+        <ul className="home__sidebar-list list-none" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/playlists"
@@ -116,7 +116,7 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
 
         {/* ── Grup Account (posisi bawah via CSS) ── */}
         <p className="home__sidebar-group-title">Account</p>
-        <ul className="home__sidebar-list" role="list">
+        <ul className="home__sidebar-list list-none" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/profile"

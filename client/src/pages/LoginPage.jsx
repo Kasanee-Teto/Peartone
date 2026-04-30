@@ -42,9 +42,9 @@ const LoginPage = () => {
                 />
               </label>
             </form>
-              <button className="mt-6 w-full rounded-lg bg-[#7c6af7] py-3 text-sm hover:bg-[#6b5ce7]">
-                Login
-              </button>
+            <button className="login__button bg-green-600 text-white transition duration-150 hover:bg-green-700">
+              Login
+            </button>
           </div>
         </section>
       </div>
