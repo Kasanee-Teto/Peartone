@@ -1,95 +1,65 @@
+import { Op } from "sequelize";
 import db from "../models/index.js";
 import BaseService from "./base.service.js";
-import ApiError from "../utils/apiError.js";
 
-const { Track, TrackArtist, Artist, Album, sequelize, Sequelize } = db;
+const { Track, Artist, Album, TrackArtist } = db;
 
 class TrackService extends BaseService {
-  async createTrack(data, files) {
-    const transaction = await sequelize.transaction();
-
-    try {
-      const audioFile = files?.audio?.[0];
-      if (!audioFile) {
-        throw new ApiError(400, "Audio file is required");
+  _include() {
+    return [
+      { model: Album, as: "album" },
+      {
+        model: Artist,
+        as: "artists",
+        through: { attributes: ["artistOrder", "role"] },
+        order: [[TrackArtist, "artistOrder", "ASC"]]
       }
-
-      const track = await Track.create(
-        {
-          title: data.title,
-          duration: data.duration || null,
-          audioUrl: `/storage/audio/${audioFile.filename}`,
-          coverUrl: files?.cover?.[0]
-            ? `/storage/covers/${files.cover[0].filename}`
-            : null,
-          albumId: data.albumId || null
-        },
-        { transaction }
-      );
-
-      const artistIds = Array.isArray(data.artistIds)
-        ? data.artistIds
-        : data.artistIds
-        ? JSON.parse(data.artistIds)
-        : [];
-
-      if (!artistIds.length) {
-        throw new ApiError(400, "artistIds is required");
-      }
-
-      const trackArtists = artistIds.map((artistId) => ({
-        trackId: track.id,
-        artistId
-      }));
-
-      await TrackArtist.bulkCreate(trackArtists, { transaction });
-
-      await transaction.commit();
-      return this.success(track, "Track created");
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
-    }
+    ];
   }
 
-  async getAllTracks() {
+  async list() {
     const tracks = await Track.findAll({
-      include: [
-        { model: Artist, through: { attributes: [] } },
-        { model: Album }
-      ],
+      where: { isPublished: true },
+      include: this._include(),
       order: [["createdAt", "DESC"]]
     });
-
     return this.success(tracks, "Tracks fetched");
   }
 
-  async searchTracks(query) {
-    if (!query) {
-      return this.success([], "No query");
-    }
+  async getById(id) {
+    const track = await Track.findByPk(id, { include: this._include() });
+    return this.success(track, "Track fetched");
+  }
+
+  async search(q) {
+    const query = (q || "").trim();
+    if (!query) return this.success([], "Empty query");
 
     const tracks = await Track.findAll({
+      where: { isPublished: true },
       include: [
-        { model: Artist, through: { attributes: [] } },
-        { model: Album }
-      ],
-      where: Sequelize.where(
-        Sequelize.fn(
-          "concat",
-          Sequelize.col("Track.title"),
-          " ",
-          Sequelize.col("Artists.name"),
-          " ",
-          Sequelize.col("Album.title")
-        ),
+        { model: Album, as: "Album", where: { title: { [Op.iLike]: `%${query}%` } }, required: false },
         {
-          [Sequelize.Op.iLike]: `%${query}%`
+          model: Artist,
+          as: "Artists",
+          through: { attributes: ["artistOrder", "role"] },
+          where: { name: { [Op.iLike]: `%${query}%` } },
+          required: false
         }
-      )
+      ],
+      having: undefined,
+      order: [["created_at", "DESC"]]
     });
 
-    return this.success(tracks, "Search results");
+    const tracksByTitle = await Track.findAll({
+      where: { isPublished: true, title: { [Op.iLike]: `%${query}%` } },
+      include: this._include(),
+      order: [["createdAt", "DESC"]]
+    });
+
+    const map = new Map();
+    [...tracks, ...tracksByTitle].forEach((t) => map.set(t.id, t));
+    return this.success([...map.values()], "Search results");
   }
 }
 

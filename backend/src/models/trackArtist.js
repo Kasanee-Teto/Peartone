@@ -17,6 +17,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false
       },
+      artistOrder: { 
+        type: DataTypes.INTEGER, 
+        allowNull: false, 
+        defaultValue: 1
+      },
       role: { 
         type: DataTypes.STRING, 
         allowNull: false, 

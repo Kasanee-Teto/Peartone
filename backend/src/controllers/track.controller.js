@@ -1,17 +1,21 @@
 import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
 import trackService from "../services/track.service.js";
 
-export const createTrack = asyncHandler(async (req, res) => {
-  const result = await trackService.createTrack(req.body, req.files);
-  res.status(201).json(result);
+export const listTracks = asyncHandler(async (req, res) => {
+  const result = await trackService.list();
+  res.status(200).json(result);
 });
 
-export const getAllTracks = asyncHandler(async (req, res) => {
-  const result = await trackService.getAllTracks();
+export const getTrack = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const result = await trackService.getById(id);
+  if (!result.data) throw new ApiError(404, "Track not found");
   res.status(200).json(result);
 });
 
 export const searchTracks = asyncHandler(async (req, res) => {
-  const result = await trackService.searchTracks(req.query.q);
+  const { q } = req.query;
+  const result = await trackService.search(q);
   res.status(200).json(result);
 });

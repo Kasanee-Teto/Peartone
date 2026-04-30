@@ -12,6 +12,10 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         primaryKey: true 
       },
+      position: { 
+        type: DataTypes.INTEGER, 
+        allowNull: false 
+      },
       addedBy: { 
         type: DataTypes.UUID, 
         allowNull: true, 
@@ -24,6 +28,10 @@ export default (sequelize, DataTypes) => {
     },
     { tableName: "PlaylistTracks", timestamps: false }
   );
+
+  PlaylistTrack.associate = (models) => {
+    PlaylistTrack.belongsTo(models.Track, { foreignKey: "trackId" });
+  };
 
   return PlaylistTrack;
 };

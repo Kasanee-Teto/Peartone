@@ -22,14 +22,14 @@ class AuthService extends BaseService {
         user: this._sanitizeUser(user),
         token
       },
-      "User registered"
+      "User registered!"
     );
   }
 
-  async login({ email, password }) {
-    const user = await User.findOne({ where: { email } });
+  async login({ username, password }) {
+    const user = await User.findOne({ where: { username } });
     if (!user) {
-      throw new ApiError(401, "Invalid credentials");
+      throw new ApiError(401, "Invalid username");
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
@@ -54,6 +54,7 @@ class AuthService extends BaseService {
     }
     const payload = {
       id: user.id,
+      username: user.username,
       email: user.email,
       role: user.role
     };
@@ -68,6 +69,7 @@ class AuthService extends BaseService {
   _sanitizeUser(user) {
     return {
       id: user.id,
+      username: user.username,
       email: user.email,
       role: user.role,
       createdAt: user.createdAt,

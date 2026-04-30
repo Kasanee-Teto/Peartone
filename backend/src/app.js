@@ -1,17 +1,32 @@
 import express from "express";
 import cors from "cors";
+
 import authRoutes from "./routes/auth.routes.js";
-import trackRoutes from "./routes/track.routes.js";
 import artistRoutes from "./routes/artist.routes.js";
+import trackRoutes from "./routes/track.routes.js";
+import likeRoutes from "./routes/like.routes.js";
+import playlistRoutes from "./routes/playlist.routes.js";
+import lyricsRoutes from "./routes/lyrics.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import streamRoutes from "./routes/stream.routes.js";
+import historyRoutes from "./routes/history.routes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+app.use("/uploads", express.static("uploads"));
+
 app.use("/api/auth", authRoutes);
-app.use("/api/tracks", trackRoutes);
 app.use("/api/artists", artistRoutes);
+app.use("/api/tracks", trackRoutes);
+app.use("/api/likes", likeRoutes);
+app.use("/api/playlists", playlistRoutes);
+app.use("/api/lyrics", lyricsRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/stream", streamRoutes);
+app.use("/api/history", historyRoutes);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;

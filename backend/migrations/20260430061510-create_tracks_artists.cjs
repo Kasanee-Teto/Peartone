@@ -26,6 +26,11 @@ module.exports = {
         onUpdate: "CASCADE",
         primaryKey: true
       },
+      artistOrder: { 
+        type: Sequelize.INTEGER, 
+        allowNull: false, 
+        defaultValue: 1
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

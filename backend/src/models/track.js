@@ -17,9 +17,23 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true
       },
-      audioUrl: {
-        type: DataTypes.STRING,
+      audioUrl: { 
+        type: DataTypes.STRING, 
         allowNull: false
+      },
+      audioPath: { 
+        type: DataTypes.STRING, 
+        allowNull: false
+      },
+      mimeType: { 
+        type: DataTypes.STRING, 
+        allowNull: false, 
+        defaultValue: "audio/mpeg"
+      },
+      fileSize: { 
+        type: DataTypes.BIGINT, 
+        allowNull: false, 
+        defaultValue: 0
       },
       coverUrl: {
         type: DataTypes.STRING,
@@ -36,15 +50,6 @@ export default (sequelize, DataTypes) => {
       },
       uploadedBy: { 
         type: DataTypes.UUID, 
-        allowNull: true
-      },
-      discNumber: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 1
-      },
-      trackNumber: {
-        type: Sequelize.INTEGER,
         allowNull: true
       }
     },

@@ -20,5 +20,9 @@ export default (sequelize, DataTypes) => {
     { tableName: "LikedTracks", timestamps: false }
   );
 
+  LikedTrack.associate = (models) => {
+    LikedTrack.belongsTo(models.Track, { foreignKey: "trackId" });
+  };
+
   return LikedTrack;
 };

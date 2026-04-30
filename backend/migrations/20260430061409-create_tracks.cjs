@@ -18,9 +18,23 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true
       },
-      audioUrl: {
-        type: Sequelize.STRING,
-        allowNull: false
+      audioUrl: { 
+        type: Sequelize.STRING, 
+        allowNull: false 
+      },
+      audioPath: { 
+        type: Sequelize.STRING, 
+        allowNull: false 
+      },
+      mimeType: { 
+        type: Sequelize.STRING, 
+        allowNull: false,
+        defaultValue: "audio/mpeg" 
+      },
+      fileSize: { 
+        type: Sequelize.BIGINT, 
+        allowNull: false, 
+        defaultValue: 0 
       },
       coverUrl: {
         type: Sequelize.STRING,
@@ -54,15 +68,6 @@ module.exports = {
         references: { model: "Users", key: "id" },
         onDelete: "SET NULL",
         onUpdate: "CASCADE"
-      },
-      discNumber: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 1
-      },
-      trackNumber: {
-        type: Sequelize.INTEGER,
-        allowNull: true
       }
     });
 

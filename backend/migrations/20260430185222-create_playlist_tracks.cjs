@@ -20,6 +20,10 @@ module.exports = {
         onUpdate: "CASCADE",
         primaryKey: true
       },
+      position: { 
+        type: Sequelize.INTEGER, 
+        allowNull: false 
+      },
       added_by: {
         type: Sequelize.UUID,
         allowNull: true,
