@@ -48,7 +48,7 @@ class TrackService extends BaseService {
         }
       ],
       having: undefined,
-      order: [["created_at", "DESC"]]
+      order: [["createdAt", "DESC"]]
     });
 
     const tracksByTitle = await Track.findAll({
