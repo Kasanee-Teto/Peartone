@@ -11,6 +11,7 @@ module.exports = {
           {
             id: Sequelize.literal("gen_random_uuid()"),
             email: "admin@peartone.local",
+            username: "peartone21",
             passwordHash,
             role: "admin",
             createdAt: new Date(),
@@ -20,6 +21,6 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.bulkDelete("Users", { email: "admin@peartone.local" });
+    await queryInterface.bulkDelete("Users", { email: "admin@peartone.local", username: "peartone21" });
   }
 };

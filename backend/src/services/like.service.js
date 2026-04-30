@@ -10,7 +10,7 @@ class LikeService extends BaseService {
       { model: Album, as: "Album" },
       {
         model: Artist,
-        as: "Artist",
+        as: "Artists",
         through: { attributes: ["artistOrder", "role"] },
         order: [[TrackArtist, "artistOrder", "ASC"]]
       }

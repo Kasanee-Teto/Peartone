@@ -7,10 +7,10 @@ const { Track, Artist, Album, TrackArtist } = db;
 class TrackService extends BaseService {
   _include() {
     return [
-      { model: Album, as: "album" },
+      { model: Album, as: "Album" },
       {
         model: Artist,
-        as: "artists",
+        as: "Artists",
         through: { attributes: ["artistOrder", "role"] },
         order: [[TrackArtist, "artistOrder", "ASC"]]
       }

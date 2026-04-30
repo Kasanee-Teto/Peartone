@@ -6,7 +6,7 @@ const { History, Track, Album, Artist, TrackArtist } = db;
 class HistoryService extends BaseService {
   _includeTrack() {
     return [
-      { model: Album, as: "album" },
+      { model: Album, as: "Album" },
       {
         model: Artist,
         as: "Artists",
