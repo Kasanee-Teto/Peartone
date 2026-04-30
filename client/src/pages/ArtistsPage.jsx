@@ -15,7 +15,7 @@ const ArtistsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
+      <div className="relative mx-auto flex min-h-screen max-w-5xl items-center px-4 py-8 sm:px-6 sm:py-10">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#7c6af7] opacity-20 blur-[120px]" />
           <div className="absolute bottom-6 right-0 h-72 w-72 rounded-full bg-[#c8f560] opacity-15 blur-[140px]" />
@@ -45,32 +45,32 @@ const ArtistsPage = () => {
           ≡
         </button>
 
-        <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+        <section className="relative z-10 grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="flex flex-col justify-center">
-            <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl">
               Artists
             </h1>
-            <p className="mt-4 max-w-md text-sm text-white/60 sm:text-base">
+            <p className="mt-3 max-w-md text-sm text-white/60">
               Temukan musisi yang lagi ramai didengar dan cocok dengan selera kamu.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-semibold">Featured Artists</h2>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/50">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h2 className="text-xl font-semibold">Featured Artists</h2>
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/50">
                 Popular
               </span>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {artists.map((artist) => (
                 <article key={artist.id} className="overflow-hidden rounded-3xl border border-white/10 bg-[#111114]">
-                  <div className={`h-28 bg-gradient-to-br ${artist.color}`} />
-                  <div className="p-5">
+                  <div className={`h-24 bg-gradient-to-br ${artist.color}`} />
+                  <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="text-lg font-semibold">{artist.name}</h3>
+                        <h3 className="text-base font-semibold">{artist.name}</h3>
                         <p className="mt-1 text-sm text-white/60">{artist.genre}</p>
                       </div>
                       <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">

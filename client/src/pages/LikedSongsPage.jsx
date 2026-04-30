@@ -48,7 +48,6 @@ const LikedSongsPage = () => {
 
         <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="flex flex-col justify-center">
-            <p className="text-sm uppercase tracking-[0.24em] text-white/50">Library</p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
               Liked Songs
             </h1>
@@ -60,18 +59,18 @@ const LikedSongsPage = () => {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <h2 className="text-2xl font-semibold">Saved Tracks</h2>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/50">
+              <span className="rounded-full border border-white/5 bg-white/5 px-2 py-1 text-xs uppercase tracking-[0.2em] text-white/50">
                 {likedSongs.length} Songs
               </span>
             </div>
 
-            <ol className="space-y-3" aria-label="Daftar liked songs">
+            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4" aria-label="Daftar liked songs">
               {likedSongs.map((track) => (
                 <li key={track.id}>
                   <MusicCard track={track} variant="popular" />
                 </li>
               ))}
-            </ol>
+            </ul>
           </div>
         </section>
       </div>
