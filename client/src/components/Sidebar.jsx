@@ -1,4 +1,4 @@
-const Sidebar = ({ isOpen, onClose, onPlaylist }) => {
+const Sidebar = ({ isOpen, onClose, onHome, onPlaylist }) => {
   return (
     <aside
       id="home-sidebar"
@@ -15,7 +15,7 @@ const Sidebar = ({ isOpen, onClose, onPlaylist }) => {
         X
       </button>
       <nav className="home__sidebar-nav" aria-label="Navigasi Utama">
-        <button className="home__sidebar-link is-active" type="button">
+        <button className="home__sidebar-link is-active" type="button" onClick={onHome}>
           Home
         </button>
         <button className="home__sidebar-link" type="button" onClick={onPlaylist}>

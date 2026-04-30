@@ -1,7 +1,10 @@
+import { useState } from "react";
 import PlaylistCard from "../components/PlaylistCard";
+import Sidebar from "../components/Sidebar";
 import "../styles/playlistPage.css";
 
 const PlaylistPage = ({ onBack }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const playlists = [
     {
       id: 1,
@@ -55,6 +58,34 @@ const PlaylistPage = ({ onBack }) => {
 
   return (
     <main className="playlist" aria-label="Playlist">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onHome={() => {
+          onBack();
+          setIsSidebarOpen(false);
+        }}
+        onPlaylist={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+        type="button"
+        aria-label="Tutup menu samping"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className="home__sidebar-toggle"
+        type="button"
+        aria-label="Buka menu samping"
+        aria-controls="home-sidebar"
+        aria-expanded={isSidebarOpen}
+        onClick={() => setIsSidebarOpen(true)}
+      >
+        ≡
+      </button>
+
       <div className="playlist-header">
         <button className="back-button" onClick={onBack} aria-label="Kembali ke beranda">
           ← Kembali

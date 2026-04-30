@@ -41,6 +41,7 @@ const HomePage = () => {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          onHome={() => setIsSidebarOpen(false)}
           onPlaylist={() => {
             setShowplaylist(true);
             setIsSidebarOpen(false);
