@@ -33,6 +33,10 @@ module.exports = {
           allowNull: false,
           defaultValue: "user",
         },
+        location: {
+          type: Sequelize.STRING,
+          allowNull: true
+        },
         createdAt: {
           type: Sequelize.DATE,
           allowNull: false,

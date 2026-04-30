@@ -25,6 +25,10 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.ENUM("admin", "user"),
         allowNull: false,
         defaultValue: "user"
+      },
+      location: {
+        type: DataTypes.STRING,
+        allowNull: true
       }
     },
     {
