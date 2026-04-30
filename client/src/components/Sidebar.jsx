@@ -5,7 +5,9 @@ import {
   FiMic,
   FiDisc,
   FiList,
+  FiClock,
   FiHeart,
+  FiUploadCloud,
   FiUser,
   FiLogOut,
   FiX,
@@ -100,6 +102,20 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
               <span>Playlists</span>
             </NavLink>
           </li>
+
+          <li className="home__sidebar-item">
+            <NavLink
+              to="/history"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `home__sidebar-link${isActive ? " is-active" : ""}`
+              }
+            >
+              <FiClock className="home__sidebar-icon" aria-hidden="true" />
+              <span>History</span>
+            </NavLink>
+          </li>
+
           <li className="home__sidebar-item">
             <NavLink
               to="/liked"
@@ -117,6 +133,18 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
         {/* ── Grup Account (posisi bawah via CSS) ── */}
         <p className="home__sidebar-group-title">Account</p>
         <ul className="home__sidebar-list list-none" role="list">
+          <li className="home__sidebar-item">
+            <NavLink
+              to="/admin"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `home__sidebar-link${isActive ? " is-active" : ""}`
+              }
+            >
+              <FiUploadCloud className="home__sidebar-icon" aria-hidden="true" />
+              <span>Admin Upload</span>
+            </NavLink>
+          </li>
           <li className="home__sidebar-item">
             <NavLink
               to="/profile"
