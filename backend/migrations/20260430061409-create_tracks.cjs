@@ -42,8 +42,34 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal("NOW()")
+      },
+      isPublished: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      },
+      uploadedBy: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: { model: "Users", key: "id" },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
+      },
+      discNumber: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+      },
+      trackNumber: {
+        type: Sequelize.INTEGER,
+        allowNull: true
       }
     });
+
+    await queryInterface.addIndex("Tracks", ["albumId"], { name: "idx_tracks_album_id" });
+    await queryInterface.sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_tracks_title_trgm ON Tracks USING gin (title gin_trgm_ops);`
+    );
   },
 
   async down (queryInterface, Sequelize) {

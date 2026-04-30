@@ -10,9 +10,24 @@ module.exports = {
         allowNull: false,
         primaryKey: true
       },
+      artistId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: "artists",
+          key: "id"
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE"
+      },
       title: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      description: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        unique: true
       },
       coverUrl: {
         type: Sequelize.STRING,
@@ -33,6 +48,12 @@ module.exports = {
         defaultValue: Sequelize.literal("NOW()")
       }
     });
+
+    await queryInterface.addIndex("Albums", ["artistId"], { name: "idx_albums_artist_id" });
+    await queryInterface.sequelize.query(
+      `CREATE INDEX IF NOT EXISTS idx_albums_title_trgm ON Albums USING gin (title gin_trgm_ops);`
+    );
+  
   },
 
   async down (queryInterface, Sequelize) {

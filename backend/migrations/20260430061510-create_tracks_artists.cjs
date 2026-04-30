@@ -33,11 +33,17 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal("NOW()")
-      }
+      },
+      role: {
+        type: Sequelize.ENUM("primary", "featured", "producer", "writer"),
+        allowNull: false,
+        defaultValue: "primary"
+      },
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("TrackArtists");
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_TrackArtists_role";');
   }
 };
