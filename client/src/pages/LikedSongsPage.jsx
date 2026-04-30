@@ -1,79 +1,129 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
-import MusicCard from "../components/MusicCard";
+import "../styles/LikedSongsPage.css";
 
 const likedSongs = [
-  { id: 1, title: "Night Runner", artist: "Arka Lane", album: "After Dark", duration: "3:21", genre: "Pop", cover_url: "https://via.placeholder.com/240?text=A", play_count: 45120 },
-  { id: 2, title: "Static Heart", artist: "Nova Echo", album: "City Lights", duration: "4:02", genre: "Electronic", cover_url: "https://via.placeholder.com/240?text=B", play_count: 39810 },
-  { id: 3, title: "Soft Gravity", artist: "Luna Vale", album: "Sunset Tapes", duration: "3:48", genre: "Indie", cover_url: "https://via.placeholder.com/240?text=C", play_count: 38750 },
-  { id: 4, title: "Move Fast", artist: "Rift Boys", album: "Throttle", duration: "2:55", genre: "Hip-Hop", cover_url: "https://via.placeholder.com/240?text=D", play_count: 42200 },
-  { id: 5, title: "Bloom", artist: "Mira Sol", album: "Orbit", duration: "4:16", genre: "Alt Pop", cover_url: "https://via.placeholder.com/240?text=E", play_count: 36140 },
-  { id: 6, title: "Blue Skyline", artist: "Velvet Peak", album: "Blue Hour", duration: "3:37", genre: "Dream Pop", cover_url: "https://via.placeholder.com/240?text=F", play_count: 31990 },
+  { id: 1, title: "Night Runner", artist: "Arka Lane", album: "After Dark", duration: "3:21" },
+  { id: 2, title: "Static Heart", artist: "Nova Echo", album: "City Lights", duration: "4:02" },
+  { id: 3, title: "Soft Gravity", artist: "Luna Vale", album: "Sunset Tapes", duration: "3:48" },
+  { id: 4, title: "Move Fast", artist: "Rift Boys", album: "Throttle", duration: "2:55" },
+  { id: 5, title: "Bloom", artist: "Mira Sol", album: "Orbit", duration: "4:16" },
+  { id: 6, title: "Blue Skyline", artist: "Velvet Peak", album: "Blue Hour", duration: "3:37" },
 ];
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const userName = "kindy";
+  const totalLikedSongs = 76;
 
   return (
-    <main className="min-h-screen bg-[#0d0d0f] text-white">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#7c6af7] opacity-20 blur-[120px]" />
-          <div className="absolute bottom-6 right-0 h-72 w-72 rounded-full bg-[#c8f560] opacity-15 blur-[140px]" />
-        </div>
+    <main className="liked liked--fullbleed">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={() => setIsSidebarOpen(false)}
+      />
 
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={() => setIsSidebarOpen(false)}
-        />
+      <button
+        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+        type="button"
+        aria-label="Tutup menu samping"
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
-        <button
-          className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
-          type="button"
-          aria-label="Tutup menu samping"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+      <button
+        className="home__sidebar-toggle"
+        type="button"
+        aria-label="Buka menu samping"
+        aria-controls="home-sidebar"
+        aria-expanded={isSidebarOpen}
+        onClick={() => setIsSidebarOpen(true)}
+      >
+        ≡
+      </button>
 
-        <button
-          className="home__sidebar-toggle"
-          type="button"
-          aria-label="Buka menu samping"
-          aria-controls="home-sidebar"
-          aria-expanded={isSidebarOpen}
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          ≡
-        </button>
-
-        <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-              Liked Songs
-            </h1>
-            <p className="mt-4 max-w-md text-sm text-white/60 sm:text-base">
-              Lagu-lagu favorit yang kamu simpan untuk didengar lagi kapan saja.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-semibold">Saved Tracks</h2>
-              <span className="rounded-full border border-white/5 bg-white/5 px-2 py-1 text-xs uppercase tracking-[0.2em] text-white/50">
-                {likedSongs.length} Songs
-              </span>
+      <section className="liked__hero">
+        <div className="liked__heroInner">
+          <div className="liked__header">
+            <div className="liked__cover" aria-hidden="true">
+              <img src="/like.png" alt="Disukai" className="liked__coverImg" />
             </div>
 
-            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4" aria-label="Daftar liked songs">
-              {likedSongs.map((track) => (
-                <li key={track.id}>
-                  <MusicCard track={track} variant="popular" />
-                </li>
-              ))}
-            </ul>
+            <div className="liked__meta">
+              <p className="liked__label">Playlist</p>
+              <h1 className="liked__title">Lagu yang Disukai</h1>
+              <p className="liked__subtitle">
+                <strong>{userName}</strong>
+                <span className="liked__dot">•</span>
+                <span>{totalLikedSongs} lagu</span>
+              </p>
+            </div>
           </div>
-        </section>
-      </div>
+
+          <div className="liked__controlsRow">
+            <button
+              type="button"
+              onClick={() => setIsPlaying((v) => !v)}
+              className="liked__play"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? (
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </button>
+
+            <button type="button" className="liked__iconBtn" aria-label="Shuffle">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+
+            <button type="button" className="liked__iconBtn" aria-label="Download">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="liked__list" aria-label="Daftar lagu yang disukai">
+        <div className="liked__tableHead" role="row">
+          <div role="columnheader">#</div>
+          <div role="columnheader">Judul</div>
+          <div role="columnheader">Artis</div>
+          <div role="columnheader">Album</div>
+          <div className="liked__clock" role="columnheader" aria-label="Durasi">
+              <svg className="h-1 w-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v5l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+          </div>
+        </div>
+
+        <ul className="liked__rows">
+          {likedSongs.map((track, index) => (
+            <li key={track.id} className="liked__row">
+              <div className="liked__index">{index + 1}</div>
+              <div className="liked__titleCell">{track.title}</div>
+              <div className="liked__cell">{track.artist}</div>
+              <div className="liked__cell">{track.album}</div>
+              <div className="liked__cell liked__duration">{track.duration}</div>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 };
