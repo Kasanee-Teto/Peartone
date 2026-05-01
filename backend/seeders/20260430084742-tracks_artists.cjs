@@ -134,6 +134,30 @@ module.exports = {
         role: "primary",
         createdAt: new Date(),
         updatedAt: new Date()
+      },
+      {
+        trackId: "aa1b2c3d-4e5f-6789-a012-3456789abcde",
+        artistId: "f1a2b3c4-6d7e-4f8a-9b0c-1d2e3f4a5b6c", // 32ki
+        artistOrder: 1,
+        role: "primary",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        trackId: "aa1b2c3d-4e5f-6789-a012-3456789abcde",
+        artistId: "d8b64fd2-9b6f-4f5d-b3ae-0a1e6d0a77a1", // Hatsune Miku
+        artistOrder: 2,
+        role: "featured",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        trackId: "aa1b2c3d-4e5f-6789-a012-3456789abcde",
+        artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7", // Kasane Teto
+        artistOrder: 3,
+        role: "featured",
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ]);
   },

@@ -38,8 +38,8 @@ class AdminTrackService extends BaseService {
 
     const coverFile = files?.cover?.[0];
 
-    const audioPath = path.posix.join("uploads", "audio", audioFile.filename);
-    const coverUrl = coverFile ? path.posix.join("uploads", "covers", coverFile.filename) : null;
+    const audioPath = path.posix.join("storage", "audio", audioFile.filename);
+    const coverUrl = coverFile ? path.posix.join("storage", "covers", coverFile.filename) : null;
 
     const track = await db.sequelize.transaction(async (t) => {
       const created = await Track.create(
