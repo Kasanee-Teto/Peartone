@@ -1,0 +1,296 @@
+/* =============================================
+   ADMIN UPLOAD PAGE — Peartone
+   ============================================= */
+.admin-upload {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #0d0d0f;
+  color: #fff;
+}
+
+.admin-upload__blob {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.admin-upload__blob::before {
+  content: "";
+  position: absolute;
+  top: -72px;
+  left: -140px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: #1ed760;
+  opacity: 0.06;
+  filter: blur(160px);
+}
+
+.admin-upload__blob::after {
+  content: "";
+  position: absolute;
+  bottom: -100px;
+  right: -80px;
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  background: #7c6af7;
+  opacity: 0.05;
+  filter: blur(170px);
+}
+
+.admin-upload__inner {
+  position: relative;
+  z-index: 10;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+.admin-upload__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 28px;
+  margin-bottom: 18px;
+}
+
+.admin-upload__eyebrow {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-upload__title {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.admin-upload__desc {
+  margin: 12px 0 0;
+  max-width: 520px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-upload__badge {
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #1ed760;
+  background: rgba(30, 215, 96, 0.1);
+  border: 1px solid rgba(30, 215, 96, 0.18);
+}
+
+/* =============================================
+   FORM
+   ============================================= */
+.admin-form {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px;
+}
+
+.admin-form__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-field__label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.admin-field__input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  outline: none;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+}
+
+.admin-field__input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-file {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-file input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-file__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(30, 215, 96, 0.22);
+  background: rgba(30, 215, 96, 0.1);
+  color: #1ed760;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-file__name {
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.admin-submit {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  color: #0d0d0f;
+  background: #1ed760;
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.admin-submit:hover {
+  transform: translateY(-1px);
+}
+
+.admin-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-hint {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* =============================================
+   PREVIEW
+   ============================================= */
+.admin-preview {
+  margin-top: 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px;
+}
+
+.admin-preview__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.admin-preview__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.admin-preview__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-preview__k {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-preview__v {
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 820px) {
+  .admin-form__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-field:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .admin-preview__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-upload__title {
+    font-size: 44px;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-submit {
+    width: 100%;
+  }
+}

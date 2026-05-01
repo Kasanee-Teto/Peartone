@@ -1,0 +1,537 @@
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  height: 88px;
+  background: rgba(13, 13, 15, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  color: #fff;
+}
+
+/* =============================================
+   KIRI — Info Lagu
+   ============================================= */
+
+.player__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 240px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.player__art {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 20px rgba(124, 106, 247, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.player__art.is-playing {
+  animation: player-spin 8s linear infinite;
+}
+
+@keyframes player-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.player__track {
+  min-width: 0;
+  flex: 1;
+}
+
+.player__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.player__artist {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player__like {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  padding: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.player__like:hover {
+  color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.15);
+}
+
+.player__like.is-liked {
+  color: #c8f560;
+}
+
+.player__like.is-liked:hover {
+  color: #d4f770;
+}
+
+/* =============================================
+   TENGAH — Kontrol + Progress
+   ============================================= */
+
+.player__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Tombol kontrol */
+.player__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player__btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.player__btn:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.player__btn.is-active {
+  color: #c8f560;
+}
+
+.player__btn.is-active:hover {
+  color: #d4f770;
+}
+
+/* Skip buttons */
+.player__btn--skip {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.player__btn--skip:hover {
+  color: #fff;
+}
+
+/* Play / Pause button */
+.player__play {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #0d0d0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.player__play:hover {
+  transform: scale(1.07);
+  background: #f0f0f0;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+}
+
+.player__play:active {
+  transform: scale(0.95);
+}
+
+/* Progress bar */
+.player__progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.player__time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+  min-width: 34px;
+  font-variant-numeric: tabular-nums;
+}
+
+.player__time--end {
+  text-align: left;
+}
+
+.player__time--start {
+  text-align: right;
+}
+
+.player__bar-wrap {
+  flex: 1;
+  position: relative;
+  height: 4px;
+  cursor: pointer;
+}
+
+/* hover hitbox lebih besar */
+.player__bar-wrap::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+}
+
+.player__bar-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.15s;
+}
+
+.player__bar-wrap:hover .player__bar-track {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.player__bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: #c8f560;
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* Thumb dot — muncul saat hover */
+.player__bar-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.15s;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.player__bar-wrap:hover .player__bar-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.player__bar-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* =============================================
+   KANAN — Volume + Extra
+   ============================================= */
+
+.player__right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 240px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.player__volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.player__volume-icon {
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.player__volume-icon:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.player__vol-bar-wrap {
+  position: relative;
+  width: 80px;
+  height: 4px;
+  cursor: pointer;
+}
+
+.player__vol-bar-wrap::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+}
+
+.player__vol-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.15s;
+}
+
+.player__vol-bar-wrap:hover .player__vol-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.player__vol-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+  transition: background 0.15s;
+}
+
+.player__vol-bar-wrap:hover .player__vol-fill {
+  background: #c8f560;
+}
+
+.player__vol-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.player__toggle,
+.player__collapsed-toggle {
+  pointer-events: auto;
+}
+
+.player__toggle:hover,
+.player__collapsed-toggle:hover {
+  color: #fff;
+}
+
+.player--collapsed {
+  justify-content: flex-end;
+  padding-right: 24px;
+  height: auto;
+  background: transparent;
+  border-top: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+@media (max-width: 1024px) {
+  .player__left {
+    width: 200px !important;
+  }
+
+  .player__right {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    max-width: 440px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .player {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .player__body {
+    height: auto !important;
+    padding: 14px 14px 12px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .player__toggle {
+    align-self: flex-start !important;
+  }
+
+  .player__left {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    gap: 10px;
+  }
+
+  .player__title {
+    font-size: 12px;
+  }
+
+  .player__artist {
+    font-size: 10px;
+  }
+
+  .player__controls {
+    gap: 10px !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player__btn--shuffle,
+  .player__btn--repeat {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    max-width: none !important;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .player__time {
+    min-width: 28px;
+  }
+
+  .player__center {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .player {
+    height: auto;
+    padding: 10px 12px 12px;
+  }
+
+  .player--collapsed {
+    padding-right: 12px;
+  }
+
+  .player__toggle {
+    margin-left: auto !important;
+    align-self: flex-end !important;
+  }
+
+  .player__left {
+    width: 100% !important;
+    flex: 1 1 auto;
+  }
+
+  .player__body {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 16px 14px 14px !important;
+    height: auto !important;
+  }
+
+  .player__center {
+    width: 100%;
+    gap: 10px !important;
+    order: 2;
+  }
+
+  .player__left {
+    order: 1;
+  }
+
+  .player__controls {
+    width: 100%;
+    justify-content: center;
+    gap: 8px !important;
+  }
+
+  .player__btn--skip,
+  .player__btn--extra {
+    display: none !important;
+  }
+
+  .player__progress-row {
+    width: 100%;
+  }
+
+  .player__time {
+    min-width: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .player__left {
+    gap: 8px;
+  }
+
+  .player__art {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .player__play {
+    width: 34px;
+    height: 34px;
+  }
+
+  .player__progress-row {
+    gap: 4px;
+  }
+
+  .player__time {
+    font-size: 10px;
+  }
+}
