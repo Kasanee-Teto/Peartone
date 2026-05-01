@@ -7,7 +7,7 @@ const { Track, TrackArtist, Artist, Album } = db;
 
 class AdminTrackService extends BaseService {
   async create({ userId, body, files }) {
-    const { title, duration, albumId, audioSource, artistIds } = body || {};
+    const { title, duration, albumId, artistIds } = body || {};
     if (!title) throw new ApiError(400, "Title is required!");
     if (!duration) throw new ApiError(400, "Duration is required!");
 
@@ -36,9 +36,13 @@ class AdminTrackService extends BaseService {
       throw new ApiError(400, "Some artistIds are invalid");
     }
 
+    const audioFile = files?.audio?.[0];
+    if (!audioFile) throw new ApiError(400, "Audio file is required!");
+
     const coverFile = files?.cover?.[0];
 
     const audioPath = path.posix.join("storage", "audio", audioFile.filename);
+    const audioUrl = `/${audioPath}`;
     const coverUrl = coverFile ? path.posix.join("storage", "covers", coverFile.filename) : null;
 
     const track = await db.sequelize.transaction(async (t) => {
@@ -47,7 +51,7 @@ class AdminTrackService extends BaseService {
           albumId: albumId || null,
           title,
           duration: Number(duration),
-          audioUrl: audioSource || "local",
+          audioUrl,
           audioPath,
           mimeType: audioFile.mimetype || "audio/mpeg",
           fileSize: audioFile.size || 0,
