@@ -1,5 +1,13 @@
 import './App.css'
-import { BrowserRouter, Route, Routes, useNavigate, useLocation } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useNavigate,
+  useLocation,
+  Navigate,
+  Outlet,
+} from 'react-router-dom'
 import HomePage from './pages/HomePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import PlaylistPage from './pages/PlaylistPage.jsx'
@@ -26,6 +34,12 @@ function ProfileRoute() {
 // Halaman yang TIDAK menampilkan Music Player
 const HIDE_PLAYER_ON = ['/login', '/register']
 
+function ProtectedRoute() {
+  const token = localStorage.getItem('token')
+  if (!token) return <Navigate to="/login" replace />
+  return <Outlet />
+}
+
 function AppLayout() {
   const location = useLocation()
   const showPlayer = !HIDE_PLAYER_ON.includes(location.pathname)
@@ -33,17 +47,25 @@ function AppLayout() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/charts" element={<TopChartsPage />} />
-        <Route path="/artists" element={<ArtistsPage />} />
-        <Route path="/albums" element={<AlbumsPage />} />
-        <Route path="/liked" element={<LikedSongsPage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/admin" element={<AdminUploadPage />} />
-        <Route path="/playlists" element={<PlaylistRoute />} />
-        <Route path="/profile" element={<ProfileRoute />} />
+        {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/charts" element={<TopChartsPage />} />
+          <Route path="/artists" element={<ArtistsPage />} />
+          <Route path="/albums" element={<AlbumsPage />} />
+          <Route path="/liked" element={<LikedSongsPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/admin" element={<AdminUploadPage />} />
+          <Route path="/playlists" element={<PlaylistRoute />} />
+          <Route path="/profile" element={<ProfileRoute />} />
+        </Route>
+
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {showPlayer && <MusicPlayer />}

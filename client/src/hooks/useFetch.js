@@ -1,53 +1,44 @@
-// client/src/hooks/useFetch.js
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { http, httpRaw } from "../api/http.js";
 
-export default function useFetch(url, options = {}) {
+export function useFetch(
+  path,
+  options = {},
+  immediate = true,
+  config = { raw: false }
+) {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(Boolean(url));
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const execute = useCallback(
+    async (override = {}) => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const finalOptions = { ...options, ...override };
+
+        const result = config?.raw
+          ? await httpRaw(path, finalOptions)
+          : await http(path, finalOptions);
+
+        setData(result);
+        return result;
+      } catch (err) {
+        setError(err?.message || "Request failed");
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [path, options, config?.raw]
+  );
 
   useEffect(() => {
-    if (!url) return;
+    if (!immediate) return;
+    execute();
+  }, [execute, immediate]);
 
-    const controller = new AbortController();
-    let active = true;
-
-    // set state dengan aman
-    setLoading(true);
-    setError("");
-
-    (async () => {
-      try {
-        const res = await fetch(url, { ...options, signal: controller.signal });
-
-        const contentType = res.headers.get("content-type") || "";
-        const isJson = contentType.includes("application/json");
-        const body = isJson ? await res.json() : await res.text();
-
-        if (!res.ok) {
-          const msg =
-            (isJson && body?.message) ||
-            (typeof body === "string" ? body.slice(0, 120) : "") ||
-            `Request failed (${res.status})`;
-          throw new Error(msg);
-        }
-
-        if (active) setData(body);
-      } catch (err) {
-        if (!active) return;
-        if (err.name === "AbortError") return;
-        setError(err.message || "Fetch error");
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-      controller.abort();
-    };
-    // sengaja depend hanya url supaya tidak loop karena options object berubah terus
-  }, [url]);
-
-  return { data, loading, error };
+  return { data, error, loading, execute };
 }

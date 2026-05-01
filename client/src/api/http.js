@@ -6,6 +6,11 @@ async function parseBody(res) {
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
+function normalizePath(path) {
+  if (!path) return "/";
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
 export async function httpRaw(path, options = {}) {
   const token = localStorage.getItem("token");
 
@@ -15,12 +20,23 @@ export async function httpRaw(path, options = {}) {
   if (!isFormData && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
+
+  // auto attach Bearer token
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const url = `${API_BASE_URL}${normalizePath(path)}`;
+
+  const res = await fetch(url, { ...options, headers });
   const payload = await parseBody(res);
 
-  if (!res.ok) throw new Error(payload?.message || "Request failed");
+  if (!res.ok) {
+    const msg =
+      (typeof payload === "object" && payload?.message) ||
+      (typeof payload === "string" && payload) ||
+      "Request failed";
+    throw new Error(msg);
+  }
+
   return payload;
 }
 

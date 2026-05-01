@@ -1,13 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ChartList from "../components/ChartList";
 import Sidebar from "../components/Sidebar";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
-import useFetch from "../hooks/useFetch";
-
-// Samakan dengan http.js Anda: base URL harus include /api
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+import { useFetch } from "../hooks/useFetch";
 
 function normalizeTrack(t) {
   const artist =
@@ -16,7 +12,6 @@ function normalizeTrack(t) {
       : t?.artist || t?.Artist?.name || "Unknown Artist";
 
   return {
-    // field yang umum dipakai komponen card
     id: t?.id,
     title: t?.title || t?.name || "Untitled",
     artist,
@@ -30,8 +25,6 @@ function normalizeTrack(t) {
       t?.Album?.coverUrl ||
       "",
     duration: t?.duration || 0,
-
-    // simpan raw supaya kalau MusicCard butuh field lain masih ada
     ...t,
   };
 }
@@ -40,30 +33,37 @@ const HomePage = () => {
   const [showplaylist, setShowplaylist] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Top Charts
+  // PENTING:
+  // useFetch menerima PATH, bukan full URL.
+  // Base URL + Authorization header sudah di-handle di client/src/api/http.js
   const {
     data: chartsResp,
     loading: chartsLoading,
     error: chartsError,
-  } = useFetch(`${API_BASE_URL}/tracks?page=1&limit=5`);
+  } = useFetch("/tracks?page=1&limit=5");
 
-  // Popular Now (sementara ambil dari endpoint yang sama)
   const {
     data: popularResp,
     loading: popularLoading,
     error: popularError,
-  } = useFetch(`${API_BASE_URL}/tracks?page=1&limit=8`);
+  } = useFetch("/tracks?page=1&limit=8");
 
-  const chartsRaw = Array.isArray(chartsResp)
-    ? chartsResp
-    : chartsResp?.data ?? [];
+  // Kalau backend return { data: [...] } maka chartsResp sudah jadi [...] (karena hook pakai http()).
+  // Tapi kalau ada variasi, kita bikin fallback aman:
+  const chartsRaw = useMemo(() => {
+    if (Array.isArray(chartsResp)) return chartsResp;
+    if (Array.isArray(chartsResp?.data)) return chartsResp.data;
+    return [];
+  }, [chartsResp]);
 
-  const popularRaw = Array.isArray(popularResp)
-    ? popularResp
-    : popularResp?.data ?? [];
+  const popularRaw = useMemo(() => {
+    if (Array.isArray(popularResp)) return popularResp;
+    if (Array.isArray(popularResp?.data)) return popularResp.data;
+    return [];
+  }, [popularResp]);
 
-  const charts = chartsRaw.map(normalizeTrack);
-  const popular = popularRaw.map(normalizeTrack);
+  const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
+  const popular = useMemo(() => popularRaw.map(normalizeTrack), [popularRaw]);
 
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;
@@ -109,7 +109,8 @@ const HomePage = () => {
                 <span className="home__hero-accent">Favoritmu</span>
               </h1>
               <p className="home__hero-subtitle w-full text-center mx-auto max-w-2xl px-4">
-                Streaming musik tanpa batas. Dengarkan chart terpopuler dan temukan lagu baru setiap hari.
+                Streaming musik tanpa batas. Dengarkan chart terpopuler dan
+                temukan lagu baru setiap hari.
               </p>
               <button
                 className="home__hero-cta"
@@ -121,11 +122,7 @@ const HomePage = () => {
             </div>
           </section>
 
-          <ChartList
-            charts={charts}
-            loading={chartsLoading}
-            error={chartsError}
-          />
+          <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
 
           <PopularList
             popular={popular}
