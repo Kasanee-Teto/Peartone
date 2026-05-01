@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
+    const now = new Date();
     const passwordHash = await bcrypt.hash("Admin12345!", 10);
 
         await queryInterface.bulkInsert("Users", [
@@ -15,8 +16,8 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Jakarta, Indonesia",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: now,
+            updatedAt: now
           },
           {
             id: Sequelize.literal("gen_random_uuid()"),
@@ -25,8 +26,8 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Surabaya, Indonesia",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: now,
+            updatedAt: now
           },
           {
             id: Sequelize.literal("gen_random_uuid()"),
@@ -35,8 +36,8 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Beijing, China",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: now,
+            updatedAt: now
           },
           {
             id: Sequelize.literal("gen_random_uuid()"),
@@ -45,8 +46,8 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Kolkata, India",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: now,
+            updatedAt: now
           },
           {
             id: Sequelize.literal("gen_random_uuid()"),
@@ -55,8 +56,8 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Erithrea, South Africa",
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: now,
+            updatedAt: now
           }
     ]);
   },
