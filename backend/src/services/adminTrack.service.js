@@ -11,9 +11,6 @@ class AdminTrackService extends BaseService {
     if (!title) throw new ApiError(400, "Title is required!");
     if (!duration) throw new ApiError(400, "Duration is required!");
 
-    const audioFile = files?.audio?.[0];
-    if (!audioFile) throw new ApiError(400, "Audio file is required!");
-
     let parsedArtistIds = [];
     if (artistIds) {
       try {
@@ -43,7 +40,7 @@ class AdminTrackService extends BaseService {
 
     const audioPath = path.posix.join("storage", "audio", audioFile.filename);
     const audioUrl = `/${audioPath}`;
-    const coverUrl = coverFile ? path.posix.join("storage", "covers", coverFile.filename) : null;
+    const coverUrl = coverFile ? `/${path.posix.join("storage", "covers", coverFile.filename)}` : null;
 
     const track = await db.sequelize.transaction(async (t) => {
       const created = await Track.create(
