@@ -11,8 +11,7 @@ class TrackService extends BaseService {
       {
         model: Artist,
         as: "Artists",
-        through: { attributes: ["artistOrder", "role"] },
-        order: [[TrackArtist, "artistOrder", "ASC"]]
+        through: { attributes: ["artistOrder", "role"] }
       }
     ];
   }
@@ -51,58 +50,61 @@ class TrackService extends BaseService {
         totalPages: Math.ceil(count / limitNum)
       }
     };
-}
+  }
 
-async getById(id) {
-  const track = await Track.findByPk(id, { include: this._include() });
-  return this.success(track, "Track fetched");
-}
+  async getById(id) {
+      const track = await Track.findByPk(id, { 
+        include: this._include(),
+        order: [[ { model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC' ]]
+      });
+      return this.success(track, "Track fetched");
+  }
 
-async search(q) {
-  const query = (q || "").trim();
-  if (!query) return this.success([], "Empty query");
+  async search(q) {
+    const query = (q || "").trim();
+    if (!query) return this.success([], "Empty query");
 
-  const tracks = await Track.findAll({
-    where: {
-      isPublished: true,
-      [Op.or]: [
-        { title: { [Op.iLike]: `%${query}%` } },
-        { genre: { [Op.iLike]: `%${query}%` } } 
-      ]
-    },
-    include: this._include(),
-    order: [["createdAt", "DESC"]]
-  });
-
-  const tracksByRelation = await Track.findAll({
-    where: { isPublished: true },
-    include: [
-      { 
-        model: Album, 
-        as: "Album", 
-        where: { title: { [Op.iLike]: `%${query}%` } }, 
-        required: true 
+    const tracks = await Track.findAll({
+      where: {
+        isPublished: true,
+        [Op.or]: [
+          { title: { [Op.iLike]: `%${query}%` } },
+          { genre: { [Op.iLike]: `%${query}%` } } 
+        ]
       },
-      {
-        model: Artist,
-        as: "Artists",
-        through: { attributes: ["artistOrder", "role"] },
-        where: { name: { [Op.iLike]: `%${query}%` } },
-        required: true 
-      }
-    ],
-    order: [["createdAt", "DESC"]]
-  });
+      include: this._include(),
+      order: [["createdAt", "DESC"]]
+    });
 
-  const tracksByTitle = await Track.findAll({
-    where: { isPublished: true, title: { [Op.iLike]: `%${query}%` } },
-    include: this._include(),
-    order: [["createdAt", "DESC"]]
-  });
+    const tracksByRelation = await Track.findAll({
+      where: { isPublished: true },
+      include: [
+        { 
+          model: Album, 
+          as: "Album", 
+          where: { title: { [Op.iLike]: `%${query}%` } }, 
+          required: true 
+        },
+        {
+          model: Artist,
+          as: "Artists",
+          through: { attributes: ["artistOrder", "role"] },
+          where: { name: { [Op.iLike]: `%${query}%` } },
+          required: true 
+        }
+      ],
+      order: [["createdAt", "DESC"]]
+    });
 
-  const map = new Map();
-  [...tracks, ...tracksByRelation,...tracksByTitle].forEach((t) => map.set(t.id, t));
-  return this.success([...map.values()], "Search results");
+    const tracksByTitle = await Track.findAll({
+      where: { isPublished: true, title: { [Op.iLike]: `%${query}%` } },
+      include: this._include(),
+      order: [["createdAt", "DESC"]]
+    });
+
+    const map = new Map();
+    [...tracks, ...tracksByRelation,...tracksByTitle].forEach((t) => map.set(t.id, t));
+    return this.success([...map.values()], "Search results");
   }
 }
 
