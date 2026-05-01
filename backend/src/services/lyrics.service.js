@@ -11,7 +11,7 @@ class LyricsService extends BaseService {
     return this.success(lyric, "Lyrics fetched!");
   }
 
-  async upsert(trackId, { language = "id", text }) {
+  async upsert(trackId, { language = "English", text }) {
     if (!text) throw new ApiError(400, "text is required!");
 
     const track = await Track.findByPk(trackId);

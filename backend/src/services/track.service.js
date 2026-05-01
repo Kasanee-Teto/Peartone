@@ -16,6 +16,13 @@ class TrackService extends BaseService {
     ];
   }
 
+  _orderConfig() {
+    return [
+      ["createdAt", "DESC"],
+      [{ model: Artist, as: 'Artists' }, 'TrackArtist', 'artistOrder', 'ASC']
+    ];
+  }
+
   async list({ q, page = 1, limit = 10 } = {}) {
     const query = (q || "").trim();
 
@@ -35,10 +42,7 @@ class TrackService extends BaseService {
     const { rows, count } = await Track.findAndCountAll({
       where,
       include: this._include(),
-      order: [
-        ["createdAt", "DESC"], 
-        [{ model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC'] 
-      ],
+      order: this._orderConfig(),
       limit: limitNum,
       offset,
       distinct: true 
@@ -58,7 +62,7 @@ class TrackService extends BaseService {
   async getById(id) {
       const track = await Track.findByPk(id, { 
         include: this._include(),
-        order: [[ { model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC' ]]
+        order: [this._orderConfig()[1]]
       });
       return this.success(track, "Track fetched");
   }
@@ -66,11 +70,6 @@ class TrackService extends BaseService {
   async search(q) {
     const query = (q || "").trim();
     if (!query) return this.success([], "Empty query");
-
-    const orderConfig = [
-      ["createdAt", "DESC"],
-      [{ model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC']
-    ];
 
     const tracks = await Track.findAll({
       where: {
@@ -83,39 +82,11 @@ class TrackService extends BaseService {
         ]
       },
       include: this._include(),
-      order: orderConfig,
+      order: this._orderConfig(),
       subQuery: false
     });
 
-    const tracksByRelation = await Track.findAll({
-      where: { isPublished: true },
-      include: [
-        { 
-          model: Album, 
-          as: "Album", 
-          where: { title: { [Op.iLike]: `%${query}%` } }, 
-          required: true 
-        },
-        {
-          model: Artist,
-          as: "Artists",
-          through: { attributes: ["artistOrder", "role"] },
-          where: { name: { [Op.iLike]: `%${query}%` } },
-          required: true 
-        }
-      ],
-      order: orderConfig
-    });
-
-    const tracksByTitle = await Track.findAll({
-      where: { isPublished: true, title: { [Op.iLike]: `%${query}%` } },
-      include: this._include(),
-      order: orderConfig
-    });
-
-    const map = new Map();
-    [...tracks, ...tracksByRelation,...tracksByTitle].forEach((t) => map.set(t.id, t));
-    return this.success([...map.values()], "Search results");
+    return this.success(tracks, "Search results");
   }
 }
 

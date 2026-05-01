@@ -12,9 +12,15 @@ class LikeService extends BaseService {
       {
         model: Artist,
         as: "Artists",
-        through: { attributes: ["artistOrder", "role"] },
-        order: [[TrackArtist, "artistOrder", "ASC"]]
+        through: { attributes: ["artistOrder", "role"] }
       }
+    ];
+  }
+
+  _orderConfig() {
+    return [
+      ["createdAt", "DESC"], 
+      [{ model: Track, as: "Track" }, { model: Artist, as: "Artists" }, TrackArtist, "artistOrder", "ASC"]
     ];
   }
 
@@ -35,10 +41,10 @@ class LikeService extends BaseService {
 
     const { rows, count } = await LikedTrack.findAndCountAll({
       where: { userId },
-      order: [["createdAt", "DESC"]],
       limit: limitNum,
       offset,
       distinct: true,
+      order: this._orderConfig(),
       include: [
         {
           model: Track,
@@ -51,7 +57,7 @@ class LikeService extends BaseService {
     });
 
     const tracks = rows.map((row) => ({
-      ...row.track.toJSON(),
+      ...row.Track.toJSON(),
       likedAt: row.createdAt
     }));
 
@@ -69,7 +75,7 @@ class LikeService extends BaseService {
   async like(userId, trackId) {
     await LikedTrack.findOrCreate({
       where: { userId, trackId },
-      defaults: { userId, trackId, createdAt: new Date() }
+      defaults: { createdAt: new Date() }
     });
     return this.success(null, "Track liked!");
   }

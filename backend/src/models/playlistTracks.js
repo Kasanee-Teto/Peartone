@@ -30,7 +30,7 @@ export default (sequelize, DataTypes) => {
   );
 
   PlaylistTrack.associate = (models) => {
-    PlaylistTrack.belongsTo(models.Track, { foreignKey: "trackId" });
+    PlaylistTrack.belongsTo(models.Track, { foreignKey: "trackId", as: "Track" });
   };
 
   return PlaylistTrack;

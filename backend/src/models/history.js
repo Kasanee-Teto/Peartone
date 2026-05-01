@@ -27,5 +27,9 @@ export default (sequelize, DataTypes) => {
     { tableName: "History", timestamps: false }
   );
 
+  History.associate = (models) => {
+    History.belongsTo(models.Track, { foreignKey: "trackId", as: "Track" });
+  };
+
   return History;
 };

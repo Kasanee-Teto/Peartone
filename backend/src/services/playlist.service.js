@@ -49,7 +49,8 @@ class PlaylistService extends BaseService {
       where,
       order: [["createdAt", "DESC"]],
       limit: limitNum,
-      offset
+      offset,
+      distinct: true
     });
 
     return {
@@ -74,7 +75,7 @@ class PlaylistService extends BaseService {
     });
 
     const tracks = items.map((it) => ({
-      ...it.track.toJSON(),
+      ...it.Track.toJSON(),
       position: it.position,
       addedAt: it.addedAt
     }));

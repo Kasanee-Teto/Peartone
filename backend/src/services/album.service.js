@@ -9,7 +9,7 @@ class AlbumService extends BaseService {
     return [
       { 
         model: Artist, 
-        as: "Artists" 
+        as: "Artist" 
       } 
     ];
   }
@@ -18,11 +18,11 @@ class AlbumService extends BaseService {
     return [
       { 
         model: Artist, 
-        as: "Artists" 
+        as: "Artist" 
       },
       {
         model: Track,
-        as: "Track", 
+        as: "Tracks", 
         include: [
           {
             model: db.Artist,
@@ -49,7 +49,7 @@ class AlbumService extends BaseService {
 
     const { rows, count } = await Album.findAndCountAll({
       where,
-      include: [{ model: Artist }],
+      include: this._includeList(),
       order: [["createdAt", "DESC"]],
       limit: limitNum,
       offset,
@@ -69,20 +69,15 @@ class AlbumService extends BaseService {
 
   async getById(id) {
     const album = await Album.findByPk(id, {
-      include: [
-        { model: Artist },
-        {
-          model: Track,
-          order: [["createdAt", "DESC"]],
-          include: [
-            {
-              model: db.Artist,
-              through: { attributes: ["artistOrder", "role"] }
-            }
-          ]
-        }
+      include: this._includeDetail(), 
+      order: [
+        [{ model: Track, as: 'Tracks' }, "createdAt", "DESC"]
       ]
     });
+
+    if (!album) {
+      return this.error("Album not found!", 404);
+    }
 
     return this.success(album, "Album fetched");
   }
@@ -93,7 +88,7 @@ class AlbumService extends BaseService {
 
     const albums = await Album.findAll({
       where: { title: { [Op.iLike]: `%${query}%` } },
-      include: [{ model: Artist }],
+      include: this._includeList(),
       order: [["createdAt", "DESC"]]
     });
 

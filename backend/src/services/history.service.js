@@ -31,25 +31,22 @@ class HistoryService extends BaseService {
   }
 
   async list(userId, limit = 50) {
+    const limitNum = Math.min(Number(limit) || 50, 200);
+
     const rows = await History.findAll({
       where: { userId },
       order: [["playedAt", "DESC"]],
-      limit: Math.min(Number(limit) || 50, 200)
+      limit: limitNum,
+      include: [
+        {
+          model: Track,
+          as: "Track",
+          include: this._includeTrack()
+        }
+      ]
     });
 
-    const trackIds = [...new Set(rows.map((r) => r.trackId).filter(Boolean))];
-    const tracks = await Track.findAll({
-      where: { id: trackIds },
-      include: this._includeTrack()
-    });
-    const trackMap = new Map(tracks.map((t) => [t.id, t]));
-
-    const result = rows.map((r) => ({
-      ...r.toJSON(),
-      track: r.trackId ? trackMap.get(r.trackId) || null : null
-    }));
-
-    return this.success(result, "History fetched");
+    return this.success(rows, "History fetched");
   }
 }
 

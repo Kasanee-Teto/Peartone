@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
   );
 
   LikedTrack.associate = (models) => {
-    LikedTrack.belongsTo(models.Track, { foreignKey: "trackId" });
+    LikedTrack.belongsTo(models.Track, { foreignKey: "trackId", as: "Track" });
   };
 
   return LikedTrack;
