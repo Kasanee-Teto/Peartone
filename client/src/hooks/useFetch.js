@@ -1,31 +1,53 @@
-import { useEffect, useState } from 'react'
+// client/src/hooks/useFetch.js
+import { useEffect, useState } from "react";
 
-export default function useFetch(url) {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+export default function useFetch(url, options = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(Boolean(url));
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const controller = new AbortController()
+    if (!url) return;
 
-    async function fetchData() {
-      setLoading(true)
-      setError(null)
+    const controller = new AbortController();
+    let active = true;
+
+    // set state dengan aman
+    setLoading(true);
+    setError("");
+
+    (async () => {
       try {
-        const res = await fetch(url, { signal: controller.signal })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const json = await res.json()
-        setData(json)
+        const res = await fetch(url, { ...options, signal: controller.signal });
+
+        const contentType = res.headers.get("content-type") || "";
+        const isJson = contentType.includes("application/json");
+        const body = isJson ? await res.json() : await res.text();
+
+        if (!res.ok) {
+          const msg =
+            (isJson && body?.message) ||
+            (typeof body === "string" ? body.slice(0, 120) : "") ||
+            `Request failed (${res.status})`;
+          throw new Error(msg);
+        }
+
+        if (active) setData(body);
       } catch (err) {
-        if (err.name !== 'AbortError') setError(err.message)
+        if (!active) return;
+        if (err.name === "AbortError") return;
+        setError(err.message || "Fetch error");
       } finally {
-        setLoading(false)
+        if (active) setLoading(false);
       }
-    }
+    })();
 
-    fetchData()
-    return () => controller.abort()
-  }, [url])
+    return () => {
+      active = false;
+      controller.abort();
+    };
+    // sengaja depend hanya url supaya tidak loop karena options object berubah terus
+  }, [url]);
 
-  return { data, loading, error }
+  return { data, loading, error };
 }

@@ -1,22 +1,67 @@
-const MusicCard = ({ track = {}, variant = "popular", rank }) => {
-  const {
-    title = "Unknown Title",
-    artist = "Unknown Artist",
-    album = "",
-    duration = "0:00",
-    cover_url = "",
-    genre = "",
-    play_count = 0,
-  } = track;
+const API_ORIGIN = (() => {
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+})();
 
-  const safePlayCount = Number(play_count) || 0;
+function formatDuration(value) {
+  if (value == null) return "0:00";
+  if (typeof value === "string") return value; 
+  const sec = Number(value);
+  if (Number.isNaN(sec) || sec <= 0) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = String(sec % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+function getArtistName(track) {
+  if (Array.isArray(track?.Artists) && track.Artists.length > 0) {
+    return track.Artists.map((a) => a?.name).filter(Boolean).join(", ");
+  }
+  return track?.artist || track?.Artist?.name || "Unknown Artist";
+}
+
+function getCoverUrl(track) {
+  if (track?.cover_url) return track.cover_url;
+
+  return (
+    track?.cover ||
+    track?.coverUrl ||
+    track?.image ||
+    track?.imageUrl ||
+    track?.Album?.cover ||
+    track?.Album?.coverUrl ||
+    ""
+  );
+}
+
+const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
+  const title = track?.title || track?.name || "Unknown Title";
+  const artist = getArtistName(track);
+  const album = track?.Album?.title || track?.album || "";
+  const genre = track?.genre || "";
+  const duration = formatDuration(track?.duration);
+  const coverUrl = getCoverUrl(track);
+
+  const safePlayCount = Number(track?.play_count ?? track?.playCount ?? 0) || 0;
 
   const handlePlay = () => {
-    console.log(`Playing track: ${title} by ${artist}`);
+    const streamUrl =
+      track?.id != null ? `${API_ORIGIN}/api/stream/tracks/${track.id}` : "";
+
+    if (onPlay) {
+      onPlay({ ...track, title, artist, album, genre, duration, coverUrl, streamUrl });
+      return;
+    }
+
+    console.log("Play:", { title, artist, streamUrl });
   };
 
   return (
-    <article className={`music-card music-card--${variant}`} aria-label={`${title} by ${artist}`}>
+    <article
+      className={`music-card music-card--${variant}`}
+      aria-label={`${title} by ${artist}`}
+    >
       {variant === "chart" && rank && (
         <span className="music-card__rank" aria-label={`Rank ${rank}`}>
           #{rank}
@@ -24,20 +69,24 @@ const MusicCard = ({ track = {}, variant = "popular", rank }) => {
       )}
 
       <div className="music-card__cover-wrapper">
-        {cover_url ? (
+        {coverUrl ? (
           <img
-            src={cover_url}
+            src={coverUrl}
             alt={`Cover ${title}`}
             className="music-card__cover"
             loading="lazy"
           />
         ) : (
-          <div className="music-card__cover music-card__cover--placeholder" aria-hidden="true">
+          <div
+            className="music-card__cover music-card__cover--placeholder"
+            aria-hidden="true"
+          >
             <span>♪</span>
           </div>
         )}
 
         <button
+          type="button"
           className="music-card__play-btn"
           onClick={handlePlay}
           aria-label={`Play ${title}`}

@@ -1,31 +1,30 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
-export async function http(path, options = {}) {
+async function parseBody(res) {
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("application/json") ? res.json() : res.text();
+}
+
+export async function httpRaw(path, options = {}) {
   const token = localStorage.getItem("token");
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
+  const headers = { ...(options.headers || {}) };
+  const isFormData = options.body instanceof FormData;
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  if (!isFormData && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
   }
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const payload = await parseBody(res);
 
-  const contentType = response.headers.get("content-type") || "";
-  const data = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
+  if (!res.ok) throw new Error(payload?.message || "Request failed");
+  return payload;
+}
 
-  if (!response.ok) {
-    const message = data?.message || "Request failed";
-    throw new Error(message);
-  }
-
-  return data;
+export async function http(path, options = {}) {
+  const payload = await httpRaw(path, options);
+  return payload?.data ?? payload;
 }

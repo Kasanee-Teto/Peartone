@@ -125,18 +125,17 @@ const MusicPlayer = () => {
 
   return (
     <div
-      className={`player${isCollapsed ? " player--collapsed" : ""}`}
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 300,
-        pointerEvents: "none",
-        display: "flex",
-        justifyContent: "flex-end",
-      }}
-    >
+        className={`player${isCollapsed ? " player--collapsed" : ""}`}
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 300,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
       {isCollapsed ? (
         <button
           type="button"
