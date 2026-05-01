@@ -6,7 +6,7 @@ module.exports = {
     await queryInterface.bulkInsert("Artists", [
       {
         id: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
-        name: "KASANE TETO",
+        name: "Kasane Teto",
         bio: "Vocal synth artist.",
         imageUrl: "/storage/artists/teto.jpg",
         createdAt: new Date(),
@@ -19,6 +19,30 @@ module.exports = {
         imageUrl: "/storage/artists/mimi.webp",
         createdAt: new Date(),
         updatedAt: new Date()
+      },
+      {
+        id: "d8b64fd2-9b6f-4f5d-b3ae-0a1e6d0a77a1",
+        name: "Hatsune Miku",
+        bio: "Vocal synth character and voicebank.",
+        imageUrl: "/storage/artists/miku.jpg",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: "e6f3e2a1-2a5a-4e7d-9d2e-6b3f1b9c21a0",
+        name: "マサラダ",
+        bio: "Vocal synth producer.",
+        imageUrl: "/storage/artists/masarada.jpg",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+      id: "f1a2b3c4-6d7e-4f8a-9b0c-1d2e3f4a5b6c",
+      name: "32ki",
+      bio: "Vocal synth producer.",
+      imageUrl: "/storage/artists/32ki.jpg",
+      createdAt: new Date(),
+      updatedAt: new Date()
       }
     ]);
   },
