@@ -1,5 +1,4 @@
-backend/.env
-backend/config/config.json
+config/config.json
 .env
 # Logs
 logs
