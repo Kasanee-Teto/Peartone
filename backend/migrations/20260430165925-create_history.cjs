@@ -20,7 +20,7 @@ module.exports = {
       trackId: {
         type: Sequelize.UUID,
         allowNull: true,
-        references: { model: "tracks", key: "id" },
+        references: { model: "Tracks", key: "id" },
         onDelete: "SET NULL",
         onUpdate: "CASCADE"
       },

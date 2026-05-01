@@ -35,9 +35,8 @@ module.exports = {
     });
 
     await queryInterface.sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_artists_name_trgm ON Artists USING gin (name gin_trgm_ops);`
+      `CREATE INDEX IF NOT EXISTS idx_artists_name_trgm ON "Artists" USING gin (name gin_trgm_ops);`
     );
-
   },
 
   async down (queryInterface, Sequelize) {

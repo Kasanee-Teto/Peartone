@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "artists",
+          model: "Artists",
           key: "id"
         },
         onDelete: "CASCADE",
@@ -56,7 +56,7 @@ module.exports = {
 
     await queryInterface.addIndex("Albums", ["artistId"], { name: "idx_albums_artist_id" });
     await queryInterface.sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_albums_title_trgm ON Albums USING gin (title gin_trgm_ops);`
+      `CREATE INDEX IF NOT EXISTS idx_albums_title_trgm ON "Albums" USING gin (title gin_trgm_ops);`
     );
   
   },

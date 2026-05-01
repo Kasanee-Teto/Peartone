@@ -83,7 +83,7 @@ module.exports = {
 
     await queryInterface.addIndex("Tracks", ["albumId"], { name: "idx_tracks_album_id" });
     await queryInterface.sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_tracks_title_trgm ON Tracks USING gin (title gin_trgm_ops);`
+      `CREATE INDEX IF NOT EXISTS idx_tracks_title_trgm ON "Tracks" USING gin (title gin_trgm_ops);`
     );
   },
 
