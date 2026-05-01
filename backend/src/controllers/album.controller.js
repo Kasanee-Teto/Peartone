@@ -3,7 +3,8 @@ import ApiError from "../utils/apiError.js";
 import albumService from "../services/album.service.js";
 
 export const listAlbums = asyncHandler(async (req, res) => {
-  const result = await albumService.list();
+  const { q, page, limit } = req.query;
+  const result = await albumService.list({ q, page, limit });
   res.status(200).json(result);
 });
 

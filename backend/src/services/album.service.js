@@ -35,13 +35,36 @@ class AlbumService extends BaseService {
     ];
   }
 
-  async list() {
-    const albums = await Album.findAll({
-      include: [{ model: Artist }], 
-      order: [["createdAt", "DESC"]]
+  async list({ q, page = 1, limit = 10 } = {}) {
+    const query = (q || "").trim();
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const offset = (pageNum - 1) * limitNum;
+
+    const where = {};
+    if (query) {
+      where.title = { [Op.iLike]: `%${query}%` };
+    }
+
+    const { rows, count } = await Album.findAndCountAll({
+      where,
+      include: [{ model: Artist }],
+      order: [["createdAt", "DESC"]],
+      limit: limitNum,
+      offset,
+      distinct: true
     });
 
-    return this.success(albums, "Albums fetched");
+    return {
+      ...this.success(rows, "Albums fetched"),
+      meta: {
+        page: pageNum,
+        limit: limitNum,
+        total: count,
+        totalPages: Math.ceil(count / limitNum)
+      }
+    };
   }
 
   async getById(id) {

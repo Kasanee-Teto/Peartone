@@ -1,6 +1,7 @@
 import db from "../models/index.js";
 import ApiError from "../utils/apiError.js";
 import BaseService from "./base.service.js";
+import { Op } from "sequelize";
 
 const { Playlist, PlaylistTrack, Track, Album, Artist, TrackArtist } = db;
 
@@ -28,12 +29,38 @@ class PlaylistService extends BaseService {
     return this.success(playlist, "Playlist created!");
   }
 
-  async listMine(userId) {
-    const playlists = await Playlist.findAll({
-      where: { userId },
-      order: [["createdAt", "DESC"]]
+  async listMine(userId, { q, page = 1, limit = 10 } = {}) {
+    const query = (q || "").trim();
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const offset = (pageNum - 1) * limitNum;
+
+    const where = { userId };
+
+    if (query) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${query}%` } },
+        { description: { [Op.iLike]: `%${query}%` } }
+      ];
+    }
+
+    const { rows, count } = await Playlist.findAndCountAll({
+      where,
+      order: [["createdAt", "DESC"]],
+      limit: limitNum,
+      offset
     });
-    return this.success(playlists, "Playlists fetched!");
+
+    return {
+      ...this.success(rows, "Playlists fetched!"),
+      meta: {
+        page: pageNum,
+        limit: limitNum,
+        total: count,
+        totalPages: Math.ceil(count / limitNum)
+      }
+    };
   }
 
   async getMineById(userId, playlistId) {

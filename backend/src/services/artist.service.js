@@ -8,7 +8,7 @@ const { Artist } = db;
 class ArtistService extends BaseService {
   async createArtist(data, file) {
     if (!data.name) {
-      throw new ApiError(400, "Artist name is required");
+      throw new ApiError(400, "Artist name is required!");
     }
 
     const artist = await Artist.create({

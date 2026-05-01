@@ -2,12 +2,11 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import likeService from "../services/like.service.js";
 
-export const listLiked = asyncHandler(
-  async (req, res) => {
-    const result = await likeService.listLiked(req.user.id);
-    res.status(200).json(result);
-  }
-);
+export const listLiked = asyncHandler(async (req, res) => {
+  const { q, page, limit } = req.query;
+  const result = await likeService.listLiked(req.user.id, { q, page, limit });
+  res.status(200).json(result);
+});
 
 export const likeTrack = asyncHandler(
   async (req, res) => {
