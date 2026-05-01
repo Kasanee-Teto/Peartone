@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "sequelize db:migrate",
-    "seed": "npx sequelize-cli db:seed:all"
+    "seed": "npx sequelize-cli db:seed:all",
+    "jwt-key": "echo JWT_SECRET=$(node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\") > .env"
   },
   "keywords": [],
   "author": "",

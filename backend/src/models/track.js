@@ -78,7 +78,7 @@ export default (sequelize, DataTypes) => {
       otherKey: "artistId"
     });
 
-    Track.hasOne(models.Lyric, { foreignKey: "trackId"});
+    Track.hasOne(models.Lyrics, { foreignKey: "trackId"});
 
     Track.belongsToMany(models.User, {
       through: models.LikedTrack,
