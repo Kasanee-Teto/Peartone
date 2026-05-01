@@ -11,8 +11,8 @@ export const streamTrack = asyncHandler(async (req, res) => {
   const track = await Track.findByPk(id);
   if (!track) throw new ApiError(404, "Track not found");
 
-  if (track.audioSource !== "local") {
-    throw new ApiError(400, "Streaming for non-local audioSource is not implemented");
+  if (!track.audioPath) {
+    throw new ApiError(400, "This track does not have a local audio file for streaming");
   }
 
   const filePath = path.resolve(process.cwd(), track.audioPath); 

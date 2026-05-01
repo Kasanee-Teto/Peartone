@@ -10,6 +10,7 @@ import lyricsRoutes from "./routes/lyrics.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import streamRoutes from "./routes/stream.routes.js";
 import historyRoutes from "./routes/history.routes.js";
+import albumRoutes from "./routes/album.routes.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/lyrics", lyricsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/stream", streamRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/albums", albumRoutes);
 
 app.use((err, req, res, next) => {
   const status = err.status || 500;

@@ -35,7 +35,10 @@ class TrackService extends BaseService {
     const { rows, count } = await Track.findAndCountAll({
       where,
       include: this._include(),
-      order: [["createdAt", "DESC"]],
+      order: [
+        ["createdAt", "DESC"], 
+        [{ model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC'] 
+      ],
       limit: limitNum,
       offset,
       distinct: true 
@@ -64,16 +67,24 @@ class TrackService extends BaseService {
     const query = (q || "").trim();
     if (!query) return this.success([], "Empty query");
 
+    const orderConfig = [
+      ["createdAt", "DESC"],
+      [{ model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC']
+    ];
+
     const tracks = await Track.findAll({
       where: {
         isPublished: true,
         [Op.or]: [
           { title: { [Op.iLike]: `%${query}%` } },
-          { genre: { [Op.iLike]: `%${query}%` } } 
+          { genre: { [Op.iLike]: `%${query}%` } },
+          { '$Album.title$': { [Op.iLike]: `%${query}%` } },
+          { '$Artists.name$': { [Op.iLike]: `%${query}%` } }
         ]
       },
       include: this._include(),
-      order: [["createdAt", "DESC"]]
+      order: orderConfig,
+      subQuery: false
     });
 
     const tracksByRelation = await Track.findAll({
@@ -93,13 +104,13 @@ class TrackService extends BaseService {
           required: true 
         }
       ],
-      order: [["createdAt", "DESC"]]
+      order: orderConfig
     });
 
     const tracksByTitle = await Track.findAll({
       where: { isPublished: true, title: { [Op.iLike]: `%${query}%` } },
       include: this._include(),
-      order: [["createdAt", "DESC"]]
+      order: orderConfig
     });
 
     const map = new Map();
