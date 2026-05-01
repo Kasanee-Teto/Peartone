@@ -7,14 +7,19 @@ import BaseService from "./base.service.js";
 const { User } = db;
 
 class AuthService extends BaseService {
-  async register({ email, password }) {
-    const existing = await User.findOne({ where: { email } });
-    if (existing) {
+  async register({ username, email, password }) {
+    const existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername) {
+      throw new ApiError(409, "Username already registered");
+    }
+
+    const existingEmail = await User.findOne({ where: { email } });
+    if (existingEmail) {
       throw new ApiError(409, "Email already registered");
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, passwordHash, role: "user" });
+    const user = await User.create({ username, email, passwordHash, role: "user" });
 
     const token = this._signToken(user);
     return this.success(
@@ -22,14 +27,16 @@ class AuthService extends BaseService {
         user: this._sanitizeUser(user),
         token
       },
-      "User registered"
+      "User registered!"
     );
   }
 
-  async login({ email, password }) {
-    const user = await User.findOne({ where: { email } });
+  async login({ username, password }) {
+
+    const user = await User.findOne({ where: { username } });
+  
     if (!user) {
-      throw new ApiError(401, "Invalid credentials");
+      throw new ApiError(401, "Invalid credentials"); 
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
@@ -43,7 +50,7 @@ class AuthService extends BaseService {
         user: this._sanitizeUser(user),
         token
       },
-      "Login successful"
+      "Login successful!"
     );
   }
 
@@ -54,6 +61,7 @@ class AuthService extends BaseService {
     }
     const payload = {
       id: user.id,
+      username: user.username,
       email: user.email,
       role: user.role
     };
@@ -68,6 +76,7 @@ class AuthService extends BaseService {
   _sanitizeUser(user) {
     return {
       id: user.id,
+      username: user.username,
       email: user.email,
       role: user.role,
       createdAt: user.createdAt,

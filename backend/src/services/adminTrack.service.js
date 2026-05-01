@@ -1,0 +1,80 @@
+import path from "path";
+import db from "../models/index.js";
+import ApiError from "../utils/apiError.js";
+import BaseService from "./base.service.js";
+
+const { Track, TrackArtist, Artist, Album } = db;
+
+class AdminTrackService extends BaseService {
+  async create({ userId, body, files }) {
+    const { title, duration, albumId, audioSource, artistIds } = body || {};
+    if (!title) throw new ApiError(400, "Title is required!");
+    if (!duration) throw new ApiError(400, "Duration is required!");
+
+    const audioFile = files?.audio?.[0];
+    if (!audioFile) throw new ApiError(400, "Audio file is required!");
+
+    let parsedArtistIds = [];
+    if (artistIds) {
+      try {
+        parsedArtistIds = typeof artistIds === "string" ? JSON.parse(artistIds) : artistIds;
+      } catch {
+        throw new ApiError(400, "artistIds must be a JSON array of UUIDs");
+      }
+    }
+    if (!Array.isArray(parsedArtistIds) || parsedArtistIds.length === 0) {
+      throw new ApiError(400, "artistIds is required (at least 1 artist)");
+    }
+
+    if (albumId) {
+      const album = await Album.findByPk(albumId);
+      if (!album) throw new ApiError(404, "Album not found");
+    }
+
+    const artists = await Artist.findAll({ where: { id: parsedArtistIds } });
+    if (artists.length !== parsedArtistIds.length) {
+      throw new ApiError(400, "Some artistIds are invalid");
+    }
+
+    const coverFile = files?.cover?.[0];
+
+    const audioPath = path.posix.join("storage", "audio", audioFile.filename);
+    const coverUrl = coverFile ? path.posix.join("storage", "covers", coverFile.filename) : null;
+
+    const track = await db.sequelize.transaction(async (t) => {
+      const created = await Track.create(
+        {
+          albumId: albumId || null,
+          title,
+          duration: Number(duration),
+          audioUrl: audioSource || "local",
+          audioPath,
+          mimeType: audioFile.mimetype || "audio/mpeg",
+          fileSize: audioFile.size || 0,
+          coverUrl,
+          isPublished: true,
+          uploadedBy: userId
+        },
+        { transaction: t }
+      );
+
+      for (let i = 0; i < parsedArtistIds.length; i++) {
+        await TrackArtist.create(
+          {
+            trackId: created.id,
+            artistId: parsedArtistIds[i],
+            artistOrder: i + 1,
+            role: i === 0 ? "primary" : "featured"
+          },
+          { transaction: t }
+        );
+      }
+
+      return created;
+    });
+
+    return this.success(track, "Track uploaded");
+  }
+}
+
+export default new AdminTrackService();
