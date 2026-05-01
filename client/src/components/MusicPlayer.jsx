@@ -63,6 +63,29 @@ const MusicPlayer = () => {
     }
   }, [queue]);
 
+  useEffect(() => {
+    setProgress(0);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const step = 100 / currentTrack.duration;
+    const timer = window.setInterval(() => {
+      setProgress((value) => {
+        const nextValue = value + step;
+        if (nextValue >= 100) {
+          window.clearInterval(timer);
+          setIsPlaying(false);
+          return 100;
+        }
+        return nextValue;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [isPlaying, currentTrack.duration]);
+
   function addToQueue(track) {
     setQueue((q) => [...q, track]);
     setShowQueue(true);
@@ -72,10 +95,14 @@ const MusicPlayer = () => {
     setQueue((q) => {
       const copy = q.slice();
       copy.splice(idx, 1);
+      setCurrentIndex((current) => {
+        if (copy.length === 0) return 0;
+        if (idx < current) return current - 1;
+        if (idx === current) return Math.min(current, copy.length - 1);
+        return current;
+      });
       return copy;
     });
-    // adjust current index bounds
-    setCurrentIndex((i) => Math.max(0, Math.min(i, queue.length - 2)));
   }
 
   function playTrack(idx) {
@@ -113,7 +140,9 @@ const MusicPlayer = () => {
       {isCollapsed ? (
         <button
           type="button"
-          onClick={() => setIsCollapsed(false)}
+          onClick={() => {
+            setIsCollapsed(false);
+          }}
           className="player__collapsed-toggle"
           style={{
             pointerEvents: "auto",
@@ -157,7 +186,11 @@ const MusicPlayer = () => {
         >
           <button
             type="button"
-            onClick={() => setIsCollapsed(true)}
+            onClick={() => {
+              setIsCollapsed(true);
+              setShowQueue(false);
+              setShowLyrics(false);
+            }}
             className="player__toggle"
             style={{
               width: "auto",
@@ -260,6 +293,7 @@ const MusicPlayer = () => {
               <button
                 type="button"
                 className="player__btn player__btn--skip"
+                onClick={playPrev}
                 style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex", padding: "4px" }}
                 aria-label="Previous"
               >
@@ -268,7 +302,12 @@ const MusicPlayer = () => {
 
               <button
                 type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
+                onClick={() => {
+                  if (!isPlaying && progress >= 100) {
+                    setProgress(0);
+                  }
+                  setIsPlaying((state) => !state);
+                }}
                 className="player__play"
                 style={{
                   width: "40px",
@@ -293,6 +332,7 @@ const MusicPlayer = () => {
               <button
                 type="button"
                 className="player__btn player__btn--skip"
+                onClick={playNext}
                 style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex", padding: "4px" }}
                 aria-label="Next"
               >

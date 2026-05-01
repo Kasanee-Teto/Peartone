@@ -1,5 +1,4 @@
-import React from "react";
-import { FiPlay, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlay, FiTrash2 } from "react-icons/fi";
 import "../styles/QueueList.css";
 
 const QueueList = ({ queue = [], currentIndex = 0, onPlay, onRemove, onClear }) => {
@@ -27,8 +26,8 @@ const QueueList = ({ queue = [], currentIndex = 0, onPlay, onRemove, onClear }) 
                 <button type="button" className="pt-btn" onClick={() => onPlay(i)} title="Play">
                   <FiPlay />
                 </button>
-                <button type="button" className="pt-btn" onClick={() => onRemove(i)} title="Remove">
-                  <FiX />
+                <button type="button" className="pt-btn pt-btn--danger" onClick={() => onRemove(i)} title="Delete">
+                  <FiTrash2 />
                 </button>
               </div>
             </div>

@@ -1,6 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { FiX } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { FiTrash2, FiX } from "react-icons/fi";
 import "../styles/LyricsPanel.css";
+
+const exampleLyrics = `Malam datang perlahan
+Kota ini masih bernapas
+Kita simpan semua harap
+Di antara lampu yang redup
+
+Biar hujan turun lagi
+Tak semua harus dimengerti
+Kalau nanti lagu ini hilang
+Masih ada jejak yang tinggal`;
 
 const LyricsPanel = ({ artist, title, open, onClose }) => {
   const [lyrics, setLyrics] = useState("");
@@ -22,15 +32,21 @@ const LyricsPanel = ({ artist, title, open, onClose }) => {
         const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
         if (!res.ok) throw new Error("Tidak ditemukan");
         const data = await res.json();
-        setLyrics(data.lyrics || "");
+        setLyrics(data.lyrics || exampleLyrics);
       } catch (e) {
         setError("Lirik tidak ditemukan");
+        setLyrics(exampleLyrics);
       } finally {
         setLoading(false);
       }
     };
     fetchLyrics();
   }, [open, artist, title]);
+
+  const handleDeleteLyrics = () => {
+    setLyrics("");
+    setError(null);
+  };
 
   if (!open) return null;
 
@@ -41,17 +57,25 @@ const LyricsPanel = ({ artist, title, open, onClose }) => {
           <strong>{title}</strong>
           <div className="pt-lyrics__artist">{artist}</div>
         </div>
-        <button type="button" className="pt-btn" onClick={onClose} title="Close">
-          <FiX />
-        </button>
+        <div className="pt-lyrics__actions">
+          {lyrics ? (
+            <button type="button" className="pt-btn pt-btn--danger" onClick={handleDeleteLyrics} title="Delete lyrics">
+              <FiTrash2 />
+            </button>
+          ) : null}
+          <button type="button" className="pt-btn" onClick={onClose} title="Close">
+            <FiX />
+          </button>
+        </div>
       </div>
       <div className="pt-lyrics__body">
         {loading ? (
           <div className="pt-lyrics__loading">Memuat lirik…</div>
-        ) : error ? (
-          <div className="pt-lyrics__error">{error}</div>
         ) : lyrics ? (
-          <pre className="pt-lyrics__text">{lyrics}</pre>
+          <div className="pt-lyrics__content">
+            {error ? <div className="pt-lyrics__hint">{error}. Menampilkan contoh lirik.</div> : null}
+            <pre className="pt-lyrics__text">{lyrics}</pre>
+          </div>
         ) : (
           <div className="pt-lyrics__empty">Lirik tidak tersedia</div>
         )}
