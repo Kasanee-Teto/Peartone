@@ -17,14 +17,41 @@ class TrackService extends BaseService {
     ];
   }
 
-  async list() {
-    const tracks = await Track.findAll({
-      where: { isPublished: true },
+  async list({ q, page = 1, limit = 10 } = {}) {
+    const query = (q || "").trim();
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const offset = (pageNum - 1) * limitNum;
+
+    const where = { isPublished: true };
+
+    if (query) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${query}%` } },
+        { genre: { [Op.iLike]: `%${query}%` } }
+      ];
+    }
+
+    const { rows, count } = await Track.findAndCountAll({
+      where,
       include: this._include(),
-      order: [["createdAt", "DESC"]]
+      order: [["createdAt", "DESC"]],
+      limit: limitNum,
+      offset,
+      distinct: true 
     });
-    return this.success(tracks, "Tracks fetched");
-  }
+
+    return {
+      ...this.success(rows, "Tracks fetched"),
+      meta: {
+        page: pageNum,
+        limit: limitNum,
+        total: count,
+        totalPages: Math.ceil(count / limitNum)
+      }
+    };
+}
 
   async getById(id) {
     const track = await Track.findByPk(id, { include: this._include() });

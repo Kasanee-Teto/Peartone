@@ -3,7 +3,8 @@ import ApiError from "../utils/apiError.js";
 import trackService from "../services/track.service.js";
 
 export const listTracks = asyncHandler(async (req, res) => {
-  const result = await trackService.list();
+  const { q, page, limit } = req.query;
+  const result = await trackService.list({ q, page, limit });
   res.status(200).json(result);
 });
 
