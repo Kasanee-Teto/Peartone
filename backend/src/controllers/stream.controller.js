@@ -19,7 +19,7 @@ export const streamTrack = asyncHandler(async (req, res) => {
   if (!fs.existsSync(filePath)) throw new ApiError(404, "Audio file not found on server");
 
   const stat = fs.statSync(filePath);
-  const fileSize = Number(track.fileSize || stat.size);
+  const fileSize = stat.size;
 
   const range = req.headers.range;
   const contentType = track.mimeType || "audio/mpeg";
@@ -40,21 +40,24 @@ export const streamTrack = asyncHandler(async (req, res) => {
   const start = parseInt(match[1], 10);
   const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
 
-  if (start >= fileSize || end >= fileSize || start > end) {
+  if (start >= fileSize || start > end) {
     res.status(416).set({
       "Content-Range": `bytes */${fileSize}`
     });
     return res.end();
   }
 
-  const chunkSize = end - start + 1;
+  const safeEnd = Math.min(end, fileSize - 1);
+
+  const chunkSize = safeEnd - start + 1;
 
   res.writeHead(206, {
-    "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+    "Content-Range": `bytes ${start}-${safeEnd}/${fileSize}`,
     "Accept-Ranges": "bytes",
     "Content-Length": chunkSize,
     "Content-Type": contentType
   });
 
-  fs.createReadStream(filePath, { start, end }).pipe(res);
+  fs.createReadStream(filePath, { start, end: safeEnd }).pipe(res);
+  console.log({ range, fileSize });
 });
