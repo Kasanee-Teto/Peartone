@@ -16,3 +16,8 @@ export const listHistory = asyncHandler(async (req, res) => {
   const result = await historyService.list(req.user.id, limit);
   res.status(200).json(result);
 });
+
+export const clearHistory = asyncHandler(async (req, res) => {
+  const result = await historyService.clear(req.user.id);
+  res.status(200).json(result);
+});

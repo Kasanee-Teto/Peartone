@@ -182,9 +182,19 @@ const TracksPage = () => {
   const handleLikeToggle = async (track) => {
     const trackId = String(track.id || "").trim();
     if (!trackId) return;
+
+    const wasLiked = likedIds.has(trackId);
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      if (wasLiked) next.delete(trackId);
+      else next.add(trackId);
+      return next;
+    });
+
     try {
       const res = await likesApi.toggle(trackId);
-      const nowLiked = Boolean(res?.data?.liked ?? res?.liked);
+      const likedFlag = res?.data?.liked ?? res?.liked;
+      const nowLiked = typeof likedFlag === "boolean" ? likedFlag : !wasLiked;
       setLikedIds((prev) => {
         const next = new Set(prev);
         if (nowLiked) next.add(trackId);
@@ -193,6 +203,12 @@ const TracksPage = () => {
       });
       emitLikesChanged();
     } catch (err) {
+      setLikedIds((prev) => {
+        const next = new Set(prev);
+        if (wasLiked) next.add(trackId);
+        else next.delete(trackId);
+        return next;
+      });
       console.error("Toggle like failed", err);
     }
   };

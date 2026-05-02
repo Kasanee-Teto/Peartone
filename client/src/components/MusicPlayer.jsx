@@ -19,6 +19,7 @@ import LyricsPanel from "./LyricsPanel";
 import QueueList from "./QueueList";
 import { buildStreamUrl, isValidTrackId, normalizePlayableTrack, onPlayTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
+import { historyApi } from "../api/history.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 
 function formatTime(sec) {
@@ -30,6 +31,7 @@ function formatTime(sec) {
 
 const MusicPlayer = () => {
   const audioRef = useRef(null);
+  const lastHistoryTrackIdRef = useRef("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
@@ -186,6 +188,20 @@ const MusicPlayer = () => {
       active = false;
     };
   }, [currentTrack?.id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
+
+    if (!token || !isValidTrackId(trackId)) return;
+    if (lastHistoryTrackIdRef.current === trackId) return;
+
+    lastHistoryTrackIdRef.current = trackId;
+    historyApi.add({ trackId }).catch(() => {
+      // Keep playback uninterrupted when history save fails.
+      lastHistoryTrackIdRef.current = "";
+    });
+  }, [currentTrack?.id, currentTrack?.trackId]);
 
   useEffect(() => {
     const audio = audioRef.current;

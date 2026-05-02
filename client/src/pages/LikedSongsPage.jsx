@@ -94,6 +94,7 @@ const LikedSongsPage = () => {
           <div role="columnheader">Artis</div>
           <div role="columnheader">Album</div>
           <div className="liked__clock" role="columnheader" aria-label="Durasi">Durasi</div>
+          <div className="liked__actionsHead" role="columnheader">Aksi</div>
         </div>
 
         {loading ? (

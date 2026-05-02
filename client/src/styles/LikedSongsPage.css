@@ -13,7 +13,8 @@
   min-height: 100vh;
   background: var(--liked-bg);
   color: #fff;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   text-align: left;
 }
 
@@ -222,14 +223,14 @@
 }
 
 .liked__list {
-  padding: 18px var(--liked-pad-x) 28px;
+  padding: 18px var(--liked-pad-x) 128px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.24), transparent 65%);
 }
 
 .liked__tableHead,
 .liked__row {
   display: grid;
-  grid-template-columns: 44px 5fr 3fr 3fr 72px;
+  grid-template-columns: 44px minmax(180px, 5fr) minmax(120px, 3fr) minmax(120px, 3fr) 72px minmax(110px, auto);
   gap: 16px;
   align-items: center;
   padding: 10px 16px;
@@ -249,6 +250,10 @@
 .liked__clock {
   display: flex;
   justify-content: flex-end;
+}
+
+.liked__actionsHead {
+  text-align: right;
 }
 
 .liked__rows {
@@ -326,4 +331,29 @@
 .liked__duration {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.liked__row > .liked__cell:last-child {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .liked__tableHead,
+  .liked__row {
+    grid-template-columns: 36px minmax(120px, 1.7fr) minmax(90px, 1fr) 64px minmax(86px, auto);
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .liked__tableHead > :nth-child(4),
+  .liked__row > :nth-child(4) {
+    display: none;
+  }
+
+  .liked__unlikeBtn {
+    padding: 8px 10px;
+    gap: 6px;
+    font-size: 12px;
+  }
 }

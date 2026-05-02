@@ -48,6 +48,11 @@ class HistoryService extends BaseService {
 
     return this.success(rows, "History fetched");
   }
+
+  async clear(userId) {
+    const deleted = await History.destroy({ where: { userId } });
+    return this.success({ deleted }, "History cleared");
+  }
 }
 
 export default new HistoryService();
