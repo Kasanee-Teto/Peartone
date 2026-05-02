@@ -2,8 +2,7 @@ import "../styles/LoginPage.css";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,28 +15,21 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(payload?.message || "Login gagal");
 
-      // backend kamu mengembalikan { data: { token, user }, message, status } (dari auth.service.js)
       const token = payload?.data?.token;
       const user = payload?.data?.user;
-
       if (!token) throw new Error("Token tidak ditemukan di response login");
 
       localStorage.setItem("token", token);
       if (user) localStorage.setItem("pt_user", JSON.stringify(user));
-
       navigate("/", { replace: true });
     } catch (err) {
       setError(err?.message || "Terjadi kesalahan");
@@ -47,60 +39,87 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0d0d0f] text-white">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
-        <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-              Peartone
-            </h1>
+    <main
+      style={{
+        minHeight: "100svh",
+        background: "#0d0d0f",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px 16px",
+        color: "#fff",
+      }}
+    >
+      <div style={{ pointerEvents: "none", position: "fixed", inset: 0, overflow: "hidden", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-80px", left: "20%", width: "360px", height: "360px", borderRadius: "50%", background: "#7c6af7", opacity: 0.08, filter: "blur(120px)" }} />
+        <div style={{ position: "absolute", bottom: "0", right: "15%", width: "300px", height: "300px", borderRadius: "50%", background: "#c8f560", opacity: 0.08, filter: "blur(100px)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "360px" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.02em" }}>Peartone</div>
+          <div style={{ marginTop: "4px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Your music, your charts.</div>
+        </div>
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.09)",
+            borderRadius: "18px",
+            padding: "24px",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
+        >
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Sign in</div>
+            <div style={{ marginTop: "3px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Welcome back — enter your details below.</div>
           </div>
 
-          <div className="relative z-10 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:p-8">
-            <h2 className="text-2xl font-semibold">Login</h2>
+          <form className="login__form" onSubmit={handleLogin}>
+            <label className="login__field">
+              <span>Username</span>
+              <input
+                type="text"
+                className="login__input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                placeholder="e.g. bolstar32"
+              />
+            </label>
 
-            <form className="login__form" onSubmit={handleLogin}>
-              <label className="login__field">
-                <span>Username</span>
-                <input
-                  type="text"
-                  className="login__input"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                />
-              </label>
+            <label className="login__field">
+              <span>Password</span>
+              <input
+                type="password"
+                className="login__input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="••••••••"
+              />
+            </label>
 
-              <label className="login__field">
-                <span>Password</span>
-                <input
-                  type="password"
-                  className="login__input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-              </label>
+            {error && (
+              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "10px 12px", fontSize: "12px", color: "#f87171" }}>
+                {error}
+              </div>
+            )}
 
-              {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+            <button type="submit" disabled={loading} className="login__button">
+              {loading ? "Signing in…" : "Login"}
+            </button>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="login__button bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
-              >
-                {loading ? "Loading..." : "Login"}
-              </button>
-
-              <p className="mt-3 text-sm text-white/70">
-                Belum punya akun?{" "}
-                <Link to="/register" className="underline text-white">
-                  Register
-                </Link>
-              </p>
-            </form>
-          </div>
-        </section>
+            <div style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
+              Belum punya akun?{" "}
+              <Link to="/register" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+                Register
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   );

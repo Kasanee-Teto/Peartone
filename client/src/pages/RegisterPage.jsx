@@ -4,21 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "../api/auth.js";
 
 function validatePassword(password = "") {
-  if (password.length < 12) {
-    return "Password minimal 12 karakter";
-  }
-  if (!/[a-z]/.test(password)) {
-    return "Password harus punya huruf kecil";
-  }
-  if (!/[A-Z]/.test(password)) {
-    return "Password harus punya huruf besar";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password harus punya angka";
-  }
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    return "Password harus punya simbol";
-  }
+  if (password.length < 12) return "Password minimal 12 karakter";
+  if (!/[a-z]/.test(password)) return "Password harus punya huruf kecil";
+  if (!/[A-Z]/.test(password)) return "Password harus punya huruf besar";
+  if (!/[0-9]/.test(password)) return "Password harus punya angka";
+  if (!/[^A-Za-z0-9]/.test(password)) return "Password harus punya simbol";
   return "";
 }
 
@@ -39,12 +29,10 @@ const RegisterPage = () => {
       setError("Username, email, dan password wajib diisi");
       return;
     }
-
     if (password !== confirmPassword) {
       setError("Konfirmasi password tidak cocok");
       return;
     }
-
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
@@ -63,95 +51,114 @@ const RegisterPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#0d0d0f] text-white">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#7c6af7] opacity-20 blur-[120px]" />
-          <div className="absolute bottom-6 right-0 h-72 w-72 rounded-full bg-[#c8f560] opacity-15 blur-[140px]" />
+    <main
+      style={{
+        minHeight: "100svh",
+        background: "#0d0d0f",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px 16px",
+        color: "#fff",
+      }}
+    >
+      <div style={{ pointerEvents: "none", position: "fixed", inset: 0, overflow: "hidden", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-80px", left: "20%", width: "360px", height: "360px", borderRadius: "50%", background: "#7c6af7", opacity: 0.08, filter: "blur(120px)" }} />
+        <div style={{ position: "absolute", bottom: "0", right: "15%", width: "300px", height: "300px", borderRadius: "50%", background: "#c8f560", opacity: 0.08, filter: "blur(100px)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "380px" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.02em" }}>Peartone</div>
+          <div style={{ marginTop: "4px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Your music, your charts.</div>
         </div>
 
-        <section className="relative z-10 grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="flex flex-col justify-center">
-            <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-              Peartone
-            </h1>
+        <div
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.09)",
+            borderRadius: "18px",
+            padding: "24px",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
+        >
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Create account</div>
+            <div style={{ marginTop: "3px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Buat akun barumu sekarang.</div>
           </div>
 
-          <div className="relative z-10 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold">Register</h2>
-                <p className="mt-1 text-sm text-white/60">Buat akun barumu sekarang.</p>
+          <form className="register__form" onSubmit={handleRegister}>
+            <label className="register__field">
+              <span>Username</span>
+              <input
+                type="text"
+                placeholder="Masukkan username"
+                className="register__input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+              />
+            </label>
+
+            <label className="register__field">
+              <span>Email</span>
+              <input
+                type="email"
+                placeholder="nama@email.com"
+                className="register__input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </label>
+
+            <label className="register__field">
+              <span>Password</span>
+              <input
+                type="password"
+                placeholder="Buat password"
+                className="register__input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <span className="register__hint">
+                Min. 12 karakter, huruf besar-kecil, angka & simbol.
+              </span>
+            </label>
+
+            <label className="register__field">
+              <span>Konfirmasi Password</span>
+              <input
+                type="password"
+                placeholder="Ulangi password"
+                className="register__input"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+
+            {error && (
+              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "10px 12px", fontSize: "12px", color: "#f87171" }}>
+                {error}
               </div>
+            )}
+
+            <button type="submit" disabled={loading} className="register__button">
+              {loading ? "Mendaftar…" : "Daftar"}
+            </button>
+
+            <div style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
+              Sudah punya akun?{" "}
+              <Link to="/login" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+                Login
+              </Link>
             </div>
-
-            <form className="register__form" onSubmit={handleRegister}>
-              <label className="register__field">
-                <span>Username</span>
-                <input
-                  type="text"
-                  placeholder="Masukkan username"
-                  className="register__input"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                />
-              </label>
-              <label className="register__field">
-                <span>Email</span>
-                <input
-                  type="email"
-                  placeholder="nama@email.com"
-                  className="register__input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-              </label>
-              <label className="register__field">
-                <span>Password</span>
-                <input
-                  type="password"
-                  placeholder="Buat password"
-                  className="register__input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-                <small className="text-xs text-white/55 mt-1">
-                  Gunakan minimal 12 karakter, campuran huruf besar-kecil, angka, dan simbol.
-                </small>
-              </label>
-              <label className="register__field">
-                <span>Konfirmasi Password</span>
-                <input
-                  type="password"
-                  placeholder="Ulangi password"
-                  className="register__input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-              </label>
-              {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="register__button bg-green-600 text-white transition duration-150 hover:bg-green-700 disabled:opacity-60"
-              >
-                {loading ? "Loading..." : "Daftar"}
-              </button>
-
-              <p className="mt-3 text-sm text-white/70">
-                Sudah punya akun?{" "}
-                <Link to="/login" className="underline text-white">
-                  Login
-                </Link>
-              </p>
-            </form>
-          </div>
-        </section>
+          </form>
+        </div>
       </div>
     </main>
   );
