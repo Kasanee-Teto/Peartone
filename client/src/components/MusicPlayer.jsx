@@ -123,6 +123,21 @@ const MusicPlayer = () => {
 }, []);
 
   useEffect(() => {
+  const handleClearQueue = () => {
+      setQueue([]);
+      setCurrentIndex(0);
+      setIsPlaying(false);
+      setProgress(0);
+  };
+
+  window.addEventListener("pt:clear-queue", handleClearQueue);
+
+  return () => {
+    window.removeEventListener("pt:clear-queue", handleClearQueue);
+  };
+}, []);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
