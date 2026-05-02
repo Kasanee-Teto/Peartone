@@ -32,7 +32,14 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
   const isLiked = likedIds.has(String(track.id || ""));
 
   const handlePlay = () => {
-    const playable = normalizePlayableTrack({ ...track, trackId: track.id });
+    const playable = normalizePlayableTrack({
+      ...track,
+      trackId: track.id,
+      title: track.title,
+      artist: getArtistName(track), 
+      coverUrl: track.coverUrl || track.Album?.coverUrl || track.Album?.imageUrl || "",
+    });
+
     emitPlayTrack(playable);
   };
 
