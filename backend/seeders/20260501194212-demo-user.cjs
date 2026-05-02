@@ -7,6 +7,9 @@ const { randomUUID } = require("crypto");
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     const userHash = await bcrypt.hash("User12345!", 10);
 
     const users = [
@@ -17,7 +20,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Medan, Indonesia", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -27,7 +30,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "New York, USA", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -37,7 +40,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Berlin, Germany", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -47,7 +50,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Paris, France", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -57,7 +60,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Bandung, Indonesia", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -67,7 +70,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "New Delhi, India", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -77,7 +80,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "London, UK", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -87,7 +90,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Racoon City, USA", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -97,7 +100,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Gangnam, South Korea", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       },
       { 
@@ -107,7 +110,7 @@ module.exports = {
         passwordHash: userHash, 
         role: "user", 
         location: "Chengdu, China", 
-        createdAt: now, 
+        createdAt: yesterday, 
         updatedAt: now 
       }
     ];

@@ -4,6 +4,8 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
 
     await queryInterface.bulkInsert(
       "Albums",
@@ -16,7 +18,7 @@ module.exports = {
           coverUrl: "/storage/albums/teto.png",
           releaseDate: "2024-01-01",
           trackNumbers: 5,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -27,7 +29,7 @@ module.exports = {
           coverUrl: "/storage/albums/mimi.webp",
           releaseDate: "2023-06-10",
           trackNumbers: 8,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -38,7 +40,7 @@ module.exports = {
           coverUrl: "/storage/albums/miku.jpg",
           releaseDate: "2022-12-01",
           trackNumbers: 6,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -49,7 +51,7 @@ module.exports = {
           coverUrl: "/storage/albums/masarada.jpg",
           releaseDate: "2024-03-15",
           trackNumbers: 4,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -60,7 +62,7 @@ module.exports = {
           coverUrl: "/storage/albums/32ki.jpg",
           releaseDate: "2021-09-20",
           trackNumbers: 7,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
       ],

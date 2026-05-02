@@ -4,6 +4,8 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
 
     await queryInterface.bulkInsert(
       "Lyrics",
@@ -91,7 +93,7 @@ module.exports = {
           Waraeru toki made kyou mo
           Science!
                 `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -143,7 +145,7 @@ module.exports = {
                 溶けてアンコール 空に歌うだけ
                 歌うだけ
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -219,7 +221,7 @@ module.exports = {
           今日は魔法にかかったメイド
           ささやかな晴れ舞台
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -258,7 +260,7 @@ module.exports = {
           Pyon pyon pyon pyon!
           Pyon pyon pyon pyon!
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -308,7 +310,7 @@ module.exports = {
           種も仕掛けもないはずの心の欠片を
           探す旅に出るハートのA
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
 
@@ -380,7 +382,7 @@ module.exports = {
           Raiaa!, (Raiaa!) Raiaa! (Raiaa!) Dansaa
           Uso de odoru no sa!
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -459,7 +461,7 @@ module.exports = {
           Kioku, chigai, yume no, hanashi
           Sou iu, koto de, sore ja
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -510,7 +512,7 @@ module.exports = {
           ちっちゃな私はさ
           今日も 今日を あー繰り返す
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -595,7 +597,7 @@ module.exports = {
           言葉にできない 強大な感情が
           僕を動かしている
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
         {
@@ -667,7 +669,7 @@ module.exports = {
           失明しちゃうんだ
           だから、適度にね
           `,
-          createdAt: now,
+          createdAt: yesterday,
           updatedAt: now,
         },
       ],

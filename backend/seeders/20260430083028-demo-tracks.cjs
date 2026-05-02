@@ -4,6 +4,9 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     await queryInterface.bulkInsert("Tracks", [
       {
         id: "e2cf4d12-0b65-4f1c-9df9-84d6c1f1c932",
@@ -16,7 +19,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Science (feat. KASANE TETO).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 3000000
       },
@@ -31,7 +34,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Encore Dance (feat. KASANE TETO).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 1800000
       },
@@ -46,7 +49,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Magic Maid (feat. KASANE TETO).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 1500000
       },
@@ -61,7 +64,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Pyon (feat. HATSUNE MIKU).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 2200000
       },
@@ -76,7 +79,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/TRICK HEART (feat. KASANE TETO).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 520000
       },
@@ -93,7 +96,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Liar Dancer.jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 24000000
       },
@@ -108,7 +111,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/●utlaws.jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 8700000
       },
@@ -123,7 +126,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Tiny Me.jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 3200000
       },
@@ -138,7 +141,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/Ultra Trailer.jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 1900000
       },
@@ -153,7 +156,7 @@ module.exports = {
         fileSize: 0,
         coverUrl: "/storage/covers/メズマライザー (feat. 初音ミク&重音テト).jpg",
         albumId: null,
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now,
         listeners: 48000000
       }

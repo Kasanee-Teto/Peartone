@@ -4,13 +4,16 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     await queryInterface.bulkInsert("Artists", [
       {
         id: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         name: "Kasane Teto",
         bio: "Vocal synth artist.",
         imageUrl: "/storage/artists/teto.jpg",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -18,7 +21,7 @@ module.exports = {
         name: "MIMI",
         bio: "MIMI is a Japanese composer and producer with a focus on blending the synthetic voices of the VOCALOID lineup with intricate piano instrumentation across a myriad of genres and styles, including pop, piano rock and ballad.",
         imageUrl: "/storage/artists/mimi.jpg",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -26,7 +29,7 @@ module.exports = {
         name: "Hatsune Miku",
         bio: "Vocal synth character and voicebank.",
         imageUrl: "/storage/artists/miku.jpg",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -34,7 +37,7 @@ module.exports = {
         name: "マサラダ",
         bio: "Vocal synth producer.",
         imageUrl: "/storage/artists/masarada.jpg",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -42,7 +45,7 @@ module.exports = {
       name: "32ki",
       bio: "Vocal synth producer.",
       imageUrl: "/storage/artists/32ki.jpg",
-      createdAt: now,
+      createdAt: yesterday,
       updatedAt: now
       }
     ]);

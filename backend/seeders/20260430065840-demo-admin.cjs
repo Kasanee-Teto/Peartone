@@ -7,6 +7,9 @@ const { randomUUID } = require("crypto");
 module.exports = {
   async up (queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     const passwordHash = await bcrypt.hash("Admin12345!", 10);
 
         await queryInterface.bulkInsert("Users", [
@@ -17,7 +20,7 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Jakarta, Indonesia",
-            createdAt: now,
+            createdAt: yesterday,
             updatedAt: now
           },
           {
@@ -27,7 +30,7 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Surabaya, Indonesia",
-            createdAt: now,
+            createdAt: yesterday,
             updatedAt: now
           },
           {
@@ -37,7 +40,7 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Beijing, China",
-            createdAt: now,
+            createdAt: yesterday,
             updatedAt: now
           },
           {
@@ -47,7 +50,7 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Kolkata, India",
-            createdAt: now,
+            createdAt: yesterday,
             updatedAt: now
           },
           {
@@ -57,7 +60,7 @@ module.exports = {
             passwordHash,
             role: "admin",
             location: "Erithrea, South Africa",
-            createdAt: now,
+            createdAt: yesterday,
             updatedAt: now
           }
     ]);

@@ -4,6 +4,9 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
     await queryInterface.bulkInsert("TrackArtists", [
       // Science (MIMI primary, TETO featured)
       {
@@ -11,7 +14,7 @@ module.exports = {
         artistId: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -19,7 +22,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
 
@@ -29,7 +32,7 @@ module.exports = {
         artistId: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -37,7 +40,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
 
@@ -47,7 +50,7 @@ module.exports = {
         artistId: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -55,7 +58,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
 
@@ -65,7 +68,7 @@ module.exports = {
         artistId: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -73,7 +76,7 @@ module.exports = {
         artistId: "d8b64fd2-9b6f-4f5d-b3ae-0a1e6d0a77a1",
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -81,7 +84,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         artistOrder: 3,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
 
@@ -91,7 +94,7 @@ module.exports = {
         artistId: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -99,7 +102,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
 
@@ -109,7 +112,7 @@ module.exports = {
         artistId: "e6f3e2a1-2a5a-4e7d-9d2e-6b3f1b9c21a0",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -117,7 +120,7 @@ module.exports = {
         artistId: "e6f3e2a1-2a5a-4e7d-9d2e-6b3f1b9c21a0",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -125,7 +128,7 @@ module.exports = {
         artistId: "e6f3e2a1-2a5a-4e7d-9d2e-6b3f1b9c21a0",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -133,7 +136,7 @@ module.exports = {
         artistId: "e6f3e2a1-2a5a-4e7d-9d2e-6b3f1b9c21a0",
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -141,7 +144,7 @@ module.exports = {
         artistId: "f1a2b3c4-6d7e-4f8a-9b0c-1d2e3f4a5b6c", // 32ki
         artistOrder: 1,
         role: "primary",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -149,7 +152,7 @@ module.exports = {
         artistId: "d8b64fd2-9b6f-4f5d-b3ae-0a1e6d0a77a1", // Hatsune Miku
         artistOrder: 2,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       },
       {
@@ -157,7 +160,7 @@ module.exports = {
         artistId: "b29cb043-2f74-47d3-a107-ab70cdef58f7", // Kasane Teto
         artistOrder: 3,
         role: "featured",
-        createdAt: now,
+        createdAt: yesterday,
         updatedAt: now
       }
     ]);
