@@ -11,7 +11,9 @@ import {
   FiUser,
   FiLogOut,
   FiX,
+  FiMusic,
 } from "react-icons/fi";
+import "../styles/Sidebar.css";
 
 const Sidebar = ({ isOpen, onClose, onLogout }) => {
   return (
@@ -21,21 +23,12 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
       aria-label="Menu Samping"
       aria-hidden={!isOpen}
     >
-      {/* Tombol Tutup */}
-      <button
-        className="home__sidebar-close"
-        type="button"
-        aria-label="Tutup menu samping"
-        onClick={onClose}
-      >
-        <FiX />
-      </button>
 
       <nav className="home__sidebar-nav" aria-label="Navigasi Utama">
 
-        {/* ── Grup Discover ── */}
+        {/* ── Discover ── */}
         <p className="home__sidebar-group-title">Discover</p>
-        <ul className="home__sidebar-list list-none" role="list">
+        <ul className="home__sidebar-list" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/"
@@ -47,6 +40,18 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
             >
               <FiHome className="home__sidebar-icon" aria-hidden="true" />
               <span>Home</span>
+            </NavLink>
+          </li>
+          <li className="home__sidebar-item">
+            <NavLink
+              to="/tracks"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `home__sidebar-link${isActive ? " is-active" : ""}`
+              }
+            >
+              <FiMusic className="home__sidebar-icon" aria-hidden="true" />
+              <span>All Tracks</span>
             </NavLink>
           </li>
           <li className="home__sidebar-item">
@@ -87,9 +92,9 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
           </li>
         </ul>
 
-        {/* ── Grup Library ── */}
+        {/* ── Library ── */}
         <p className="home__sidebar-group-title">Library</p>
-        <ul className="home__sidebar-list list-none" role="list">
+        <ul className="home__sidebar-list" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/playlists"
@@ -102,20 +107,6 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
               <span>Playlists</span>
             </NavLink>
           </li>
-
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/history"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiClock className="home__sidebar-icon" aria-hidden="true" />
-              <span>History</span>
-            </NavLink>
-          </li>
-
           <li className="home__sidebar-item">
             <NavLink
               to="/liked"
@@ -128,11 +119,23 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
               <span>Liked Songs</span>
             </NavLink>
           </li>
+          <li className="home__sidebar-item">
+            <NavLink
+              to="/history"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `home__sidebar-link${isActive ? " is-active" : ""}`
+              }
+            >
+              <FiClock className="home__sidebar-icon" aria-hidden="true" />
+              <span>History</span>
+            </NavLink>
+          </li>
         </ul>
 
-        {/* ── Grup Account (posisi bawah via CSS) ── */}
+        {/* ── Account ── */}
         <p className="home__sidebar-group-title">Account</p>
-        <ul className="home__sidebar-list list-none" role="list">
+        <ul className="home__sidebar-list" role="list">
           <li className="home__sidebar-item">
             <NavLink
               to="/admin"

@@ -39,7 +39,7 @@ const PopularList = ({ popular = [], loading, error }) => {
     <section className="popular" aria-label="Popular Now">
       <div className="section-header">
         <h2 className="section-title">Popular Now</h2>
-        <a href="/popular" className="section-link" aria-label="Lihat semua lagu populer">
+        <a href="/tracks" className="section-link" aria-label="Lihat semua lagu populer">
           Lihat Semua →
         </a>
       </div>
