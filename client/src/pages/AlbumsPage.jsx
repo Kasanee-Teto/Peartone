@@ -23,7 +23,7 @@ const AlbumCard = ({ album }) => {
 
   const coverUrl  = buildCoverUrl(album.coverUrl);
   const year      = album.releaseDate ? new Date(album.releaseDate).getFullYear() : "";
-  const trackCount = album.trackNumbers ?? (album.Tracks || []).length;
+  const trackCount = (album.Tracks && album.Tracks.length > 0) ? album.Tracks.length : (album.trackNumbers || 0);
 
   const handlePlay = useCallback(async () => {
     if (loading) return;
@@ -32,9 +32,10 @@ const AlbumCard = ({ album }) => {
 
     try {
       const response = await albumsApi.getById(album.id);
-
-      const albumDetail = response.data; 
-      const tracks = albumDetail?.Tracks || [];
+    
+      const albumDetail = response?.data?.data || response?.data || response;
+     
+      const tracks = albumDetail?.Tracks || albumDetail?.tracks || [];
 
       if (!tracks.length) {
         setError("This album doesn't have any tracks.");
@@ -45,7 +46,7 @@ const AlbumCard = ({ album }) => {
         normalizePlayableTrack({
           ...t,
           artist: t.Artists?.[0]?.name || album.Artist?.name || "Unknown Artist",
-        album: albumDetail.title,
+          album: albumDetail.title,
         })
       );
 
