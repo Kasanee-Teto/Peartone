@@ -99,6 +99,7 @@ class LikeService extends BaseService {
   }
 
   async toggle(userId, trackId) {
+
     trackId = String(trackId || "").trim();
     if (!trackId) throw new ApiError(400, "trackId is required");
 
@@ -110,9 +111,14 @@ class LikeService extends BaseService {
       await existing.destroy();
       return this.success({ liked: false }, "Unliked");
     }
-    const now = new Date();
-    await LikedTrack.create({ userId, trackId }); 
-    return this.success({ liked: true }, "Liked");
+
+    try {
+      await LikedTrack.create({ userId, trackId });
+      return this.success({ liked: true }, "Liked");
+    } catch (dbError) {
+      console.error("Database Error saat Like:", dbError);
+      throw new ApiError(500, "Failed to like Tracks: Database Relation Error!");
+    }
   }
 }
 

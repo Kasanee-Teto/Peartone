@@ -11,17 +11,9 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.UUID, 
         allowNull: false,
         primaryKey: true 
-      },
-      createdAt: { 
-        type: DataTypes.DATE, 
-        allowNull: false
-      },
-      updatedAt: { 
-        type: DataTypes.DATE, 
-        allowNull: false
       }
     },
-    { tableName: "LikedTracks", timestamps: false }
+    { tableName: "LikedTracks", timestamps: true }
   );
 
   LikedTrack.associate = (models) => {

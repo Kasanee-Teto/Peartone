@@ -25,12 +25,12 @@ class ChartService extends BaseService {
       where,
       include: this._include(),
       order: [
-        ["listeners", "DESC"],
-        ["createdAt", "DESC"],
+        [Track, 'listeners', 'DESC'], 
         [{ model: Artist, as: 'Artists' }, TrackArtist, 'artistOrder', 'ASC']
       ],
       limit: safeLimit,
-      subQuery: false
+      distinct: true,
+      subQuery: true
     });
 
     return this.success(tracks, "Top charts fetched");

@@ -352,7 +352,9 @@ const MusicPlayer = () => {
   }
 
   async function toggleLike() {
-    const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
+    const trackId = currentTrack?.trackId || currentTrack?.id;
+    console.log("Debug Track ID:", trackId);
+
     if (!isValidTrackId(trackId)) {
       setPlayerError("Track ini belum tersimpan di server.");
       return;

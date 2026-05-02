@@ -76,7 +76,7 @@ const TopChartsPage = () => {
               Top Charts
             </h1>
             <p className="mt-3 max-w-md text-sm text-white/60">
-              Lagu-lagu yang lagi naik dan paling sering didengar minggu ini.
+              Top trending musics this week! 
             </p>
           </div>
 
@@ -89,9 +89,9 @@ const TopChartsPage = () => {
             </div>
 
             {loading ? (
-              <p className="text-sm text-white/60">Memuat chart...</p>
+              <p className="text-sm text-white/60">Loading Chart...</p>
             ) : error ? (
-              <p className="text-sm text-red-300">Gagal memuat charts: {error}</p>
+              <p className="text-sm text-red-300">Failed to load Charts: {error}</p>
             ) : (
               <ol className="space-y-2.5" aria-label="Daftar top charts">
                 {charts.map((track, index) => (

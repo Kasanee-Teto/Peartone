@@ -18,9 +18,9 @@ module.exports = {
       },
       {
         id: "c1f3f68a-6e84-4d2b-8f4f-2a5d7f2f3c10",
-        name: "MIMI",
-        bio: "MIMI is a Japanese composer and producer with a focus on blending the synthetic voices of the VOCALOID lineup with intricate piano instrumentation across a myriad of genres and styles, including pop, piano rock and ballad.",
-        imageUrl: "/storage/artists/mimi.jpg",
+        name: "Yorushika",
+        bio: "Yorushika (ヨルシカ) is a Japanese rock duo founded in 2017. The group is composed of N-buna, a Vocaloid producer, and Suis, a female vocalist.",
+        imageUrl: "/storage/artists/yorushika.jpg",
         createdAt: yesterday,
         updatedAt: now
       },
