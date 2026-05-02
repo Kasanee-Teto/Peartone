@@ -13,6 +13,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import PlaylistPage from './pages/PlaylistPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import TopChartsPage from './pages/TopChartsPage.jsx'
+import TracksPage from './pages/TracksPage.jsx'
 import ArtistsPage from './pages/ArtistsPage.jsx'
 import AlbumsPage from './pages/AlbumsPage.jsx'
 import LikedSongsPage from './pages/LikedSongsPage.jsx'
@@ -40,6 +41,14 @@ function ProtectedRoute() {
   return <Outlet />
 }
 
+function AdminRoute() {
+  const token = localStorage.getItem('token')
+  if (!token) return <Navigate to="/login" replace />
+  const user = JSON.parse(localStorage.getItem('pt_user') || 'null') || {}
+  if (user.role !== 'admin') return <Navigate to="/" replace />
+  return <AdminUploadPage />
+}
+
 function AppLayout() {
   const location = useLocation()
   const showPlayer = !HIDE_PLAYER_ON.includes(location.pathname)
@@ -55,14 +64,17 @@ function AppLayout() {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/charts" element={<TopChartsPage />} />
+          <Route path="/tracks" element={<TracksPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/albums" element={<AlbumsPage />} />
           <Route path="/liked" element={<LikedSongsPage />} />
           <Route path="/history" element={<HistoryPage />} />
-          <Route path="/admin" element={<AdminUploadPage />} />
           <Route path="/playlists" element={<PlaylistRoute />} />
           <Route path="/profile" element={<ProfileRoute />} />
         </Route>
+
+        {/* Admin-only route */}
+        <Route path="/admin" element={<AdminRoute />} />
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

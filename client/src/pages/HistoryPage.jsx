@@ -1,8 +1,9 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { FiSearch, FiTrash2 } from "react-icons/fi";
+import { FiSearch, FiPlay } from "react-icons/fi";
 import "../styles/HistoryPage.css";
 import { useFetch } from "../hooks/useFetch";
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 
 const HistoryPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -20,6 +21,23 @@ const HistoryPage = () => {
           .some((v) => v.toLowerCase().includes(q));
       })
     : rows;
+
+  const handlePlay = (row) => {
+    const t = row.Track || {};
+    emitPlayTrack(
+      normalizePlayableTrack({
+        id: t.id || row.trackId,
+        trackId: t.id || row.trackId,
+        title: t.title,
+        artist: Array.isArray(t.Artists)
+          ? t.Artists.map((a) => a.name).join(", ")
+          : t.Artist?.name || "",
+        album: t.Album?.title || "",
+        duration: t.duration || 0,
+        coverUrl: t.coverUrl || t.Album?.coverUrl || "",
+      })
+    );
+  };
 
   return (
     <main className="history-page" aria-label="History">
@@ -47,8 +65,7 @@ const HistoryPage = () => {
             <input className="history-search__input" type="search" placeholder="Cari judul, artis, atau album" value={search} onChange={(e) => setSearch(e.target.value)} />
           </label>
 
-          <button type="button" className="history-delete" onClick={() => {}} disabled={rows.length === 0} aria-label="Hapus semua history" title={rows.length === 0 ? "History kosong" : "Hapus semua history"}>
-            <FiTrash2 aria-hidden="true" />
+          <button type="button" className="history-delete" disabled aria-label="Hapus semua history" title="Fitur hapus history belum tersedia">
             <span>Delete</span>
           </button>
         </div>
@@ -76,10 +93,21 @@ const HistoryPage = () => {
                 return (
                   <li key={row.id || index} className="history-row">
                     <div className="history-row__index">{index + 1}</div>
-                    <div className="history-row__title" title={t.title}>{t.title}</div>
+                    <div className="history-row__title" title={t.title}>
+                      <button
+                        type="button"
+                        onClick={() => handlePlay(row)}
+                        aria-label={`Putar ${t.title || "lagu"}`}
+                        title="Putar"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "#c8f560", padding: "4px", display: "inline-flex", alignItems: "center", marginRight: "8px" }}
+                      >
+                        <FiPlay size={13} fill="currentColor" />
+                      </button>
+                      {t.title}
+                    </div>
                     <div className="history-row__cell" title={artist}>{artist}</div>
                     <div className="history-row__cell" title={t.Album?.title}>{t.Album?.title || ""}</div>
-                    <div className="history-row__cell history-row__playedAt">{new Date(row.playedAt || row.createdAt || Date.now()).toLocaleString()}</div>
+                    <div className="history-row__cell history-row__playedAt">{new Date(row.playedAt || row.createdAt || 0).toLocaleString()}</div>
                   </li>
                 );
               })}

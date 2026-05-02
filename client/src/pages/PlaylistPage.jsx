@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PlaylistCard from "../components/PlaylistCard";
 import AddTrackModal from "../components/AddTrackModal";
 import Sidebar from "../components/Sidebar";
-import "../styles/playlistPage.css";
+import "../styles/PlaylistPage.css";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 

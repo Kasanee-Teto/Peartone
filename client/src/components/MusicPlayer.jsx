@@ -128,10 +128,8 @@ const MusicPlayer = () => {
     setProgress(0);
     audio.src = source;
     audio.load();
-
-    if (isPlaying) {
-      audio.play().catch(() => setIsPlaying(false));
-    }
+    // Play is handled by the isPlaying effect below, which also has
+    // currentTrack?.streamUrl as a dependency and will run after this effect.
   }, [currentTrack?.id, currentTrack?.streamUrl]);
 
   useEffect(() => {

@@ -17,16 +17,17 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
         const data = await playlistsApi.getMine(playlistId);
         const tracks = data?.data?.tracks || [];
         setPlaylistTracks(tracks.map((t) => t.id || t.trackId));
-      } catch (err) {
+      } catch {
         // ignore
       }
     };
     loadPlaylistTracks();
   }, [playlistId]);
 
-  const tracks = Array.isArray(tracksResp)
-    ? tracksResp
-    : tracksResp?.data || [];
+  const tracks = useMemo(
+    () => (Array.isArray(tracksResp) ? tracksResp : tracksResp?.data || []),
+    [tracksResp]
+  );
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return tracks;
@@ -47,16 +48,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
     }
     setAddingTrackId(trackId);
     try {
-      const res = await fetch(`/api/playlists/${playlistId}/tracks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ trackId })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Gagal menambah track");
+      await playlistsApi.addTrack(playlistId, trackId);
       setPlaylistTracks((current) => [...current, trackId]);
       onTrackAdded?.();
     } catch (err) {
@@ -74,13 +66,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
     }
     setRemovingTrackId(trackId);
     try {
-      const res = await fetch(`/api/playlists/${playlistId}/tracks/${trackId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error("Gagal menghapus track");
+      await playlistsApi.removeTrack(playlistId, trackId);
       setPlaylistTracks((current) => current.filter((id) => id !== trackId));
     } catch (err) {
       window.alert(err.message || "Gagal menghapus track");

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { FiHeart, FiX, FiLoader } from "react-icons/fi";
+import { FiHeart, FiX, FiLoader, FiPlay } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/LikedSongsPage.css";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,6 +39,24 @@ const LikedSongsPage = () => {
       cleanup();
     };
   }, []);
+
+  const handlePlay = (t) => {
+    const track = t.Track || t;
+    emitPlayTrack(
+      normalizePlayableTrack({
+        id: track.id || t.trackId,
+        trackId: track.id || t.trackId,
+        title: track.title,
+        artist:
+          Array.isArray(track.Artists)
+            ? track.Artists.map((a) => a.name).join(", ")
+            : track.Artist?.name || t.artist || "",
+        album: track.Album?.title || t.album || "",
+        duration: track.duration || t.duration || 0,
+        coverUrl: track.coverUrl || track.Album?.coverUrl || t.coverUrl || "",
+      })
+    );
+  };
 
   const handleUnlike = async (trackId) => {
     const normalizedTrackId = String(trackId || "").trim();
@@ -105,7 +124,19 @@ const LikedSongsPage = () => {
             {tracks.map((t, i) => (
               <li key={t.id || i} className="liked__row">
                 <div className="liked__index">{i + 1}</div>
-                <div className="liked__titleCell">{t.title || t.Track?.title}</div>
+                <div className="liked__titleCell">
+                  <button
+                    type="button"
+                    className="liked__playBtn"
+                    onClick={() => handlePlay(t)}
+                    aria-label={`Putar ${t.title || t.Track?.title || "lagu"}`}
+                    title="Putar"
+                    style={{ background: "transparent", border: "none", cursor: "pointer", color: "#c8f560", padding: "4px", display: "inline-flex", alignItems: "center", marginRight: "8px" }}
+                  >
+                    <FiPlay size={13} fill="currentColor" />
+                  </button>
+                  {t.title || t.Track?.title}
+                </div>
                 <div className="liked__cell">{t.artist || (t.Artists || t.Track?.Artists || []).map?.((a) => a.name).join(", ")}</div>
                 <div className="liked__cell">{t.album || t.Track?.Album?.title}</div>
                 <div className="liked__cell liked__duration">{Math.floor((t.duration || t.Track?.duration || 0) / 60)}:{String((t.duration || t.Track?.duration || 0) % 60).padStart(2, "0")}</div>

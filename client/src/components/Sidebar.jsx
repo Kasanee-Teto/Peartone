@@ -11,9 +11,13 @@ import {
   FiUser,
   FiLogOut,
   FiX,
+  FiMusic,
 } from "react-icons/fi";
 
 const Sidebar = ({ isOpen, onClose, onLogout }) => {
+  const storedUser = JSON.parse(localStorage.getItem("pt_user") || "null") || {};
+  const isAdmin = storedUser.role === "admin";
+
   return (
     <aside
       id="home-sidebar"
@@ -59,6 +63,18 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
             >
               <FiTrendingUp className="home__sidebar-icon" aria-hidden="true" />
               <span>Top Charts</span>
+            </NavLink>
+          </li>
+          <li className="home__sidebar-item">
+            <NavLink
+              to="/tracks"
+              onClick={onClose}
+              className={({ isActive }) =>
+                `home__sidebar-link${isActive ? " is-active" : ""}`
+              }
+            >
+              <FiMusic className="home__sidebar-icon" aria-hidden="true" />
+              <span>All Songs</span>
             </NavLink>
           </li>
           <li className="home__sidebar-item">
@@ -133,6 +149,7 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
         {/* ── Grup Account (posisi bawah via CSS) ── */}
         <p className="home__sidebar-group-title">Account</p>
         <ul className="home__sidebar-list list-none" role="list">
+          {isAdmin && (
           <li className="home__sidebar-item">
             <NavLink
               to="/admin"
@@ -145,6 +162,7 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
               <span>Admin Upload</span>
             </NavLink>
           </li>
+          )}
           <li className="home__sidebar-item">
             <NavLink
               to="/profile"

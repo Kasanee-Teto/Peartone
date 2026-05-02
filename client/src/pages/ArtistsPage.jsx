@@ -8,7 +8,10 @@ const ArtistsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: artistsResp, loading, error } = useFetch("/artists");
 
-  const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
+  const artists = useMemo(
+    () => (Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || []),
+    [artistsResp]
+  );
   const featuredArtists = useMemo(() => artists.slice(0, 6), [artists]);
   const spotlightArtist = featuredArtists[0] || null;
 
@@ -91,9 +94,19 @@ const ArtistsPage = () => {
             {featuredArtists.map((artist) => (
               <li key={artist.id}>
                 <article className="artist-card">
-                  <div className="artist-card__banner" style={{ background: artist.imageUrl ? `url(${artist.imageUrl}) center/cover no-repeat` : "linear-gradient(135deg,#7c6af7 0%, #c8f560 100%)" }}>
+                  <div className="artist-card__banner" style={{ background: "linear-gradient(135deg,#7c6af7 0%, #c8f560 100%)" }}>
                     <div className="artist-card__avatar-wrap">
-                      <div className="artist-card__avatar">{(artist.name || "").slice(0,2).toUpperCase()}</div>
+                      <div className="artist-card__avatar">
+                        {artist.imageUrl ? (
+                          <img
+                            src={artist.imageUrl}
+                            alt={artist.name}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                          />
+                        ) : (
+                          (artist.name || "").slice(0, 2).toUpperCase()
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="artist-card__info">
