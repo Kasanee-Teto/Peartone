@@ -24,7 +24,6 @@ const AdminUploadPage = () => {
 
   const { data: artistsResp } = useFetch("/artists");
   const { data: albumsResp } = useFetch("/albums");
-
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
   const albums = Array.isArray(albumsResp) ? albumsResp : albumsResp?.data || [];
 
