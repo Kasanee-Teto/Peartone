@@ -91,14 +91,14 @@ const ArtistsPage = () => {
             {featuredArtists.map((artist) => (
               <li key={artist.id}>
                 <article className="artist-card">
-                  <div className="artist-card__banner" style={{ background: artist.imageUrl ? `url(${artist.imageUrl}) center/cover no-repeat` : "linear-gradient(135deg,#7c6af7 0%, #c8f560 100%)" }}>
-                    <div className="artist-card__avatar-wrap">
-                      <div className="artist-card__avatar">{(artist.name || "").slice(0,2).toUpperCase()}</div>
-                    </div>
+                  <div className="artist-card__banner" style={{ background: artist.imageUrl ? `url(${artist.imageUrl}) center/cover no-repeat` : "linear-gradient(135deg,#7c6af7 0%, #c8f560 100%);" }}>
                   </div>
                   <div className="artist-card__info">
                     <h3 className="artist-card__name">{artist.name}</h3>
-                    <p className="artist-card__genre">{artist.bio || "Featured artist dari backend"}</p>
+                    {/* fix artist bio from too long and causing the image to stretch while maintaining readability */}
+                    <p className="artist-card__genre" style={{ maxWidth: "60px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {artist.bio || "Featured artist dari backend"}
+                    </p>
                   </div>
                 </article>
               </li>

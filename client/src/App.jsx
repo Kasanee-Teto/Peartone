@@ -20,6 +20,7 @@ import HistoryPage from './pages/HistoryPage.jsx'
 import AdminUploadPage from './pages/AdminUploadPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
+import TracksPage from './pages/TracksPage.jsx'
 
 function PlaylistRoute() {
   const navigate = useNavigate()
@@ -62,6 +63,7 @@ function AppLayout() {
           <Route path="/admin" element={<AdminUploadPage />} />
           <Route path="/playlists" element={<PlaylistRoute />} />
           <Route path="/profile" element={<ProfileRoute />} />
+          <Route path="/tracks" element={<TracksPage />} />
         </Route>
 
         {/* fallback */}
