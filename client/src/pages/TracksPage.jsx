@@ -7,6 +7,8 @@ import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import "../styles/TracksPage.css";
 
+
+const API_URL = "http://localhost:3000";
 const LIMIT = 20;
 
 function formatDuration(sec) {
@@ -34,6 +36,15 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
     emitPlayTrack(playable);
   };
 
+  const formatCoverPath = (path) => {
+    if (!path) return null;
+    return path.replace(/ /g, '_');
+  };
+
+  const safeUrl = track.coverUrl 
+    ? `${API_URL}${encodeURI(formatCoverPath(track.coverUrl))}` 
+    : null;
+
   return (
     <li className="tr-row" role="row">
       <div className="tr-row__index" role="cell">
@@ -50,12 +61,18 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
 
       <div className="tr-row__info" role="cell">
         <div
-          className="tr-row__cover"
-          style={{ background: track.coverUrl ? `url(${track.coverUrl}) center/cover no-repeat` : undefined }}
-          aria-hidden="true"
-        >
-          {!track.coverUrl && <span>♪</span>}
-        </div>
+        className="tr-row__cover"
+        style={{ 
+          backgroundImage: track.coverUrl ? `url("${safeUrl}")` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundColor: track.coverUrl ? 'transparent' : 'var(--bg-card-alt)'
+        }}
+        aria-hidden="true"
+      >
+        {!track.coverUrl && <span>♪</span>}
+      </div>
         <div className="tr-row__text">
           <span className="tr-row__title" title={track.title}>{track.title}</span>
           <span className="tr-row__artist" title={artist}>{artist}</span>
