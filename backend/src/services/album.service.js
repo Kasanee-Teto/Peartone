@@ -44,7 +44,7 @@ class AlbumService extends BaseService {
 
     const where = {};
     if (query) {
-      where.title = { [Op.iLike]: `%${query}%` };
+      where.title = { [Op.like]: `%${query}%` }; 
     }
 
     const { rows, count } = await Album.findAndCountAll({
@@ -87,7 +87,7 @@ class AlbumService extends BaseService {
     if (!query) return this.success([], "Empty query");
 
     const albums = await Album.findAll({
-      where: { title: { [Op.iLike]: `%${query}%` } },
+      where: { title: { [Op.like]: `%${query}%` } }, 
       include: this._includeList(),
       order: [["createdAt", "DESC"]]
     });
