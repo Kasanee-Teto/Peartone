@@ -15,10 +15,10 @@ export const authApi = {
 
   getProfile: () => http("/auth/me"),
 
-  updateProfile: ({ username, email, location }) =>
+  updateProfile: ({ username, email, location, bio }) =>
     http("/auth/me", {
       method: "PUT",
-      body: JSON.stringify({ username, email, location }),
+      body: JSON.stringify({ username, email, location, bio }),
     }),
 
   async loginAndStore(credentials) {
