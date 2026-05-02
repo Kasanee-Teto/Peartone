@@ -19,6 +19,7 @@ const PlaylistPage = ({ onBack }) => {
     const incoming = Array.isArray(playlistsResp)
       ? playlistsResp
       : playlistsResp?.data || [];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlaylists(incoming);
   }, [playlistsResp]);
 
@@ -59,21 +60,30 @@ const PlaylistPage = ({ onBack }) => {
   };
 
   // Increment song count langsung di state tanpa re-fetch
-  const handleTrackAdded = () => {
-    if (!selectedPlaylist) return;
+const handleTrackAdded = async () => {
+  if (!selectedPlaylist) return;
+
+  try {
+    // fetch updated playlist from backend
+    const updated = await playlistsApi.getMine(selectedPlaylist.id);
+    const fresh = updated?.data || updated;
+
     setPlaylists((prev) =>
       prev.map((p) =>
-        p.id === selectedPlaylist.id
+        p.id === fresh.id
           ? {
               ...p,
-              trackCount: (p.trackCount ?? 0) + 1,
-              Tracks: [...(p.Tracks || []), { id: "__placeholder__" }],
+              ...fresh, // replace with real backend data
             }
           : p
       )
     );
+  } catch (err) {
+    console.error("Failed to refresh playlist:", err);
+  } finally {
     setSelectedPlaylist(null);
-  };
+  }
+};
 
   return (
     <main className="pl-page">
@@ -158,9 +168,13 @@ const PlaylistPage = ({ onBack }) => {
                 <div key={playlist.id} role="listitem">
                   <PlaylistCard
                     playlist={{
-                      id:    playlist.id,
+                      id: playlist.id,
                       title: playlist.name || playlist.title,
-                      image: playlist.image || "/placeholder-album.png",
+                      image:
+                        playlist.image ||
+                        playlist.Tracks?.[0]?.coverUrl ||
+                        playlist.Tracks?.[0]?.Track?.coverUrl ||
+                        null,
                       songs: playlist.trackCount ?? (playlist.Tracks || []).length,
                       color: "#7c6af7",
                     }}

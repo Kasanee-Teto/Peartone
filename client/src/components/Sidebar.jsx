@@ -10,7 +10,6 @@ import {
   FiUploadCloud,
   FiUser,
   FiLogOut,
-  FiX,
   FiMusic,
 } from "react-icons/fi";
 import "../styles/Sidebar.css";
