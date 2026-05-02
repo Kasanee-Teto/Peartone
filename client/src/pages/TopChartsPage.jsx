@@ -31,9 +31,12 @@ const TopChartsPage = () => {
   const { data: tracksResp, loading, error } = useFetch("/tracks?page=1&limit=5");
 
   const chartsRaw = useMemo(() => {
-    if (Array.isArray(tracksResp)) return tracksResp;
-    if (Array.isArray(tracksResp?.data)) return tracksResp.data;
-    return [];
+    let rawData = [];
+    
+    if (Array.isArray(tracksResp)) rawData = tracksResp;
+    else if (Array.isArray(tracksResp?.data)) rawData = tracksResp.data;
+
+    return [...rawData].sort((a, b) => (b.listeners || 0) - (a.listeners || 0));
   }, [tracksResp]);
 
   const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);

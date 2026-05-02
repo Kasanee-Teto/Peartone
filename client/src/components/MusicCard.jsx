@@ -53,7 +53,7 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
     coverUrl,
   });
 
-  const safePlayCount = Number(track?.play_count ?? track?.playCount ?? 0) || 0;
+  const safePlayCount = Number(track?.listeners ?? track?.listeners ?? 0) || 0;
 
   const handlePlay = () => {
     if (!hasTrackId(playableTrack.trackId)) {
