@@ -1,6 +1,6 @@
-# Peartone
+# 🎤 PeartOne 🎵🎶
 
-Peartone is a full-stack music streaming web app with authentication, audio streaming, track discovery, playlists, likes, lyrics, listening history, albums, and charts.
+PeartOne is a full-stack music streaming web app with authentication, audio streaming, track discovery, playlists, likes, lyrics, listening history, albums, and charts.
 
 This repository contains:
 - `client/` — Frontend (React + Vite)
