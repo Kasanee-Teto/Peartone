@@ -17,7 +17,7 @@ class AuthService extends BaseService {
     return this.success(this._sanitizeUser(user), "Profile fetched!");
   }
 
-  async updateProfile(userId, { username, email, location }) {
+  async updateProfile(userId, { username, email, location, bio }) {
     const user = await User.findByPk(userId);
     if (!user) {
       throw new ApiError(404, "User not found");
@@ -26,6 +26,7 @@ class AuthService extends BaseService {
     const nextUsername = typeof username === "string" ? username.trim() : user.username;
     const nextEmail = typeof email === "string" ? email.trim() : user.email;
     const nextLocation = typeof location === "string" ? location.trim() : user.location;
+    const nextBio = typeof bio === "string" ? bio.trim() : user.bio;
 
     if (!nextUsername) {
       throw new ApiError(400, "Username is required");
@@ -48,6 +49,7 @@ class AuthService extends BaseService {
     user.username = nextUsername;
     user.email = nextEmail;
     user.location = nextLocation || null;
+    user.bio = nextBio || null;
     await user.save();
 
     return this.success(this._sanitizeUser(user), "Profile updated!");
@@ -131,6 +133,7 @@ class AuthService extends BaseService {
       email: user.email,
       role: user.role,
       location: user.location || null,
+      bio: user.bio || null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };

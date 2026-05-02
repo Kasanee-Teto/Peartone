@@ -8,8 +8,8 @@ export const getProfile = asyncHandler(async (req, res) => {
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { username, email, location } = req.body || {};
-  const result = await authService.updateProfile(req.user.id, { username, email, location });
+  const { username, email, location, bio } = req.body || {};
+  const result = await authService.updateProfile(req.user.id, { username, email, location, bio });
   res.status(200).json(result);
 });
 

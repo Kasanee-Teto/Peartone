@@ -29,6 +29,10 @@ export default (sequelize, DataTypes) => {
       location: {
         type: DataTypes.STRING,
         allowNull: true
+      },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true
       }
     },
     {

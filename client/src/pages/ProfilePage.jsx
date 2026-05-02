@@ -165,13 +165,6 @@ const ProfilePage = () => {
               </ul>
             </div>
 
-            <div className="profile__info-card">
-              <h2 className="profile__info-card-title">Bio</h2>
-              <p className="profile__bio-text">
-                {profileUser.bio || "Pendengar musik aktif yang suka eksplorasi playlist baru setiap hari."}
-              </p>
-            </div>
-
             <div className="profile__stats-row">
               <div className="profile__stat">
                 <span className="profile__stat-icon profile__stat-icon--purple"><FiMusic size={16} /></span>
@@ -187,25 +180,17 @@ const ProfilePage = () => {
           </aside>
 
           <section className="profile__main">
-            <h2 className="profile__section-title">Aktivitas Terbaru</h2>
-            <ul className="profile__activity-list" role="list">
-              {playlists.slice(0, 3).map((playlist) => (
-                <li key={playlist.id} className="profile__activity-item">
-                  <div className="profile__activity-thumb"><FiMusic size={16} /></div>
-                  <div className="profile__activity-info">
-                    <p className="profile__activity-title">{playlist.name}</p>
-                    <p className="profile__activity-sub">
-                      Playlist · {playlist.updatedAt
-                        ? new Date(playlist.updatedAt).toLocaleDateString("id-ID")
-                        : "Baru saja"}
-                    </p>
-                  </div>
-                </li>
-              ))}
-              {playlists.length === 0 && (
-                <li className="profile__activity-empty">Belum ada aktivitas.</li>
-              )}
-            </ul>
+            <div className="profile__bio-panel">
+              <div className="profile__bio-panel-head">
+                <h2 className="profile__section-title">Bio</h2>
+                <button type="button" className="profile__bio-edit" onClick={openEditor} aria-label="Edit bio">
+                  <FiEdit2 size={12} /> Edit Bio
+                </button>
+              </div>
+              <p className="profile__bio-text profile__bio-text--panel">
+                {profileUser.bio || "Pendengar musik aktif yang suka eksplorasi playlist baru setiap hari."}
+              </p>
+            </div>
           </section>
         </div>
       </div>
