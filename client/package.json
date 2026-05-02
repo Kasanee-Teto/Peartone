@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm --prefix ../backend run dev\" \"npm --prefix . run dev\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -28,5 +29,7 @@
     "globals": "^17.5.0",
     "tailwindcss": "^4.2.4",
     "vite": "^8.0.10"
+  ,
+    "concurrently": "^8.2.1"
   }
 }

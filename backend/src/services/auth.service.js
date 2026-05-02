@@ -2,12 +2,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 import ApiError from "../utils/apiError.js";
+import { validatePasswordStrength } from "../utils/passwordPolicy.js";
 import BaseService from "./base.service.js";
 
 const { User } = db;
 
 class AuthService extends BaseService {
   async register({ username, email, password }) {
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.ok) {
+      throw new ApiError(400, passwordCheck.message);
+    }
+
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
       throw new ApiError(409, "Username already registered");

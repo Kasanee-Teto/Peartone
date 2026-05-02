@@ -27,7 +27,7 @@ module.exports = {
       playedAt: { 
         type: Sequelize.DATE, 
         allowNull: false, 
-        defaultValue: Sequelize.literal("NOW()") 
+        defaultValue: Sequelize.NOW 
       },
       msPlayed: { 
         type: Sequelize.INTEGER, 

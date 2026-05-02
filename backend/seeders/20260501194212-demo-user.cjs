@@ -1,6 +1,7 @@
 "use strict";
 
 const bcrypt = require("bcryptjs");
+const { randomUUID } = require("crypto");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -10,6 +11,7 @@ module.exports = {
 
     const users = [
       { 
+        id: randomUUID(),
         username: "jessica29", 
         email: "jessicagunawan650@gmail.com", 
         passwordHash: userHash, 
@@ -19,6 +21,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "leon2s2kennedy", 
         email: "kennedyfam@gmail.com", 
         passwordHash: userHash, 
@@ -28,6 +31,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "johan1liebert2", 
         email: "johan22@gmail.com", 
         passwordHash: userHash, 
@@ -37,6 +41,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "marie12antoniette", 
         email: "frenchrepublic23@gmail.com", 
         passwordHash: userHash, 
@@ -46,6 +51,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "budiOetomo12", 
         email: "buddi920@gmail.com", 
         passwordHash: userHash, 
@@ -55,6 +61,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "victoria23sinclair", 
         email: "vict212@gmail.com", 
         passwordHash: userHash, 
@@ -64,6 +71,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "purpleHyacinth101", 
         email: "hyacinth456@gmail.com", 
         passwordHash: userHash, 
@@ -73,6 +81,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "chrisRedblood234", 
         email: "bloodyhand234@gmail.com", 
         passwordHash: userHash, 
@@ -82,6 +91,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "GangnamStyle23", 
         email: "richgangnam234@gmail.com", 
         passwordHash: userHash, 
@@ -91,6 +101,7 @@ module.exports = {
         updatedAt: now 
       },
       { 
+        id: randomUUID(),
         username: "white2swan", 
         email: "kieran234@gmail.com", 
         passwordHash: userHash, 

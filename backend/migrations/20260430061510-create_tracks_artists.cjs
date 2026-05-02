@@ -28,12 +28,12 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("NOW()")
+        defaultValue: Sequelize.NOW
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("NOW()")
+        defaultValue: Sequelize.NOW
       },
       role: {
         type: Sequelize.ENUM("primary", "featured", "producer", "writer"),
@@ -55,6 +55,8 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("TrackArtists");
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_TrackArtists_role";');
+    if (queryInterface.sequelize.getDialect() === "postgres") {
+      await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_TrackArtists_role";');
+    }
   }
 };

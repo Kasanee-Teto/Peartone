@@ -6,7 +6,7 @@ module.exports = {
     await queryInterface.createTable("Playlists", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
       },
@@ -38,12 +38,12 @@ module.exports = {
       createdAt: { 
         type: Sequelize.DATE, 
         allowNull: false, 
-        defaultValue: Sequelize.literal("NOW()") 
+        defaultValue: Sequelize.NOW 
       },
       updatedAt: { 
         type: Sequelize.DATE, 
         allowNull: false, 
-        defaultValue: Sequelize.literal("NOW()") 
+        defaultValue: Sequelize.NOW 
       }
     });
 

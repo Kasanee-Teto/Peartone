@@ -3,10 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
+    const dialect = queryInterface.sequelize.getDialect();
     await queryInterface.createTable("Artists", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.literal("gen_random_uuid()"),
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
       },
@@ -25,18 +26,20 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("NOW()")
+        defaultValue: Sequelize.NOW
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("NOW()")
+        defaultValue: Sequelize.NOW
       }
     });
 
-    await queryInterface.sequelize.query(
-      `CREATE INDEX IF NOT EXISTS idx_artists_name_trgm ON "Artists" USING gin (name gin_trgm_ops);`
-    );
+    if (dialect === "postgres") {
+      await queryInterface.sequelize.query(
+        `CREATE INDEX IF NOT EXISTS idx_artists_name_trgm ON "Artists" USING gin (name gin_trgm_ops);`
+      );
+    }
   },
 
   async down (queryInterface, Sequelize) {

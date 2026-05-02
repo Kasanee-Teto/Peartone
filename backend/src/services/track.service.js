@@ -19,7 +19,7 @@ class TrackService extends BaseService {
   _orderConfig() {
     return [
       ["createdAt", "DESC"],
-      [{ model: Artist, as: 'Artists' }, 'TrackArtist', 'artistOrder', 'ASC']
+      [{ model: Artist, as: "Artists" }, TrackArtist, "artistOrder", "ASC"]
     ];
   }
 

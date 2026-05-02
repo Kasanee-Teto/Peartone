@@ -6,7 +6,7 @@ module.exports = {
       await queryInterface.createTable("Users", {
         id: {
           type: Sequelize.UUID,
-          defaultValue: Sequelize.literal("gen_random_uuid()"),
+          defaultValue: Sequelize.UUIDV4,
           allowNull: false,
           primaryKey: true,
         },
@@ -36,18 +36,20 @@ module.exports = {
         createdAt: {
           type: Sequelize.DATE,
           allowNull: false,
-          defaultValue: Sequelize.literal("NOW()"),
+          defaultValue: Sequelize.NOW,
         },
         updatedAt: {
           type: Sequelize.DATE,
           allowNull: false,
-          defaultValue: Sequelize.literal("NOW()"),
+          defaultValue: Sequelize.NOW,
         },
       });
     },
 
   async down (queryInterface, Sequelize) {
     await queryInterface.dropTable("Users");
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
+    if (queryInterface.sequelize.getDialect() === "postgres") {
+      await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
+    }
   }
 };

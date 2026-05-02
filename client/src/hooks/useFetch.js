@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { http, httpRaw } from "../api/http.js";
 
+const EMPTY_OPTIONS = Object.freeze({});
+const EMPTY_OVERRIDE = Object.freeze({});
+const DEFAULT_CONFIG = Object.freeze({ raw: false });
+
 export function useFetch(
   path,
-  options = {},
+  options = EMPTY_OPTIONS,
   immediate = true,
-  config = { raw: false }
+  config = DEFAULT_CONFIG
 ) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const execute = useCallback(
-    async (override = {}) => {
+    async (override = EMPTY_OVERRIDE) => {
       setLoading(true);
       setError("");
 

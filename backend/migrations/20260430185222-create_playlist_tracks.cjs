@@ -34,7 +34,7 @@ module.exports = {
       added_at: { 
         type: Sequelize.DATE, 
         allowNull: false, 
-        defaultValue: Sequelize.literal("NOW()") 
+        defaultValue: Sequelize.NOW 
       }
     });
 

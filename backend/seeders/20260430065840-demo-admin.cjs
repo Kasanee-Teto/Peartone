@@ -1,6 +1,7 @@
 'use strict';
 
 const bcrypt = require("bcryptjs");
+const { randomUUID } = require("crypto");
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -10,7 +11,7 @@ module.exports = {
 
         await queryInterface.bulkInsert("Users", [
           {
-            id: Sequelize.literal("gen_random_uuid()"),
+            id: randomUUID(),
             email: "denver@admin.local",
             username: "denver21",
             passwordHash,
@@ -20,7 +21,7 @@ module.exports = {
             updatedAt: now
           },
           {
-            id: Sequelize.literal("gen_random_uuid()"),
+            id: randomUUID(),
             email: "yolklore@admin.local",
             username: "egg21yolk",
             passwordHash,
@@ -30,7 +31,7 @@ module.exports = {
             updatedAt: now
           },
           {
-            id: Sequelize.literal("gen_random_uuid()"),
+            id: randomUUID(),
             email: "blueprince@admin.local",
             username: "princeBlue234",
             passwordHash,
@@ -40,7 +41,7 @@ module.exports = {
             updatedAt: now
           },
           {
-            id: Sequelize.literal("gen_random_uuid()"),
+            id: randomUUID(),
             email: "blackthorn@admin.local",
             username: "thornHeart33",
             passwordHash,
@@ -50,7 +51,7 @@ module.exports = {
             updatedAt: now
           },
           {
-            id: Sequelize.literal("gen_random_uuid()"),
+            id: randomUUID(),
             email: "foreigngov@admin.local",
             username: "foreign2gov",
             passwordHash,
