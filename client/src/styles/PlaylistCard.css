@@ -178,3 +178,12 @@
     height: 26px;
   }
 }
+
+.playlist-card__spin {
+  animation: playlist-card-spin 0.7s linear infinite;
+}
+ 
+@keyframes playlist-card-spin {
+  to { transform: rotate(360deg); }
+}
+ 
