@@ -41,6 +41,7 @@ class HistoryService extends BaseService {
         {
           model: Track,
           as: "Track",
+          required: false,
           include: this._includeTrack()
         }
       ]

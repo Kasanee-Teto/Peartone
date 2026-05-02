@@ -35,39 +35,63 @@ class PlaylistService extends BaseService {
   }
 
   async listMine(userId, { q, page = 1, limit = 10 } = {}) {
-    const query = (q || "").trim();
+  const query = (q || "").trim();
+  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+  const offset = (pageNum - 1) * limitNum;
 
-    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
-    const offset = (pageNum - 1) * limitNum;
-
-    const where = { userId };
-
-    if (query) {
-      where[Op.or] = [
-        { name: { [Op.like]: `%${query}%` } },        // ✅ fix iLike → like
-        { description: { [Op.like]: `%${query}%` } }  // ✅ fix iLike → like
-      ];
-    }
-
-    const { rows, count } = await Playlist.findAndCountAll({
-      where,
-      order: [["createdAt", "DESC"]],
-      limit: limitNum,
-      offset,
-      distinct: true
-    });
-
-    return {
-      ...this.success(rows, "Playlists fetched!"),
-      meta: {
-        page: pageNum,
-        limit: limitNum,
-        total: count,
-        totalPages: Math.ceil(count / limitNum)
-      }
-    };
+  const where = { userId };
+  if (query) {
+    where[Op.or] = [
+      { name: { [Op.like]: `%${query}%` } },
+      { description: { [Op.like]: `%${query}%` } }
+    ];
   }
+
+  const { rows, count } = await Playlist.findAndCountAll({
+  where,
+  order: [["createdAt", "DESC"]],
+  limit: limitNum,
+  offset,
+  distinct: true,
+  include: [
+    {
+      model: PlaylistTrack,
+      as: "PlaylistTracks",
+      attributes: ["position"],
+      required: false,
+      include: [
+        {
+          model: Track,
+          as: "Track",
+          attributes: ["coverUrl"],
+          required: false
+        }
+      ]
+    }
+  ]
+});
+
+  const data = rows.map((pl) => {
+    const json = pl.toJSON();
+    const plTracks = (json.PlaylistTracks || []).sort((a, b) => a.position - b.position);
+    return {
+      id: json.id,
+      name: json.name,
+      description: json.description,
+      isPublic: json.isPublic,
+      createdAt: json.createdAt,
+      updatedAt: json.updatedAt,
+      trackCount: plTracks.length,
+      coverUrl: plTracks[0]?.Track?.coverUrl || null,
+    };
+  });
+
+  return {
+    ...this.success(data, "Playlists fetched!"),
+    meta: { page: pageNum, limit: limitNum, total: count, totalPages: Math.ceil(count / limitNum) }
+  };
+}
 
   async getMineById(userId, playlistId) {
     const playlist = await Playlist.findOne({ where: { id: playlistId, userId } });

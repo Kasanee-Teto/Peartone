@@ -5,15 +5,20 @@ import BaseService from "./base.service.js";
 const { Track, Artist, Album, TrackArtist } = db;
 
 class TrackService extends BaseService {
-  _include() {
-    return [
-      { model: Album, as: "Album" },
-      {
-        model: Artist,
-        as: "Artists",
-        through: { attributes: ["artistOrder", "role"] }
-      }
-    ];
+    _include() {
+      return [
+        { 
+          model: Album, 
+          as: "Album",
+          attributes: ["id", "title", "coverUrl", "releaseDate", "trackNumbers"]
+        },
+        {
+          model: Artist,
+          as: "Artists",
+          attributes: ["id", "name", "imageUrl"],
+          through: { attributes: ["artistOrder", "role"] }
+        }
+      ];
   }
 
   _orderConfig() {
@@ -23,8 +28,14 @@ class TrackService extends BaseService {
     ];
   }
 
+
+  _likeOp() {
+    return db.sequelize.getDialect() === "postgres" ? Op.iLike : Op.like;
+  }
+
   async list({ q, page = 1, limit = 10 } = {}) {
     const query = (q || "").trim();
+    const likeOp = this._likeOp();
 
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
@@ -34,13 +45,14 @@ class TrackService extends BaseService {
 
     if (query) {
       where[Op.or] = [
-        { title: { [Op.like]: `%${query}%` } },
-        { genre: { [Op.like]: `%${query}%` } }
+        { title: { [likeOp]: `%${query}%` } },
+        { genre: { [likeOp]: `%${query}%` } }
       ];
     }
 
     const { rows, count } = await Track.findAndCountAll({
       where,
+      attributes: { exclude: ["audioPath", "uploadedBy", "fileSize", "mimeType"] },
       include: this._include(),
       order: this._orderConfig(),
       limit: limitNum,
@@ -50,33 +62,21 @@ class TrackService extends BaseService {
 
     return {
       ...this.success(rows, "Tracks fetched"),
-      meta: {
-        page: pageNum,
-        limit: limitNum,
-        total: count,
-        totalPages: Math.ceil(count / limitNum)
-      }
+      meta: { page: pageNum, limit: limitNum, total: count, totalPages: Math.ceil(count / limitNum) }
     };
-  }
-
-  async getById(id) {
-    const track = await Track.findByPk(id, {
-      include: this._include(),
-      order: [this._orderConfig()[1]]
-    });
-    return this.success(track, "Track fetched");
   }
 
   async search(q) {
     const query = (q || "").trim();
     if (!query) return this.success([], "Empty query");
+    const likeOp = this._likeOp();
 
     const tracks = await Track.findAll({
       where: {
         isPublished: true,
         [Op.or]: [
-          { title: { [Op.like]: `%${query}%` } },
-          { genre: { [Op.like]: `%${query}%` } }
+          { title: { [likeOp]: `%${query}%` } },
+          { genre: { [likeOp]: `%${query}%` } }
         ]
       },
       include: this._include(),

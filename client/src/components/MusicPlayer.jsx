@@ -208,15 +208,20 @@ const MusicPlayer = () => {
     const token = localStorage.getItem("token");
     const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
 
-    if (!token || !isValidTrackId(trackId)) return;
+    if (!token || !isValidTrackId(trackId) || !isPlaying) return;
     if (lastHistoryTrackIdRef.current === trackId) return;
 
-    lastHistoryTrackIdRef.current = trackId;
-    historyApi.add({ trackId }).catch(() => {
-      // Keep playback uninterrupted when history save fails.
-      lastHistoryTrackIdRef.current = "";
-    });
-  }, [currentTrack?.id, currentTrack?.trackId]);
+    // Only record after 15 seconds of active play
+    const timer = setTimeout(() => {
+      if (lastHistoryTrackIdRef.current === trackId) return;
+      lastHistoryTrackIdRef.current = trackId;
+      historyApi.add({ trackId }).catch(() => {
+        lastHistoryTrackIdRef.current = "";
+      });
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentTrack?.id, currentTrack?.trackId]);
 
   useEffect(() => {
     const audio = audioRef.current;

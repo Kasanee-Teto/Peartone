@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
-import { FiX, FiPlus, FiCheck, FiList } from "react-icons/fi";
+import { FiX, FiPlus, FiCheck, FiMusic } from "react-icons/fi";
 import { playlistsApi } from "../api/playlists.js";
 import "../styles/SelectPlaylistModal.css";
+
+const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
+  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
+  : "http://localhost:3000";
+
+function buildCoverUrl(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `${STORAGE_BASE}${url}`;
+}
 
 const SelectPlaylistModal = ({ track, onClose }) => {
   const [playlists, setPlaylists] = useState([]);
@@ -70,13 +80,14 @@ const SelectPlaylistModal = ({ track, onClose }) => {
             <div className="spm__empty">Memuat playlist…</div>
           ) : playlists.length === 0 ? (
             <div className="spm__empty">
-              <FiList size={24} />
+              <FiMusic size={24} />
               <p>Belum ada playlist. Buat dulu di halaman Playlists.</p>
             </div>
           ) : (
             playlists.map((pl) => {
               const isAdded = added.has(pl.id);
               const isAdding = adding === pl.id;
+              const coverUrl = buildCoverUrl(pl.coverUrl);
               return (
                 <button
                   key={pl.id}
@@ -85,13 +96,24 @@ const SelectPlaylistModal = ({ track, onClose }) => {
                   onClick={() => !isAdded && handleAdd(pl)}
                   disabled={isAdding || isAdded}
                 >
+                  {/* ✅ Cover image */}
                   <div className="spm__item-icon" aria-hidden="true">
-                    <FiList />
+                    {coverUrl ? (
+                      <img
+                        src={coverUrl}
+                        alt={pl.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "6px" }}
+                        onError={(e) => { e.target.style.display = "none"; }}
+                      />
+                    ) : (
+                      <FiMusic size={16} />
+                    )}
                   </div>
                   <div className="spm__item-info">
                     <span className="spm__item-name">{pl.name}</span>
+                    {/* ✅ Real track count */}
                     <span className="spm__item-count">
-                      {pl.trackNumbers ?? pl.trackCount ?? 0} lagu
+                      {pl.trackCount ?? pl.trackNumbers ?? pl.trackCount ?? 0} lagu
                     </span>
                   </div>
                   <div className="spm__item-action">

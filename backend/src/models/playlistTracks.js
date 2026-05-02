@@ -1,37 +1,42 @@
+// backend/src/models/playlistTracks.js
 export default (sequelize, DataTypes) => {
   const PlaylistTrack = sequelize.define(
     "PlaylistTrack",
     {
-      playlistId: { 
-        type: DataTypes.UUID, 
-        allowNull: false, 
-        primaryKey: true 
-      },
-      trackId: { 
-        type: DataTypes.UUID, 
+      playlistId: {
+        type: DataTypes.UUID,
         allowNull: false,
-        primaryKey: true 
+        primaryKey: true,
       },
-      position: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
-      },
-      addedBy: { 
-        type: DataTypes.UUID, 
-        allowNull: true, 
-        field: "added_by" 
-      },
-      addedAt: { 
-        type: DataTypes.DATE, 
+      trackId: {
+        type: DataTypes.UUID,
         allowNull: false,
-        field: "added_at"
-      }
+        primaryKey: true,
+      },
+      position: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      addedBy: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        field: "added_by",
+      },
+      addedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        field: "added_at",
+      },
     },
     { tableName: "PlaylistTracks", timestamps: false }
   );
 
   PlaylistTrack.associate = (models) => {
     PlaylistTrack.belongsTo(models.Track, { foreignKey: "trackId", as: "Track" });
+
+    // REQUIRED: reverse side of Playlist.hasMany(PlaylistTrack)
+    // Sequelize needs both sides declared for includes to resolve correctly
+    PlaylistTrack.belongsTo(models.Playlist, { foreignKey: "playlistId", as: "Playlist" });
   };
 
   return PlaylistTrack;

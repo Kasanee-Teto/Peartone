@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../styles/PlaylistCard.css";
 import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
 import { playlistsApi } from "../api/playlists.js";
-import { emitPlayTrack } from "../utils/playerBus.js";
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -20,16 +20,13 @@ function normalizeTrack(t) {
       ? t.Artists.map((a) => a?.name).filter(Boolean).join(", ")
       : t?.artist || t?.Artist?.name || "Unknown Artist";
 
-  return {
+  return normalizePlayableTrack({
     ...t,
-    id: t.id,
     trackId: t.id,
-    title: t.title || "Untitled",
     artist,
     album: t?.Album?.title || t?.album || "",
-    duration: t?.duration || 0,
     streamUrl: buildStreamUrl(t),
-  };
+  });
 }
 
 const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
@@ -41,8 +38,8 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
     ? playlist.songs.length
     : playlist.songs ?? 0;
 
-  const handlePlay = async (e) => {
-    e.stopPropagation();
+  // ✅ Queue all tracks on card click
+  const handleCardClick = async () => {
     if (isLoadingPlay) return;
     setIsLoadingPlay(true);
     try {
@@ -52,7 +49,19 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
         window.alert("Playlist ini belum ada lagu.");
         return;
       }
-      emitPlayTrack(normalizeTrack(tracks[0]));
+
+      const normalized = tracks.map(normalizeTrack);
+
+      // Clear queue and start fresh
+      window.dispatchEvent(new Event("pt:clear-queue"));
+      emitPlayTrack(normalized[0]);
+
+      for (let i = 1; i < normalized.length; i++) {
+        const track = normalized[i];
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("pt:add-to-queue", { detail: track }));
+        }, i * 20);
+      }
     } catch (err) {
       window.alert(err.message || "Gagal memuat lagu.");
     } finally {
@@ -60,9 +69,14 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
     }
   };
 
+  // Keep the explicit play button separate from card click
+  const handlePlayBtn = async (e) => {
+    e.stopPropagation();
+    await handleCardClick();
+  };
+
   return (
-    <div className="playlist-card">
-      {/* ── Cover ── */}
+    <div className="playlist-card" onClick={handleCardClick} style={{ cursor: "pointer" }}>
       <div className="playlist-card__image-wrapper">
         <img
           src={playlist.image || "/placeholder-album.png"}
@@ -71,16 +85,12 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
           loading="lazy"
           onError={(e) => { e.target.src = "/placeholder-album.png"; }}
         />
-        <div
-          className="playlist-card__overlay"
-          style={{ backgroundColor: playlist.color }}
-        />
+        <div className="playlist-card__overlay" style={{ backgroundColor: playlist.color }} />
 
-        {/* Play button */}
         <button
           className="playlist-card__play-button"
           aria-label={`Putar ${playlist.title}`}
-          onClick={handlePlay}
+          onClick={handlePlayBtn}
           disabled={isLoadingPlay}
         >
           {isLoadingPlay
@@ -90,7 +100,6 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
         </button>
       </div>
 
-      {/* ── Info + action row ── */}
       <div className="playlist-card__content">
         <div className="playlist-card__meta">
           <div className="playlist-card__text">

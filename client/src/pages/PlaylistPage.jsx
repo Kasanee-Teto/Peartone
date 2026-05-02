@@ -43,20 +43,50 @@ const PlaylistPage = ({ onBack }) => {
   }, [playlists, searchQuery]);
 
   const createPlaylist = async (e) => {
-    e.preventDefault();
-    if (!newPlaylistName.trim()) return;
-    const token = localStorage.getItem("token");
-    if (!token) { window.alert("Silakan login terlebih dahulu."); return; }
-    setIsSaving(true);
+  e.preventDefault();
+  if (!newPlaylistName.trim()) return;
+  const token = localStorage.getItem("token");
+  if (!token) { window.alert("Silakan login terlebih dahulu."); return; }
+  setIsSaving(true);
+  try {
+    const created = await playlistsApi.create(newPlaylistName.trim());
+    const playlist = created?.data || created;
+    setPlaylists((prev) => [{ ...playlist, trackCount: 0, coverUrl: null }, ...prev]);
+    setNewPlaylistName("");
+    // ✅ Auto-open AddTrackModal so user can add first song
+    setSelectedPlaylistId(playlist.id);
+  } catch (err) {
+    window.alert(err.message || "Gagal membuat playlist.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+  const handleTrackAdded = async () => {
+    if (!selectedPlaylistId) return;
     try {
-      const created = await playlistsApi.create(newPlaylistName.trim());
-      const playlist = created?.data || created;
-      setPlaylists((prev) => [playlist, ...prev]);
-      setNewPlaylistName("");
+      const updated = await playlistsApi.getMine(selectedPlaylistId);
+      const data = updated?.data;
+      const freshPlaylist = data?.playlist;
+      const tracks = data?.tracks || [];
+      if (freshPlaylist?.id) {
+        setPlaylists((prev) =>
+          prev.map((p) => p.id === freshPlaylist.id
+            ? {
+                ...p,
+                ...freshPlaylist,
+                trackCount: tracks.length,
+                // Use first track's cover as playlist cover
+                coverUrl: tracks[0]?.coverUrl || p.coverUrl || null,
+              }
+            : p
+          )
+        );
+      }
     } catch (err) {
-      window.alert(err.message || "Gagal membuat playlist.");
+      console.error("Failed to refresh playlist:", err);
     } finally {
-      setIsSaving(false);
+      setSelectedPlaylistId(null);
     }
   };
 
@@ -67,23 +97,6 @@ const PlaylistPage = ({ onBack }) => {
       setPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
     } catch (err) {
       window.alert(err.message || "Gagal menghapus playlist.");
-    }
-  };
-
-  const handleTrackAdded = async () => {
-    if (!selectedPlaylistId) return;
-    try {
-      const updated = await playlistsApi.getMine(selectedPlaylistId);
-      const fresh = updated?.data?.playlist || updated?.data || updated;
-      if (fresh?.id) {
-        setPlaylists((prev) =>
-          prev.map((p) => p.id === fresh.id ? { ...p, ...fresh } : p)
-        );
-      }
-    } catch (err) {
-      console.error("Failed to refresh playlist:", err);
-    } finally {
-      setSelectedPlaylistId(null);
     }
   };
 
@@ -185,13 +198,7 @@ const PlaylistPage = ({ onBack }) => {
             </p>
             <div className="pl-grid" role="list">
               {filtered.map((playlist) => {
-                const rawCover =
-                  playlist.image ||
-                  playlist.coverUrl ||
-                  playlist.Tracks?.[0]?.coverUrl ||
-                  playlist.Tracks?.[0]?.Track?.coverUrl ||
-                  null;
-
+                const rawCover = playlist.coverUrl || playlist.image || null;
                 return (
                   <div key={playlist.id} role="listitem">
                     <PlaylistCard
