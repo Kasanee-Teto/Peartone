@@ -1,60 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PlaylistCard from "../components/PlaylistCard";
+import AddTrackModal from "../components/AddTrackModal";
 import Sidebar from "../components/Sidebar";
 import "../styles/playlistPage.css";
+import { useFetch } from "../hooks/useFetch";
+import { playlistsApi } from "../api/playlists.js";
 
 const PlaylistPage = ({ onBack }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const playlists = [
-    {
-      id: 1,
-      title: "Popular",
-      description: "High-energy tracks to keep you motivated",
-      image: "https://via.placeholder.com/200?text=Workout",
-      songs: 45,
-      color: "#c8f560"
-    },
-    {
-      id: 2,
-      title: "Chill",
-      description: "Relaxing songs for study and work",
-      image: "https://via.placeholder.com/200?text=Chill",
-      songs: 32,
-      color: "#7c6af7"
-    },
-    {
-      id: 3,
-      title: "Party Hits",
-      description: "Latest party and dance tracks",
-      image: "https://via.placeholder.com/200?text=Party",
-      songs: 58,
-      color: "#ff5c6e"
-    },
-    {
-      id: 4,
-      title: "Indie Favorites",
-      description: "Discover independent artists",
-      image: "https://via.placeholder.com/200?text=Indie",
-      songs: 67,
-      color: "#00d4ff"
-    },
-    {
-      id: 5,
-      title: "Pop Classics",
-      description: "All-time favorite pop songs",
-      image: "https://via.placeholder.com/200?text=Pop",
-      songs: 51,
-      color: "#ffa500"
-    },
-    {
-      id: 6,
-      title: "Hip-Hop Anthems",
-      description: "Best hip-hop and rap tracks",
-      image: "https://via.placeholder.com/200?text=HipHop",
-      songs: 44,
-      color: "#ff1493"
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [playlists, setPlaylists] = useState([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const { data: playlistsResp, loading, error } = useFetch("/playlists");
+
+  useEffect(() => {
+    const incoming = Array.isArray(playlistsResp) ? playlistsResp : playlistsResp?.data || [];
+    setPlaylists(incoming);
+  }, [playlistsResp]);
+
+  const createPlaylist = async (e) => {
+    e.preventDefault();
+    if (!newPlaylistName.trim()) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.alert("Silakan login terlebih dahulu untuk membuat playlist");
+      return;
     }
-  ];
+    setIsSaving(true);
+    try {
+      const created = await playlistsApi.create(newPlaylistName.trim());
+      const playlist = created?.data || created;
+      setPlaylists((current) => [playlist, ...current]);
+      setNewPlaylistName("");
+    } catch (err) {
+      window.alert(err.message || "Gagal membuat playlist");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddTrackToPlaylist = (playlist) => {
+    setSelectedPlaylist(playlist);
+  };
+
+  const handleTrackAdded = () => {
+    window.alert("Lagu berhasil ditambahkan!");
+    setSelectedPlaylist(null);
+  };
+
+  const handleDeletePlaylist = async (playlist) => {
+    const confirm = window.confirm(`Yakin ingin menghapus playlist "${playlist.title}"?`);
+    if (!confirm) return;
+
+    try {
+      await playlistsApi.delete(playlist.id);
+      setPlaylists((current) => current.filter((p) => p.id !== playlist.id));
+      window.alert("Playlist berhasil dihapus");
+    } catch (err) {
+      window.alert(err.message || "Gagal menghapus playlist");
+    }
+  };
 
   return (
     <main className="playlist" aria-label="Playlist">
@@ -94,13 +100,51 @@ const PlaylistPage = ({ onBack }) => {
         <div style={{ width: "80px" }}></div>
       </div>
 
-      <div className="playlists-grid" role="list" aria-label="Daftar playlist">
-        {playlists.map((playlist) => (
-          <div key={playlist.id} role="listitem">
-            <PlaylistCard playlist={playlist} />
-          </div>
-        ))}
-      </div>
+      <form onSubmit={createPlaylist} style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          value={newPlaylistName}
+          onChange={(e) => setNewPlaylistName(e.target.value)}
+          placeholder="Nama playlist baru"
+          aria-label="Nama playlist baru"
+          className="admin-field__input"
+          style={{ minWidth: 260 }}
+        />
+        <button type="submit" className="admin-submit" disabled={isSaving}>
+          {isSaving ? "Menyimpan..." : "Buat Playlist"}
+        </button>
+      </form>
+
+      {loading ? (
+        <div>Loading playlists…</div>
+      ) : error ? (
+        <div className="error-state">Gagal memuat playlist: {error}</div>
+      ) : (
+        <div className="playlists-grid" role="list" aria-label="Daftar playlist">
+          {playlists.map((playlist) => (
+            <div key={playlist.id} role="listitem">
+              <PlaylistCard 
+                playlist={{
+                  id: playlist.id,
+                  title: playlist.name,
+                  image: playlist.image || "/placeholder-album.png",
+                  songs: playlist.trackCount || (playlist.Tracks || []).length,
+                  color: "#7c6af7"
+                }}
+                onAddTrack={handleAddTrackToPlaylist}
+                onDelete={handleDeletePlaylist}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedPlaylist && (
+        <AddTrackModal
+          playlistId={selectedPlaylist.id}
+          onClose={() => setSelectedPlaylist(null)}
+          onTrackAdded={handleTrackAdded}
+        />
+      )}
     </main>
   );
 };

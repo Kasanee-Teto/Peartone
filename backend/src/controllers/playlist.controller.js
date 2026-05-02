@@ -42,6 +42,15 @@ export const removeTrackFromPlaylist = asyncHandler(
   }
 );
 
+export const deletePlaylist = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+    if (!id) throw new ApiError(400, "id is required!");
+    const result = await playlistService.deletePlaylist(req.user.id, id);
+    res.status(200).json(result);
+  }
+);
+
 export const reorderPlaylist = asyncHandler(
   async (req, res) => {
     const { id } = req.params;

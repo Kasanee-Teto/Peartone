@@ -2,54 +2,34 @@ import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { FiSearch, FiTrash2 } from "react-icons/fi";
 import "../styles/HistoryPage.css";
-
-const historyTracks = [
-  { id: 1, title: "Night Runner", artist: "Arka Lane", album: "After Dark", playedAt: "Hari ini" },
-  { id: 2, title: "Static Heart", artist: "Nova Echo", album: "City Lights", playedAt: "Kemarin" },
-  { id: 3, title: "Soft Gravity", artist: "Luna Vale", album: "Sunset Tapes", playedAt: "Kemarin" },
-  { id: 4, title: "Move Fast", artist: "Rift Boys", album: "Throttle", playedAt: "3 hari lalu" },
-  { id: 5, title: "Bloom", artist: "Mira Sol", album: "Orbit", playedAt: "1 minggu lalu" },
-];
+import { useFetch } from "../hooks/useFetch";
 
 const HistoryPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [tracks, setTracks] = useState(historyTracks);
+  const { data: historyResp, loading, error } = useFetch("/history");
+
+  const rows = Array.isArray(historyResp) ? historyResp : historyResp?.data || [];
 
   const q = search.trim().toLowerCase();
-  const filteredTracks = q
-    ? tracks.filter((t) =>
-        [t.title, t.artist, t.album].some((v) => v.toLowerCase().includes(q))
-      )
-    : tracks;
+  const filtered = q
+    ? rows.filter((r) => {
+        const t = r.Track || {};
+        return [t.title, t?.Artists?.map?.((a) => a.name).join(", "), t?.Album?.title]
+          .filter(Boolean)
+          .some((v) => v.toLowerCase().includes(q));
+      })
+    : rows;
 
   return (
     <main className="history-page" aria-label="History">
       <div className="history-page__blob" aria-hidden="true" />
 
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
-      />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => setIsSidebarOpen(false)} />
 
-      <button
-        className={`home__sidebar-overlay${isSidebarOpen ? " is-open" : ""}`}
-        type="button"
-        aria-label="Tutup menu samping"
-        onClick={() => setIsSidebarOpen(false)}
-      />
+      <button className={`home__sidebar-overlay${isSidebarOpen ? " is-open" : ""}`} type="button" aria-label="Tutup menu samping" onClick={() => setIsSidebarOpen(false)} />
 
-      <button
-        className="home__sidebar-toggle"
-        type="button"
-        aria-label="Buka menu samping"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <button className="home__sidebar-toggle" type="button" aria-label="Buka menu samping" aria-controls="home-sidebar" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>≡</button>
 
       <div className="history-page__inner">
         <header className="history-header">
@@ -64,23 +44,10 @@ const HistoryPage = () => {
         <div className="history-toolbar" aria-label="Kontrol history">
           <label className="history-search" aria-label="Cari di history">
             <FiSearch className="history-search__icon" aria-hidden="true" />
-            <input
-              className="history-search__input"
-              type="search"
-              placeholder="Cari judul, artis, atau album"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <input className="history-search__input" type="search" placeholder="Cari judul, artis, atau album" value={search} onChange={(e) => setSearch(e.target.value)} />
           </label>
 
-          <button
-            type="button"
-            className="history-delete"
-            onClick={() => setTracks([])}
-            disabled={tracks.length === 0}
-            aria-label="Hapus semua history"
-            title={tracks.length === 0 ? "History kosong" : "Hapus semua history"}
-          >
+          <button type="button" className="history-delete" onClick={() => {}} disabled={rows.length === 0} aria-label="Hapus semua history" title={rows.length === 0 ? "History kosong" : "Hapus semua history"}>
             <FiTrash2 aria-hidden="true" />
             <span>Delete</span>
           </button>
@@ -95,27 +62,27 @@ const HistoryPage = () => {
             <div role="columnheader">Diputar</div>
           </div>
 
-          {filteredTracks.length === 0 ? (
-            <div className="history-empty" role="status">
-              {tracks.length === 0 ? "Belum ada history." : "Tidak ada hasil yang cocok."}
-            </div>
+          {loading ? (
+            <div>Loading…</div>
+          ) : error ? (
+            <div className="error-state">Gagal memuat history: {error}</div>
+          ) : filtered.length === 0 ? (
+            <div className="history-empty" role="status">{rows.length === 0 ? "Belum ada history." : "Tidak ada hasil yang cocok."}</div>
           ) : (
             <ul className="history-table__rows">
-              {filteredTracks.map((track, index) => (
-                <li key={track.id} className="history-row">
-                  <div className="history-row__index">{index + 1}</div>
-                  <div className="history-row__title" title={track.title}>
-                    {track.title}
-                  </div>
-                  <div className="history-row__cell" title={track.artist}>
-                    {track.artist}
-                  </div>
-                  <div className="history-row__cell" title={track.album}>
-                    {track.album}
-                  </div>
-                  <div className="history-row__cell history-row__playedAt">{track.playedAt}</div>
-                </li>
-              ))}
+              {filtered.map((row, index) => {
+                const t = row.Track || {};
+                const artist = Array.isArray(t.Artists) ? t.Artists.map((a) => a.name).join(", ") : t.Artist?.name || "Unknown";
+                return (
+                  <li key={row.id || index} className="history-row">
+                    <div className="history-row__index">{index + 1}</div>
+                    <div className="history-row__title" title={t.title}>{t.title}</div>
+                    <div className="history-row__cell" title={artist}>{artist}</div>
+                    <div className="history-row__cell" title={t.Album?.title}>{t.Album?.title || ""}</div>
+                    <div className="history-row__cell history-row__playedAt">{new Date(row.playedAt || row.createdAt || Date.now()).toLocaleString()}</div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

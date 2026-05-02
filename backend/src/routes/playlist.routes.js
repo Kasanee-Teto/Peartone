@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 import {
   addTrackToPlaylist,
   createPlaylist,
+  deletePlaylist,
   getMyPlaylist,
   listMyPlaylists,
   removeTrackFromPlaylist,
@@ -16,6 +17,7 @@ router.use(authMiddleware);
 router.post("/", createPlaylist);
 router.get("/", listMyPlaylists);
 router.get("/:id", getMyPlaylist);
+router.delete("/:id", deletePlaylist);
 
 router.post("/:id/tracks", addTrackToPlaylist);
 router.delete("/:id/tracks/:trackId", removeTrackFromPlaylist);

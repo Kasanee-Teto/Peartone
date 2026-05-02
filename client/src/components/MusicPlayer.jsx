@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FiPlay,
   FiPause,
@@ -17,90 +17,253 @@ import {
 import "../styles/MusicPlayer.css";
 import LyricsPanel from "./LyricsPanel";
 import QueueList from "./QueueList";
-
-// Data lagu dummy — nanti diganti dari state/context/API
-const CURRENT_TRACK = {
-  title: "After Dark",
-  artist: "Arka Lane",
-  album: "After Dark",
-  duration: 214,
-};
+import { buildStreamUrl, isValidTrackId, normalizePlayableTrack, onPlayTrack } from "../utils/playerBus.js";
+import { likesApi } from "../api/likes.js";
+import { emitLikesChanged } from "../utils/likeBus.js";
 
 function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = String(sec % 60).padStart(2, "0");
+  const total = Math.max(0, Math.floor(Number(sec) || 0));
+  const m = Math.floor(total / 60);
+  const s = String(total % 60).padStart(2, "0");
   return `${m}:${s}`;
 }
 
 const MusicPlayer = () => {
+  const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
-  const [progress, setProgress] = useState(40);
+  const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(75);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [queue, setQueue] = useState(() => {
     try {
       const raw = localStorage.getItem("pt_queue");
-      return raw ? JSON.parse(raw) : [CURRENT_TRACK];
+      const parsed = raw ? JSON.parse(raw) : [];
+      const normalized = Array.isArray(parsed)
+        ? parsed
+            .map(normalizePlayableTrack)
+            .filter((track) => track && isValidTrackId(track.trackId))
+        : [];
+      return normalized.length > 0 ? normalized : [];
     } catch {
-      return [CURRENT_TRACK];
+      return [];
     }
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const currentTrack = queue[currentIndex] || CURRENT_TRACK;
   const [showLyrics, setShowLyrics] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
+  const [playerError, setPlayerError] = useState("");
 
-  const currentTime = Math.floor((progress / 100) * currentTrack.duration);
+  const currentTrack = queue[currentIndex] || null;
+  const duration = Number(currentTrack?.duration) || 0;
+  const currentTime = Math.round((progress / 100) * duration);
 
   useEffect(() => {
     try {
       localStorage.setItem("pt_queue", JSON.stringify(queue));
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [queue]);
 
   useEffect(() => {
-    setProgress(0);
-  }, [currentIndex]);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = volume / 100;
+  }, [volume]);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    const cleanup = onPlayTrack((incomingTrack) => {
+      const track = normalizePlayableTrack(incomingTrack);
+      if (!isValidTrackId(track.trackId)) {
+        setPlayerError("Track ini belum tersedia di server.");
+        return;
+      }
 
-    const step = 100 / currentTrack.duration;
-    const timer = window.setInterval(() => {
-      setProgress((value) => {
-        const nextValue = value + step;
-        if (nextValue >= 100) {
-          window.clearInterval(timer);
-          setIsPlaying(false);
-          return 100;
-        }
-        return nextValue;
+      if (!track.streamUrl) {
+        setPlayerError("Track ini belum tersedia untuk streaming.");
+        return;
+      }
+
+      setQueue((currentQueue) => {
+        const withoutTrack = currentQueue.filter((item) => item.id !== track.id);
+        return [track, ...withoutTrack];
       });
-    }, 1000);
+      setCurrentIndex(0);
+      setProgress(0);
+      setPlayerError("");
+      setShowQueue(false);
+      setShowLyrics(false);
+      setIsCollapsed(false);
+      setIsPlaying(true);
+    });
 
-    return () => window.clearInterval(timer);
-  }, [isPlaying, currentTrack.duration]);
+    return cleanup;
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (!currentTrack) {
+      setIsPlaying(false);
+      setProgress(0);
+      audio.removeAttribute("src");
+      audio.load();
+      return;
+    }
+
+    const source = currentTrack.streamUrl || buildStreamUrl(currentTrack);
+    if (!source) {
+      setPlayerError("Track ini belum tersedia untuk streaming.");
+      setIsPlaying(false);
+      audio.removeAttribute("src");
+      audio.load();
+      return;
+    }
+
+    setPlayerError("");
+    setProgress(0);
+    audio.src = source;
+    audio.load();
+
+    if (isPlaying) {
+      audio.play().catch(() => setIsPlaying(false));
+    }
+  }, [currentTrack?.id, currentTrack?.streamUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.play().catch(() => setIsPlaying(false));
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying, currentTrack?.streamUrl]);
+
+  useEffect(() => {
+    if (!currentTrack?.id) {
+      setIsLiked(false);
+      return;
+    }
+
+    let active = true;
+    likesApi
+      .list()
+      .then((payload) => {
+        if (!active) return;
+        const likedTracks = Array.isArray(payload) ? payload : payload?.data || [];
+        const currentTrackId = String(currentTrack.trackId || currentTrack.id || "").trim();
+        const liked = likedTracks.some((item) => String(item?.trackId || item?.Track?.id || item?.id || "").trim() === currentTrackId);
+        setIsLiked(liked);
+      })
+      .catch(() => {
+        if (active) setIsLiked(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentTrack?.id]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadedMetadata = () => {
+      setPlayerError("");
+      if (audio.duration > 0) {
+        setProgress((audio.currentTime / audio.duration) * 100 || 0);
+      }
+    };
+
+    const handleTimeUpdate = () => {
+      if (audio.duration > 0) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      } else if (duration > 0) {
+        setProgress((audio.currentTime / duration) * 100);
+      }
+    };
+
+    const handleEnded = () => {
+      if (isRepeat) {
+        audio.currentTime = 0;
+        audio.play().catch(() => setIsPlaying(false));
+        return;
+      }
+
+      if (queue.length === 0) {
+        setIsPlaying(false);
+        return;
+      }
+
+      if (isShuffle && queue.length > 1) {
+        const nextIndex = Math.floor(Math.random() * queue.length);
+        setCurrentIndex(nextIndex);
+        setIsPlaying(true);
+        return;
+      }
+
+      setCurrentIndex((current) => {
+        const next = current + 1;
+        if (next >= queue.length) {
+          setIsPlaying(false);
+          return current;
+        }
+        setIsPlaying(true);
+        return next;
+      });
+    };
+
+    const handleError = () => {
+      setIsPlaying(false);
+      setPlayerError("Gagal memutar lagu ini.");
+    };
+
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("error", handleError);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
+    };
+  }, [duration, isRepeat, isShuffle, queue.length]);
 
   function addToQueue(track) {
-    setQueue((q) => [...q, track]);
+    const item = normalizePlayableTrack(track);
+    if (!item.streamUrl) {
+      setPlayerError("Track ini belum tersedia untuk streaming.");
+      return;
+    }
+
+    setQueue((currentQueue) => [...currentQueue, item]);
     setShowQueue(true);
   }
 
   function removeFromQueue(idx) {
-    setQueue((q) => {
-      const copy = q.slice();
+    setQueue((currentQueue) => {
+      const copy = currentQueue.slice();
       copy.splice(idx, 1);
+
       setCurrentIndex((current) => {
         if (copy.length === 0) return 0;
         if (idx < current) return current - 1;
         if (idx === current) return Math.min(current, copy.length - 1);
         return current;
       });
+
+      if (copy.length === 0) {
+        setIsPlaying(false);
+      }
+
       return copy;
     });
   }
@@ -109,33 +272,99 @@ const MusicPlayer = () => {
     if (idx < 0 || idx >= queue.length) return;
     setCurrentIndex(idx);
     setIsPlaying(true);
+    setIsCollapsed(false);
   }
 
   function playNext() {
-    if (isRepeat) return setIsPlaying(true);
-    if (isShuffle) return setCurrentIndex(() => Math.floor(Math.random() * queue.length));
-    setCurrentIndex((i) => Math.min(queue.length - 1, i + 1));
-    setIsPlaying(true);
+    if (queue.length === 0) return;
+
+    if (isShuffle && queue.length > 1) {
+      setCurrentIndex(() => Math.floor(Math.random() * queue.length));
+      setIsPlaying(true);
+      return;
+    }
+
+    setCurrentIndex((current) => {
+      const next = current + 1;
+      if (next >= queue.length) {
+        if (isRepeat) {
+          const audio = audioRef.current;
+          if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(() => setIsPlaying(false));
+          }
+          return current;
+        }
+        setIsPlaying(false);
+        return current;
+      }
+      setIsPlaying(true);
+      return next;
+    });
   }
 
   function playPrev() {
-    setCurrentIndex((i) => Math.max(0, i - 1));
+    setCurrentIndex((current) => Math.max(0, current - 1));
     setIsPlaying(true);
+  }
+
+  function toggleProgress(event) {
+    const next = Number(event.target.value);
+    setProgress(next);
+
+    const audio = audioRef.current;
+    const total = audio?.duration || duration;
+    if (audio && total > 0) {
+      audio.currentTime = (next / 100) * total;
+    }
+  }
+
+  function togglePlay() {
+    if (!currentTrack?.streamUrl) {
+      setPlayerError("Track ini belum tersedia untuk streaming.");
+      return;
+    }
+
+    if (!isPlaying && progress >= 99 && duration > 0) {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      setProgress(0);
+    }
+
+    setIsPlaying((state) => !state);
+  }
+
+  async function toggleLike() {
+    const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
+    if (!isValidTrackId(trackId)) {
+      setPlayerError("Track ini belum tersimpan di server.");
+      return;
+    }
+
+    try {
+      const response = await likesApi.toggle(trackId);
+      const nextLiked = Boolean(response?.data?.liked ?? response?.liked);
+      setIsLiked(nextLiked);
+      emitLikesChanged();
+    } catch (error) {
+      setPlayerError(error.message || "Gagal memperbarui like");
+    }
   }
 
   return (
     <div
-        className={`player${isCollapsed ? " player--collapsed" : ""}`}
-        style={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 300,
-          display: "flex",
-          justifyContent: "flex-end",
-        }}
-      >
+      className={`player${isCollapsed ? " player--collapsed" : ""}`}
+      style={{
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 300,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
+      <audio ref={audioRef} preload="metadata" />
       {isCollapsed ? (
         <button
           type="button"
@@ -233,16 +462,21 @@ const MusicPlayer = () => {
             </div>
             <div style={{ minWidth: 0 }}>
               <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {currentTrack.title}
+                {currentTrack?.title || "Belum ada lagu diputar"}
               </p>
               <p style={{ margin: 0, fontSize: "11px", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {currentTrack.artist}
+                {currentTrack?.artist || "Pilih lagu untuk mulai"}
               </p>
+              {playerError && (
+                <p style={{ margin: "4px 0 0", fontSize: "10px", color: "#ffb3b3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {playerError}
+                </p>
+              )}
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <button
                 type="button"
-                onClick={() => setIsLiked(!isLiked)}
+                onClick={toggleLike}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -254,6 +488,7 @@ const MusicPlayer = () => {
                   transition: "color 0.15s",
                 }}
                 aria-label={isLiked ? "Unlike" : "Like"}
+                disabled={!isValidTrackId(String(currentTrack?.trackId || currentTrack?.id || "").trim())}
               >
                 <FiHeart size={16} fill={isLiked ? "currentColor" : "none"} />
               </button>
@@ -301,12 +536,7 @@ const MusicPlayer = () => {
 
               <button
                 type="button"
-                onClick={() => {
-                  if (!isPlaying && progress >= 100) {
-                    setProgress(0);
-                  }
-                  setIsPlaying((state) => !state);
-                }}
+                onClick={togglePlay}
                 className="player__play"
                 style={{
                   width: "40px",
@@ -369,7 +599,7 @@ const MusicPlayer = () => {
                   min={0}
                   max={100}
                   value={progress}
-                  onChange={(e) => setProgress(Number(e.target.value))}
+                  onChange={toggleProgress}
                   style={{
                     position: "absolute",
                     inset: 0,
@@ -383,7 +613,7 @@ const MusicPlayer = () => {
                 />
               </div>
               <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", flexShrink: 0, minWidth: "32px" }}>
-                {formatTime(currentTrack.duration)}
+                {formatTime(duration)}
               </span>
             </div>
           </div>
@@ -421,7 +651,7 @@ const MusicPlayer = () => {
                   min={0}
                   max={100}
                   value={volume}
-                  onChange={(e) => setVolume(Number(e.target.value))}
+                  onChange={(event) => setVolume(Number(event.target.value))}
                   style={{
                     position: "absolute",
                     inset: 0,
@@ -444,12 +674,17 @@ const MusicPlayer = () => {
           currentIndex={currentIndex}
           onPlay={(i) => playTrack(i)}
           onRemove={(i) => removeFromQueue(i)}
-          onClear={() => setQueue([])}
+          onClear={() => {
+            setQueue([]);
+            setCurrentIndex(0);
+            setIsPlaying(false);
+            setProgress(0);
+          }}
         />
       )}
 
       {showLyrics && (
-        <LyricsPanel artist={currentTrack.artist} title={currentTrack.title} open={showLyrics} onClose={() => setShowLyrics(false)} />
+        <LyricsPanel key={currentTrack?.id || "no-track"} trackId={currentTrack?.id} artist={currentTrack?.artist} title={currentTrack?.title} open={showLyrics} onClose={() => setShowLyrics(false)} />
       )}
     </div>
   );

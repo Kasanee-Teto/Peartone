@@ -79,6 +79,74 @@
   transform: translate(-50%, -50%) scale(0.95);
 }
 
+.playlist-card__add-button {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%) scale(0.8);
+  opacity: 0;
+  background: rgba(200, 245, 96, 0.2);
+  color: #c8f560;
+  border: 1px solid rgba(200, 245, 96, 0.4);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  z-index: 3;
+}
+
+.playlist-card:hover .playlist-card__add-button {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.playlist-card__add-button:hover {
+  background: rgba(200, 245, 96, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.playlist-card__add-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.playlist-card__delete-button {
+  position: absolute;
+  top: 50%;
+  right: 70px;
+  transform: translateY(-50%) scale(0.8);
+  opacity: 0;
+  background: rgba(255, 72, 66, 0.2);
+  color: #ff8b85;
+  border: 1px solid rgba(255, 72, 66, 0.4);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  z-index: 3;
+}
+
+.playlist-card:hover .playlist-card__delete-button {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.playlist-card__delete-button:hover {
+  background: rgba(255, 72, 66, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.playlist-card__delete-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
 .playlist-card__content {
   padding: 16px;
   flex: 1;

@@ -10,6 +10,11 @@ export const playlistsApi = {
       body: JSON.stringify({ name }),
     }),
 
+  delete: (id) =>
+    httpRaw(`/playlists/${id}`, {
+      method: "DELETE",
+    }),
+
   addTrack: (playlistId, trackId) =>
     httpRaw(`/playlists/${playlistId}/tracks`, {
       method: "POST",

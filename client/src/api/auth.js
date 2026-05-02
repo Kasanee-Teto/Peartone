@@ -13,6 +13,14 @@ export const authApi = {
       body: JSON.stringify({ username, password }),
     }),
 
+  getProfile: () => http("/auth/me"),
+
+  updateProfile: ({ username, email, location }) =>
+    http("/auth/me", {
+      method: "PUT",
+      body: JSON.stringify({ username, email, location }),
+    }),
+
   async loginAndStore(credentials) {
     const res = await this.login(credentials);
     const { token, user } = res.data;

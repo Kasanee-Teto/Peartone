@@ -1,47 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FiHeart, FiX, FiLoader } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/LikedSongsPage.css";
-
-const likedSongs = [
-  { id: 1, title: "Night Runner", artist: "Arka Lane", album: "After Dark", duration: "3:21" },
-  { id: 2, title: "Static Heart", artist: "Nova Echo", album: "City Lights", duration: "4:02" },
-  { id: 3, title: "Soft Gravity", artist: "Luna Vale", album: "Sunset Tapes", duration: "3:48" },
-  { id: 4, title: "Move Fast", artist: "Rift Boys", album: "Throttle", duration: "2:55" },
-  { id: 5, title: "Bloom", artist: "Mira Sol", album: "Orbit", duration: "4:16" },
-  { id: 6, title: "Blue Skyline", artist: "Velvet Peak", album: "Blue Hour", duration: "3:37" },
-];
+import { likesApi } from "../api/likes.js";
+import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const userName = "kindy";
-  const totalLikedSongs = 76;
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [removingId, setRemovingId] = useState("");
+  const user = JSON.parse(localStorage.getItem("pt_user") || "null") || {};
+
+  useEffect(() => {
+    let active = true;
+
+    const loadLikedSongs = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await likesApi.list();
+        const items = Array.isArray(response) ? response : response?.data || [];
+        if (active) setTracks(items);
+      } catch (err) {
+        if (active) setError(err.message || "Gagal memuat liked songs");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadLikedSongs();
+    const cleanup = onLikesChanged(loadLikedSongs);
+
+    return () => {
+      active = false;
+      cleanup();
+    };
+  }, []);
+
+  const handleUnlike = async (trackId) => {
+    const normalizedTrackId = String(trackId || "").trim();
+    if (!normalizedTrackId) return;
+
+    try {
+      setRemovingId(normalizedTrackId);
+      setTracks((current) => current.filter((item) => String(item.id || item.trackId || item.Track?.id || "").trim() !== normalizedTrackId));
+      await likesApi.unlike(normalizedTrackId);
+      emitLikesChanged();
+    } catch (err) {
+      window.alert(err.message || "Gagal menghapus like");
+      const response = await likesApi.list();
+      setTracks(Array.isArray(response) ? response : response?.data || []);
+    } finally {
+      setRemovingId("");
+    }
+  };
 
   return (
     <main className="liked liked--fullbleed">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
-        type="button"
-        aria-label="Tutup menu samping"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="home__sidebar-toggle"
-        type="button"
-        aria-label="Buka menu samping"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => setIsSidebarOpen(false)} />
+      <button className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`} type="button" aria-label="Tutup menu samping" onClick={() => setIsSidebarOpen(false)} />
+      <button className="home__sidebar-toggle" type="button" aria-label="Buka menu samping" aria-controls="home-sidebar" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>≡</button>
 
       <section className="liked__hero">
         <div className="liked__heroInner">
@@ -54,42 +74,15 @@ const LikedSongsPage = () => {
               <p className="liked__label">Playlist</p>
               <h1 className="liked__title">Lagu yang Disukai</h1>
               <p className="liked__subtitle">
-                <strong>{userName}</strong>
+                <strong>{user.username || "Pengguna"}</strong>
                 <span className="liked__dot">•</span>
-                <span>{totalLikedSongs} lagu</span>
+                <span>{tracks.length} lagu</span>
               </p>
             </div>
           </div>
 
           <div className="liked__controlsRow">
-            <button
-              type="button"
-              onClick={() => setIsPlaying((v) => !v)}
-              className="liked__play"
-              aria-label={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying ? (
-                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                </svg>
-              ) : (
-                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
-            </button>
-
-            <button type="button" className="liked__iconBtn" aria-label="Shuffle">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-
-            <button type="button" className="liked__iconBtn" aria-label="Download">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </button>
+            <button type="button" className="liked__iconBtn" aria-label="Shuffle">Shuffle</button>
           </div>
         </div>
       </section>
@@ -100,29 +93,46 @@ const LikedSongsPage = () => {
           <div role="columnheader">Judul</div>
           <div role="columnheader">Artis</div>
           <div role="columnheader">Album</div>
-          <div className="liked__clock" role="columnheader" aria-label="Durasi">
-              <svg className="h-1 w-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v5l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-          </div>
+          <div className="liked__clock" role="columnheader" aria-label="Durasi">Durasi</div>
         </div>
 
-        <ul className="liked__rows">
-          {likedSongs.map((track, index) => (
-            <li key={track.id} className="liked__row">
-              <div className="liked__index">{index + 1}</div>
-              <div className="liked__titleCell">{track.title}</div>
-              <div className="liked__cell">{track.artist}</div>
-              <div className="liked__cell">{track.album}</div>
-              <div className="liked__cell liked__duration">{track.duration}</div>
-            </li>
-          ))}
-        </ul>
+        {loading ? (
+          <div>Loading…</div>
+        ) : error ? (
+          <div className="error-state">Gagal memuat liked songs: {error}</div>
+        ) : (
+          <ul className="liked__rows">
+            {tracks.map((t, i) => (
+              <li key={t.id || i} className="liked__row">
+                <div className="liked__index">{i + 1}</div>
+                <div className="liked__titleCell">{t.title || t.Track?.title}</div>
+                <div className="liked__cell">{t.artist || (t.Artists || t.Track?.Artists || []).map?.((a) => a.name).join(", ")}</div>
+                <div className="liked__cell">{t.album || t.Track?.Album?.title}</div>
+                <div className="liked__cell liked__duration">{Math.floor((t.duration || t.Track?.duration || 0) / 60)}:{String((t.duration || t.Track?.duration || 0) % 60).padStart(2, "0")}</div>
+                <div className="liked__cell">
+                  <button
+                    type="button"
+                    className="liked__unlikeBtn"
+                    onClick={() => handleUnlike(t.id || t.trackId || t.Track?.id)}
+                    disabled={removingId === String(t.id || t.trackId || t.Track?.id || "").trim()}
+                    aria-label={`Hapus dari liked songs: ${t.title || t.Track?.title || "lagu"}`}
+                    title="Hapus dari liked songs"
+                  >
+                    {removingId === String(t.id || t.trackId || t.Track?.id || "").trim() ? (
+                      <FiLoader className="liked__spin" />
+                    ) : (
+                      <>
+                        <FiHeart fill="currentColor" />
+                        <span>Unlike</span>
+                        <FiX />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

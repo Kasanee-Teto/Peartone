@@ -2,30 +2,54 @@ import { useMemo, useState } from "react";
 import { FiUploadCloud } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/AdminUploadPage.css";
+import { useFetch } from "../hooks/useFetch";
 
 const AdminUploadPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
+  const [selectedArtistIds, setSelectedArtistIds] = useState([]);
   const [album, setAlbum] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
+  const { data: artistsResp } = useFetch("/artists");
+  const { data: albumsResp } = useFetch("/albums");
+
+  const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
+  const albums = Array.isArray(albumsResp) ? albumsResp : albumsResp?.data || [];
 
   const audioName = audioFile?.name ?? "Belum pilih file";
   const coverName = coverFile?.name ?? "Belum pilih file";
 
   const canSubmit = useMemo(() => {
-    return title.trim() && artist.trim() && audioFile;
-  }, [title, artist, audioFile]);
+    return title.trim() && selectedArtistIds.length > 0 && audioFile;
+  }, [title, selectedArtistIds, audioFile]);
 
   const onSubmit = (e) => {
     e.preventDefault();
+    if (!canSubmit) return;
 
-    // Placeholder only (backend upload belum dibuat)
-    window.alert(
-      "Placeholder: data sudah siap. Nanti tinggal sambungkan ke backend upload."
-    );
+    const token = localStorage.getItem("token");
+    const fd = new FormData();
+    fd.append("title", title);
+    fd.append("artistIds", JSON.stringify(selectedArtistIds));
+    if (album) fd.append("albumId", album);
+    fd.append("audio", audioFile);
+    if (coverFile) fd.append("cover", coverFile);
+
+    fetch("/api/admin/tracks", {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res || res.status >= 400) throw new Error(res?.message || "Upload failed");
+        window.alert("Upload successful");
+      })
+      .catch((err) => {
+        window.alert(err.message || "Upload failed");
+      });
   };
 
   return (
@@ -82,23 +106,38 @@ const AdminUploadPage = () => {
 
             <label className="admin-field">
               <span className="admin-field__label">Artis</span>
-              <input
-                className="admin-field__input"
-                value={artist}
-                onChange={(e) => setArtist(e.target.value)}
-                placeholder="Masukkan nama artis"
-                required
-              />
+              <div className="admin-picker" style={{ display: "grid", gap: 8, maxHeight: 220, overflow: "auto" }}>
+                {artists.map((item) => (
+                  <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedArtistIds.includes(item.id)}
+                      onChange={(e) => {
+                        setSelectedArtistIds((prev) =>
+                          e.target.checked
+                            ? [...prev, item.id]
+                            : prev.filter((id) => id !== item.id)
+                        );
+                      }}
+                    />
+                    <span>{item.name}</span>
+                  </label>
+                ))}
+              </div>
             </label>
 
             <label className="admin-field">
               <span className="admin-field__label">Album (opsional)</span>
-              <input
+              <select
                 className="admin-field__input"
                 value={album}
                 onChange={(e) => setAlbum(e.target.value)}
-                placeholder="Masukkan nama album"
-              />
+              >
+                <option value="">Tanpa album</option>
+                {albums.map((item) => (
+                  <option key={item.id} value={item.id}>{item.title}</option>
+                ))}
+              </select>
             </label>
 
             <div className="admin-field">
@@ -158,7 +197,11 @@ const AdminUploadPage = () => {
             </div>
             <div className="admin-preview__item">
               <span className="admin-preview__k">Artis</span>
-              <span className="admin-preview__v">{artist || "-"}</span>
+              <span className="admin-preview__v">
+                {selectedArtistIds.length > 0
+                  ? artists.filter((item) => selectedArtistIds.includes(item.id)).map((item) => item.name).join(", ")
+                  : "-"}
+              </span>
             </div>
             <div className="admin-preview__item">
               <span className="admin-preview__k">Album</span>

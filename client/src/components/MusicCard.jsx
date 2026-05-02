@@ -1,8 +1,4 @@
-const API_ORIGIN = (() => {
-  const apiBase =
-    import.meta.env.VITE_API_BASE_URL || "/api";
-  return apiBase.replace(/\/api\/?$/, "");
-})();
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 
 function formatDuration(value) {
   if (value == null) return "0:00";
@@ -35,6 +31,10 @@ function getCoverUrl(track) {
   );
 }
 
+function hasTrackId(trackId) {
+  return typeof trackId === "string" && trackId.trim().length > 0;
+}
+
 const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
   const title = track?.title || track?.name || "Unknown Title";
   const artist = getArtistName(track);
@@ -42,19 +42,30 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
   const genre = track?.genre || "";
   const duration = formatDuration(track?.duration);
   const coverUrl = getCoverUrl(track);
+  const playableTrack = normalizePlayableTrack({
+    ...track,
+    trackId: track?.trackId || track?.id,
+    title,
+    artist,
+    album,
+    genre,
+    duration: track?.duration,
+    coverUrl,
+  });
 
   const safePlayCount = Number(track?.play_count ?? track?.playCount ?? 0) || 0;
 
   const handlePlay = () => {
-    const streamUrl =
-      track?.id != null ? `${API_ORIGIN}/api/stream/tracks/${track.id}` : "";
-
-    if (onPlay) {
-      onPlay({ ...track, title, artist, album, genre, duration, coverUrl, streamUrl });
+    if (!hasTrackId(playableTrack.trackId)) {
       return;
     }
 
-    console.log("Play:", { title, artist, streamUrl });
+    if (onPlay) {
+      onPlay(playableTrack);
+      return;
+    }
+
+    emitPlayTrack(playableTrack);
   };
 
   return (

@@ -87,6 +87,9 @@ class PlaylistService extends BaseService {
     const playlist = await Playlist.findOne({ where: { id: playlistId, userId } });
     if (!playlist) throw new ApiError(404, "Playlist not found");
 
+    const existing = await PlaylistTrack.findOne({ where: { playlistId, trackId } });
+    if (existing) throw new ApiError(409, "Track already exists in this playlist");
+
     const max = await PlaylistTrack.max("position", { where: { playlistId } });
     const nextPos = (max || 0) + 1;
 
@@ -99,7 +102,7 @@ class PlaylistService extends BaseService {
         addedAt: new Date()
       });
     } catch (error) {
-      throw new ApiError(409, "Track already exists in playlist");
+      throw new ApiError(409, "Failed to add track to playlist");
     }
 
     return this.success({ playlistId, trackId, position: nextPos }, "Track added to playlist");
@@ -150,6 +153,16 @@ class PlaylistService extends BaseService {
     });
 
     return this.success(null, "Playlist reordered");
+  }
+
+  async deletePlaylist(userId, playlistId) {
+    const playlist = await Playlist.findOne({ where: { id: playlistId, userId } });
+    if (!playlist) throw new ApiError(404, "Playlist not found");
+
+    await PlaylistTrack.destroy({ where: { playlistId } });
+    await Playlist.destroy({ where: { id: playlistId } });
+
+    return this.success(null, "Playlist deleted");
   }
 }
 
