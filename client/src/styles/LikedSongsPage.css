@@ -257,6 +257,41 @@
   list-style: none;
 }
 
+.liked__unlikeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.liked__unlikeBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 72, 66, 0.1);
+  border-color: rgba(255, 72, 66, 0.45);
+  color: #ffb4ad;
+}
+
+.liked__unlikeBtn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.liked__spin {
+  animation: liked-spin 0.8s linear infinite;
+}
+
+@keyframes liked-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .liked__row {
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.86);

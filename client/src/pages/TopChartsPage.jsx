@@ -1,17 +1,42 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import MusicCard from "../components/MusicCard";
+import { useFetch } from "../hooks/useFetch";
 
-const charts = [
-  { id: 1, title: "Neon Drive", artist: "Arka Lane", album: "After Dark", duration: "3:42", genre: "Pop", cover_url: "https://via.placeholder.com/240?text=01", play_count: 84500 },
-  { id: 2, title: "Midnight Pulse", artist: "Nova Echo", album: "City Lights", duration: "4:08", genre: "Electronic", cover_url: "https://via.placeholder.com/240?text=02", play_count: 78200 },
-  { id: 3, title: "Golden Hour", artist: "Luna Vale", album: "Sunset Tapes", duration: "3:19", genre: "Indie", cover_url: "https://via.placeholder.com/240?text=03", play_count: 69800 },
-  { id: 4, title: "Fast Lane", artist: "Rift Boys", album: "Throttle", duration: "2:57", genre: "Hip-Hop", cover_url: "https://via.placeholder.com/240?text=04", play_count: 65500 },
-  { id: 5, title: "Starfall", artist: "Mira Sol", album: "Orbit", duration: "4:12", genre: "Alt Pop", cover_url: "https://via.placeholder.com/240?text=05", play_count: 60100 },
-];
+function normalizeTrack(track) {
+  const artist =
+    Array.isArray(track?.Artists) && track.Artists.length > 0
+      ? track.Artists.map((item) => item?.name).filter(Boolean).join(", ")
+      : track?.artist || track?.Artist?.name || "Unknown Artist";
+
+  return {
+    ...track,
+    title: track?.title || track?.name || "Untitled",
+    artist,
+    album: track?.Album?.title || track?.album || "",
+    cover_url:
+      track?.cover ||
+      track?.coverUrl ||
+      track?.image ||
+      track?.imageUrl ||
+      track?.Album?.cover ||
+      track?.Album?.coverUrl ||
+      "",
+    duration: track?.duration || 0,
+  };
+}
 
 const TopChartsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { data: tracksResp, loading, error } = useFetch("/tracks?page=1&limit=5");
+
+  const chartsRaw = useMemo(() => {
+    if (Array.isArray(tracksResp)) return tracksResp;
+    if (Array.isArray(tracksResp?.data)) return tracksResp.data;
+    return [];
+  }, [tracksResp]);
+
+  const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white">
@@ -63,13 +88,19 @@ const TopChartsPage = () => {
               </span>
             </div>
 
-            <ol className="space-y-2.5" aria-label="Daftar top charts">
-              {charts.map((track, index) => (
-                <li key={track.id}>
-                  <MusicCard track={track} variant="chart" rank={index + 1} />
-                </li>
-              ))}
-            </ol>
+            {loading ? (
+              <p className="text-sm text-white/60">Memuat chart...</p>
+            ) : error ? (
+              <p className="text-sm text-red-300">Gagal memuat charts: {error}</p>
+            ) : (
+              <ol className="space-y-2.5" aria-label="Daftar top charts">
+                {charts.map((track, index) => (
+                  <li key={track.id}>
+                    <MusicCard track={track} variant="chart" rank={index + 1} />
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
         </section>
       </div>

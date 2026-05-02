@@ -2,6 +2,17 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import authService from "../services/auth.service.js";
 
+export const getProfile = asyncHandler(async (req, res) => {
+  const result = await authService.getProfile(req.user.id);
+  res.status(200).json(result);
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { username, email, location } = req.body || {};
+  const result = await authService.updateProfile(req.user.id, { username, email, location });
+  res.status(200).json(result);
+});
+
 export const register = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {

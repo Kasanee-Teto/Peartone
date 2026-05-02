@@ -23,7 +23,8 @@ export default (sequelize, DataTypes) => {
       },
       addedAt: { 
         type: DataTypes.DATE, 
-        allowNull: false
+        allowNull: false,
+        field: "added_at"
       }
     },
     { tableName: "PlaylistTracks", timestamps: false }

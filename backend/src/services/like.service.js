@@ -73,26 +73,45 @@ class LikeService extends BaseService {
   }
 
   async like(userId, trackId) {
-    await LikedTrack.findOrCreate({
-      where: { userId, trackId },
-      defaults: { createdAt: new Date() }
-    });
+    trackId = String(trackId || "").trim();
+    if (!trackId) throw new ApiError(400, "trackId is required");
+
+    const track = await Track.findByPk(trackId);
+    if (!track) throw new ApiError(404, "Track not found");
+
+    const existing = await LikedTrack.findOne({ where: { userId, trackId } });
+    if (existing) {
+      return this.success(null, "Track liked!");
+    }
+
+    const now = new Date();
+    await LikedTrack.create({ userId, trackId, createdAt: now, updatedAt: now });
     return this.success(null, "Track liked!");
   }
 
   async unlike(userId, trackId) {
+    trackId = String(trackId || "").trim();
+    if (!trackId) throw new ApiError(400, "trackId is required");
+
     const deleted = await LikedTrack.destroy({ where: { userId, trackId } });
     if (!deleted) throw new ApiError(404, "Like not found");
     return this.success(null, "Track unliked!");
   }
 
   async toggle(userId, trackId) {
+    trackId = String(trackId || "").trim();
+    if (!trackId) throw new ApiError(400, "trackId is required");
+
+    const track = await Track.findByPk(trackId);
+    if (!track) throw new ApiError(404, "Track not found");
+
     const existing = await LikedTrack.findOne({ where: { userId, trackId } });
     if (existing) {
       await existing.destroy();
       return this.success({ liked: false }, "Unliked");
     }
-    await LikedTrack.create({ userId, trackId, createdAt: new Date() });
+    const now = new Date();
+    await LikedTrack.create({ userId, trackId, createdAt: now, updatedAt: now });
     return this.success({ liked: true }, "Liked");
   }
 }

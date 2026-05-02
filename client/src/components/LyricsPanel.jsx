@@ -1,54 +1,55 @@
 import { useEffect, useState } from "react";
-import { FiTrash2, FiX } from "react-icons/fi";
+import { FiX } from "react-icons/fi";
 import "../styles/LyricsPanel.css";
 
-const exampleLyrics = `Malam datang perlahan
-Kota ini masih bernapas
-Kita simpan semua harap
-Di antara lampu yang redup
+function getLyricsText(payload) {
+  if (!payload) return "";
+  if (typeof payload === "string") return payload;
+  return payload?.text || payload?.lyrics || "";
+}
 
-Biar hujan turun lagi
-Tak semua harus dimengerti
-Kalau nanti lagu ini hilang
-Masih ada jejak yang tinggal`;
-
-const LyricsPanel = ({ artist, title, open, onClose }) => {
+const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
   const [lyrics, setLyrics] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!open) return;
-    if (!artist || !title) {
+    if (!open || !trackId) return;
+
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setLoading(true);
+      setError(null);
       setLyrics("");
-      setError("Informasi lagu kurang");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setLyrics("");
+    });
+
     const fetchLyrics = async () => {
       try {
-        const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
+        const res = await fetch(`/api/lyrics/${encodeURIComponent(trackId)}`);
         if (!res.ok) throw new Error("Tidak ditemukan");
         const data = await res.json();
-        setLyrics(data.lyrics || exampleLyrics);
-      } catch (e) {
+        if (!active) return;
+        setLyrics(getLyricsText(data?.data || data));
+      } catch {
+        if (!active) return;
         setError("Lirik tidak ditemukan");
-        setLyrics(exampleLyrics);
+        setLyrics("");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
-    fetchLyrics();
-  }, [open, artist, title]);
 
-  const handleDeleteLyrics = () => {
-    setLyrics("");
-    setError(null);
-  };
+    fetchLyrics();
+
+    return () => {
+      active = false;
+    };
+  }, [open, trackId]);
 
   if (!open) return null;
+
+  const statusMessage = trackId ? error || "Lirik tidak tersedia" : "Track tidak tersedia";
 
   return (
     <div className="pt-lyrics">
@@ -58,11 +59,6 @@ const LyricsPanel = ({ artist, title, open, onClose }) => {
           <div className="pt-lyrics__artist">{artist}</div>
         </div>
         <div className="pt-lyrics__actions">
-          {lyrics ? (
-            <button type="button" className="pt-btn pt-btn--danger" onClick={handleDeleteLyrics} title="Delete lyrics">
-              <FiTrash2 />
-            </button>
-          ) : null}
           <button type="button" className="pt-btn" onClick={onClose} title="Close">
             <FiX />
           </button>
@@ -73,11 +69,10 @@ const LyricsPanel = ({ artist, title, open, onClose }) => {
           <div className="pt-lyrics__loading">Memuat lirik…</div>
         ) : lyrics ? (
           <div className="pt-lyrics__content">
-            {error ? <div className="pt-lyrics__hint">{error}. Menampilkan contoh lirik.</div> : null}
             <pre className="pt-lyrics__text">{lyrics}</pre>
           </div>
         ) : (
-          <div className="pt-lyrics__empty">Lirik tidak tersedia</div>
+          <div className="pt-lyrics__empty">{statusMessage}</div>
         )}
       </div>
     </div>

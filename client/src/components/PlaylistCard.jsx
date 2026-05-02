@@ -1,6 +1,7 @@
 import "../styles/PlaylistCard.css";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 
-const PlaylistCard = ({ playlist }) => {
+const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
   return (
     <div className="playlist-card">
       <div className="playlist-card__image-wrapper">
@@ -20,6 +21,26 @@ const PlaylistCard = ({ playlist }) => {
         >
           ▶
         </button>
+        {onAddTrack && (
+          <button
+            className="playlist-card__add-button"
+            onClick={() => onAddTrack(playlist)}
+            aria-label={`Tambah lagu ke ${playlist.title}`}
+            title="Tambah lagu"
+          >
+            <FiPlus />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            className="playlist-card__delete-button"
+            onClick={() => onDelete(playlist)}
+            aria-label={`Hapus ${playlist.title}`}
+            title="Hapus playlist"
+          >
+            <FiTrash2 />
+          </button>
+        )}
       </div>
 
       <div className="playlist-card__content">
