@@ -79,7 +79,7 @@ const HomePage = () => {
 
     try {
       const res = await tracksApi.list({ q, page: 1, limit: 20 });
-      // tracksApi.list pakai httpRaw jadi res bisa { data: [...] } atau [...]
+
       const items = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(items);
     } catch (err) {
@@ -134,13 +134,12 @@ const HomePage = () => {
           <section className="home__hero" aria-label="Banner Peartone">
             <div className="home__hero-content flex flex-col justify-center items-center gap-6">
               <h1 className="home__hero-title text-center">
-                Temukan Musik
+                Find your
                 <br />
-                <span className="home__hero-accent">Favoritmu</span>
+                <span className="home__hero-accent">Favorites!</span>
               </h1>
               <p className="home__hero-subtitle w-full text-center mx-auto max-w-2xl px-4">
-                Streaming musik tanpa batas. Dengarkan chart terpopuler dan
-                temukan lagu baru setiap hari.
+                Dengarkan MUSIKmu sampai tak kenal waktu!
               </p>
 
               <div className="w-full max-w-xl px-4">
