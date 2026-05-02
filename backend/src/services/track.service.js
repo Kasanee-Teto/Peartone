@@ -34,8 +34,8 @@ class TrackService extends BaseService {
 
     if (query) {
       where[Op.or] = [
-        { title: { [Op.iLike]: `%${query}%` } },
-        { genre: { [Op.iLike]: `%${query}%` } }
+        { title: { [Op.like]: `%${query}%` } },
+        { genre: { [Op.like]: `%${query}%` } }
       ];
     }
 
@@ -45,7 +45,7 @@ class TrackService extends BaseService {
       order: this._orderConfig(),
       limit: limitNum,
       offset,
-      distinct: true 
+      distinct: true
     });
 
     return {
@@ -60,11 +60,11 @@ class TrackService extends BaseService {
   }
 
   async getById(id) {
-      const track = await Track.findByPk(id, { 
-        include: this._include(),
-        order: [this._orderConfig()[1]]
-      });
-      return this.success(track, "Track fetched");
+    const track = await Track.findByPk(id, {
+      include: this._include(),
+      order: [this._orderConfig()[1]]
+    });
+    return this.success(track, "Track fetched");
   }
 
   async search(q) {
@@ -75,15 +75,12 @@ class TrackService extends BaseService {
       where: {
         isPublished: true,
         [Op.or]: [
-          { title: { [Op.iLike]: `%${query}%` } },
-          { genre: { [Op.iLike]: `%${query}%` } },
-          { '$Album.title$': { [Op.iLike]: `%${query}%` } },
-          { '$Artists.name$': { [Op.iLike]: `%${query}%` } }
+          { title: { [Op.like]: `%${query}%` } },
+          { genre: { [Op.like]: `%${query}%` } }
         ]
       },
       include: this._include(),
       order: this._orderConfig(),
-      subQuery: false
     });
 
     return this.success(tracks, "Search results");

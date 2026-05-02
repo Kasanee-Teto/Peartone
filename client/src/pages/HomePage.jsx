@@ -1,9 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import ChartList from "../components/ChartList";
 import Sidebar from "../components/Sidebar";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
+import SearchBar from "../components/SearchBar.jsx";
+import SearchResults from "../components/SearchResults.jsx";
 import { useFetch } from "../hooks/useFetch";
+import { tracksApi } from "../api/tracks.js";
 
 function normalizeTrack(t) {
   const artist =
@@ -33,9 +36,13 @@ const HomePage = () => {
   const [showplaylist, setShowplaylist] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // PENTING:
-  // useFetch menerima PATH, bukan full URL.
-  // Base URL + Authorization header sudah di-handle di client/src/api/http.js
+  // ── Search state ──
+  const [searchQuery, setSearchQuery]   = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError]   = useState("");
+  const isSearching = searchQuery.length > 0;
+
   const {
     data: chartsResp,
     loading: chartsLoading,
@@ -48,8 +55,6 @@ const HomePage = () => {
     error: popularError,
   } = useFetch("/tracks?page=1&limit=8");
 
-  // Kalau backend return { data: [...] } maka chartsResp sudah jadi [...] (karena hook pakai http()).
-  // Tapi kalau ada variasi, kita bikin fallback aman:
   const chartsRaw = useMemo(() => {
     if (Array.isArray(chartsResp)) return chartsResp;
     if (Array.isArray(chartsResp?.data)) return chartsResp.data;
@@ -64,6 +69,31 @@ const HomePage = () => {
 
   const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
   const popular = useMemo(() => popularRaw.map(normalizeTrack), [popularRaw]);
+
+  // ── Handler search ──
+  const handleSearch = useCallback(async (q) => {
+    setSearchQuery(q);
+    setSearchLoading(true);
+    setSearchError("");
+    setSearchResults([]);
+
+    try {
+      const res = await tracksApi.list({ q, page: 1, limit: 20 });
+      // tracksApi.list pakai httpRaw jadi res bisa { data: [...] } atau [...]
+      const items = Array.isArray(res) ? res : res?.data || [];
+      setSearchResults(items);
+    } catch (err) {
+      setSearchError(err?.message || "Pencarian gagal");
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError("");
+  }, []);
 
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;
@@ -102,7 +132,7 @@ const HomePage = () => {
           </button>
 
           <section className="home__hero" aria-label="Banner Peartone">
-            <div className="home__hero-content flex flex-col justify-center items-center">
+            <div className="home__hero-content flex flex-col justify-center items-center gap-6">
               <h1 className="home__hero-title text-center">
                 Temukan Musik
                 <br />
@@ -112,23 +142,46 @@ const HomePage = () => {
                 Streaming musik tanpa batas. Dengarkan chart terpopuler dan
                 temukan lagu baru setiap hari.
               </p>
-              <button
-                className="home__hero-cta"
-                aria-label="Mulai mendengarkan"
-                onClick={() => setShowplaylist(true)}
-              >
-                Mulai Dengarkan
-              </button>
+
+              <div className="w-full max-w-xl px-4">
+                <SearchBar
+                  onSearch={handleSearch}
+                  onClear={handleClearSearch}
+                />
+              </div>
+
+              {!isSearching && (
+                <button
+                  className="home__hero-cta"
+                  aria-label="Mulai mendengarkan"
+                  onClick={() => setShowplaylist(true)}
+                >
+                  Mulai Dengarkan
+                </button>
+              )}
             </div>
           </section>
 
-          <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
 
-          <PopularList
-            popular={popular}
-            loading={popularLoading}
-            error={popularError}
-          />
+          {isSearching ? (
+            <div className="px-4 pb-8 max-w-3xl mx-auto w-full">
+              <SearchResults
+                results={searchResults}
+                loading={searchLoading}
+                error={searchError}
+                query={searchQuery}
+              />
+            </div>
+          ) : (
+            <>
+              <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
+              <PopularList
+                popular={popular}
+                loading={popularLoading}
+                error={popularError}
+              />
+            </>
+          )}
         </div>
       </div>
     </main>
