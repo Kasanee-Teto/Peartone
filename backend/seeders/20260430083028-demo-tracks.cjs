@@ -17,7 +17,8 @@ module.exports = {
         coverUrl: "/storage/covers/Science (feat. KASANE TETO).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 3000000
       },
       {
         id: "0f4f6a6b-0bd3-4c9f-9b55-1d5ed4e2a111",
@@ -31,7 +32,8 @@ module.exports = {
         coverUrl: "/storage/covers/Encore Dance (feat. KASANE TETO).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now 
+        updatedAt: now,
+        listeners: 1800000
       },
       {
         id: "1c2b0e6e-7e1a-4ad9-9d43-77d54fb1b222",
@@ -45,7 +47,8 @@ module.exports = {
         coverUrl: "/storage/covers/Magic Maid (feat. KASANE TETO).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 1500000
       },
       {
         id: "2d9fb1b3-3c15-4f6b-90a2-1a1c9d7a3333",
@@ -59,7 +62,8 @@ module.exports = {
         coverUrl: "/storage/covers/Pyon (feat. HATSUNE MIKU).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 2200000
       },
       {
         id: "3a3d5df7-3aef-43b1-9a28-3bda4c444444",
@@ -73,7 +77,8 @@ module.exports = {
         coverUrl: "/storage/covers/TRICK HEART (feat. KASANE TETO).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 520000
       },
 
       // マサラダ tracks
@@ -89,7 +94,8 @@ module.exports = {
         coverUrl: "/storage/covers/Liar Dancer.jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 24000000
       },
       {
         id: "5c13edb3-6c3e-4c4f-9c84-1a6c2b3f2d02",
@@ -103,7 +109,8 @@ module.exports = {
         coverUrl: "/storage/covers/●utlaws.jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 8700000
       },
       {
         id: "6d24fea4-7d4f-4d5f-8d95-2b7d3c4f3e03",
@@ -117,7 +124,8 @@ module.exports = {
         coverUrl: "/storage/covers/Tiny Me.jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 3200000
       },
       {
         id: "7e350fb5-8e50-4e6f-9ea6-3c8e4d5f4f04",
@@ -131,7 +139,8 @@ module.exports = {
         coverUrl: "/storage/covers/Ultra Trailer.jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 1900000
       },
       {
         id: "aa1b2c3d-4e5f-6789-a012-3456789abcde",
@@ -145,7 +154,8 @@ module.exports = {
         coverUrl: "/storage/covers/メズマライザー (feat. 初音ミク&重音テト).jpg",
         albumId: null,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        listeners: 48000000
       }
     ]);
   },
