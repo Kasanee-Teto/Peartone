@@ -20,6 +20,11 @@ class PlaylistService extends BaseService {
 
   async create(userId, { name, description, isPublic }) {
     if (!name) throw new ApiError(400, "Name is required!");
+
+    // Pastikan user ada di database sebelum insert
+    const user = await db.User.findByPk(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
     const playlist = await Playlist.create({
       userId,
       name,
@@ -40,8 +45,8 @@ class PlaylistService extends BaseService {
 
     if (query) {
       where[Op.or] = [
-        { name: { [Op.iLike]: `%${query}%` } },
-        { description: { [Op.iLike]: `%${query}%` } }
+        { name: { [Op.like]: `%${query}%` } },        // ✅ fix iLike → like
+        { description: { [Op.like]: `%${query}%` } }  // ✅ fix iLike → like
       ];
     }
 

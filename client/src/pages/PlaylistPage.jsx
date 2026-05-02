@@ -1,17 +1,29 @@
 import { useEffect, useState, useMemo } from "react";
 import PlaylistCard from "../components/PlaylistCard";
 import AddTrackModal from "../components/AddTrackModal";
+import Sidebar from "../components/Sidebar";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
 import "../styles/PlaylistPage.css";
 
+const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
+  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
+  : "http://localhost:3000";
+
+function buildCoverUrl(url) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `${STORAGE_BASE}${url}`;
+}
+
 const PlaylistPage = ({ onBack }) => {
-  const [newPlaylistName, setNewPlaylistName] = useState("");
-  const [isSaving, setIsSaving]               = useState(false);
-  const [playlists, setPlaylists]             = useState([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-  const [searchQuery, setSearchQuery]         = useState("");
+  const [isSidebarOpen, setIsSidebarOpen]         = useState(false);
+  const [newPlaylistName, setNewPlaylistName]     = useState("");
+  const [isSaving, setIsSaving]                   = useState(false);
+  const [playlists, setPlaylists]                 = useState([]);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
+  const [searchQuery, setSearchQuery]             = useState("");
 
   const { data: playlistsResp, loading, error } = useFetch("/playlists");
 
@@ -19,7 +31,6 @@ const PlaylistPage = ({ onBack }) => {
     const incoming = Array.isArray(playlistsResp)
       ? playlistsResp
       : playlistsResp?.data || [];
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlaylists(incoming);
   }, [playlistsResp]);
 
@@ -59,51 +70,62 @@ const PlaylistPage = ({ onBack }) => {
     }
   };
 
-  // Increment song count langsung di state tanpa re-fetch
-const handleTrackAdded = async () => {
-  if (!selectedPlaylist) return;
-
-  try {
-    // fetch updated playlist from backend
-    const updated = await playlistsApi.getMine(selectedPlaylist.id);
-    const fresh = updated?.data || updated;
-
-    setPlaylists((prev) =>
-      prev.map((p) =>
-        p.id === fresh.id
-          ? {
-              ...p,
-              ...fresh, // replace with real backend data
-            }
-          : p
-      )
-    );
-  } catch (err) {
-    console.error("Failed to refresh playlist:", err);
-  } finally {
-    setSelectedPlaylist(null);
-  }
-};
+  const handleTrackAdded = async () => {
+    if (!selectedPlaylistId) return;
+    try {
+      const updated = await playlistsApi.getMine(selectedPlaylistId);
+      const fresh = updated?.data?.playlist || updated?.data || updated;
+      if (fresh?.id) {
+        setPlaylists((prev) =>
+          prev.map((p) => p.id === fresh.id ? { ...p, ...fresh } : p)
+        );
+      }
+    } catch (err) {
+      console.error("Failed to refresh playlist:", err);
+    } finally {
+      setSelectedPlaylistId(null);
+    }
+  };
 
   return (
     <main className="pl-page">
       <div className="pl-page__blob" aria-hidden="true" />
 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={() => setIsSidebarOpen(false)}
+      />
+      <button
+        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+        type="button"
+        aria-label="Tutup menu samping"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+      <button
+        className="home__sidebar-toggle"
+        type="button"
+        aria-label="Buka menu samping"
+        aria-controls="home-sidebar"
+        aria-expanded={isSidebarOpen}
+        onClick={() => setIsSidebarOpen(true)}
+      >≡</button>
+
       <div className="pl-page__inner">
 
-        {/* Header */}
         <header className="pl-header">
           <div>
             <p className="pl-header__eyebrow">Library</p>
             <h1 className="pl-header__title">Playlist Saya</h1>
             <p className="pl-header__desc">Kelola dan nikmati koleksi playlist kamu.</p>
           </div>
-          <button className="pl-header__back" onClick={onBack} aria-label="Kembali">
-            ← Kembali
-          </button>
+          {onBack && (
+            <button className="pl-header__back" onClick={onBack} aria-label="Kembali">
+              ← Kembali
+            </button>
+          )}
         </header>
 
-        {/* Create form */}
         <form className="pl-create" onSubmit={createPlaylist}>
           <input
             className="pl-create__input"
@@ -122,7 +144,6 @@ const handleTrackAdded = async () => {
           </button>
         </form>
 
-        {/* Search */}
         <div className="pl-search">
           <FiSearch className="pl-search__icon" size={15} />
           <input
@@ -142,7 +163,6 @@ const handleTrackAdded = async () => {
           )}
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="pl-state">
             <div className="pl-state__spinner" />
@@ -164,34 +184,39 @@ const handleTrackAdded = async () => {
               {filtered.length} playlist{searchQuery ? ` untuk "${searchQuery}"` : ""}
             </p>
             <div className="pl-grid" role="list">
-              {filtered.map((playlist) => (
-                <div key={playlist.id} role="listitem">
-                  <PlaylistCard
-                    playlist={{
-                      id: playlist.id,
-                      title: playlist.name || playlist.title,
-                      image:
-                        playlist.image ||
-                        playlist.Tracks?.[0]?.coverUrl ||
-                        playlist.Tracks?.[0]?.Track?.coverUrl ||
-                        null,
-                      songs: playlist.trackCount ?? (playlist.Tracks || []).length,
-                      color: "#7c6af7",
-                    }}
-                    onAddTrack={setSelectedPlaylist}
-                    onDelete={handleDeletePlaylist}
-                  />
-                </div>
-              ))}
+              {filtered.map((playlist) => {
+                const rawCover =
+                  playlist.image ||
+                  playlist.coverUrl ||
+                  playlist.Tracks?.[0]?.coverUrl ||
+                  playlist.Tracks?.[0]?.Track?.coverUrl ||
+                  null;
+
+                return (
+                  <div key={playlist.id} role="listitem">
+                    <PlaylistCard
+                      playlist={{
+                        id: playlist.id,
+                        title: playlist.name || playlist.title,
+                        image: buildCoverUrl(rawCover),
+                        songs: playlist.trackCount ?? (playlist.Tracks || []).length,
+                        color: "#7c6af7",
+                      }}
+                      onAddTrack={(p) => setSelectedPlaylistId(p.id)}
+                      onDelete={handleDeletePlaylist}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
       </div>
 
-      {selectedPlaylist && (
+      {selectedPlaylistId && (
         <AddTrackModal
-          playlistId={selectedPlaylist.id}
-          onClose={() => setSelectedPlaylist(null)}
+          playlistId={selectedPlaylistId}
+          onClose={() => setSelectedPlaylistId(null)}
           onTrackAdded={handleTrackAdded}
         />
       )}
