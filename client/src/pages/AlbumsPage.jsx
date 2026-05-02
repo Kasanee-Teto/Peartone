@@ -50,6 +50,8 @@ const AlbumCard = ({ album }) => {
         })
       );
 
+      window.dispatchEvent(new Event("pt:clear-queue"));
+
       emitPlayTrack(normalized[0]);
 
       for (let i = 1; i < normalized.length; i++) {
