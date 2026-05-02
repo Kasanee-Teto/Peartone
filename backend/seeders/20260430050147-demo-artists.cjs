@@ -25,6 +25,14 @@ module.exports = {
         updatedAt: now
       },
       {
+        id: "b9d1e2f3-a4c5-40b9-8e7d-6c5b4a3f2e1d",
+        name: "MIMI",
+        bio: "MIMI is a vocal synth producer with a focus on blending the synthetic voices of the VOCALOID lineup with intricate piano instrumentation across a myriad of genres and styles, including pop, piano rock and ballad.",
+        imageUrl: "/storage/artists/mimi.jpg",
+        createdAt: yesterday,
+        updatedAt: now
+      },
+      {
         id: "d8b64fd2-9b6f-4f5d-b3ae-0a1e6d0a77a1",
         name: "Hatsune Miku",
         bio: "Vocal synth character and voicebank.",
