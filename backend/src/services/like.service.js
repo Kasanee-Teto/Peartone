@@ -111,7 +111,7 @@ class LikeService extends BaseService {
       return this.success({ liked: false }, "Unliked");
     }
     const now = new Date();
-    await LikedTrack.create({ userId, trackId, createdAt: now, updatedAt: now });
+    await LikedTrack.create({ userId, trackId }); 
     return this.success({ liked: true }, "Liked");
   }
 }
