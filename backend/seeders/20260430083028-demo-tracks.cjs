@@ -19,7 +19,6 @@ module.exports = {
         albumId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         fileSize: 5545055,
         coverUrl: "/storage/covers/Science_(feat._KASANE_TETO).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 3000000
@@ -35,7 +34,6 @@ module.exports = {
         albumId: "b29cb043-2f74-47d3-a107-ab70cdef58f7",
         fileSize: 4198400,
         coverUrl: "/storage/covers/Encore_Dance_(feat._KASANE_TETO).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 1800000
@@ -51,7 +49,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 4198331,
         coverUrl: "/storage/covers/Magic_Maid_(feat._KASANE_TETO).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 1500000
@@ -67,7 +64,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 2819484,
         coverUrl: "/storage/covers/Pyon_(feat._HATSUNE_MIKU).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 2200000
@@ -83,7 +79,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 4546560 ,
         coverUrl: "/storage/covers/TRICK_HEART_(feat._KASANE_TETO).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 520000
@@ -101,7 +96,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 7355450 ,
         coverUrl: "/storage/covers/Liar_Dancer.jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 24000000
@@ -117,7 +111,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 6136937 ,
         coverUrl: "/storage/covers/●utlaws.jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 8700000
@@ -133,7 +126,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 7004053 , 
         coverUrl: "/storage/covers/Tiny_Me.jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 3200000
@@ -149,7 +141,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 8250092,
         coverUrl: "/storage/covers/Ultra_Trailer.jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 1900000
@@ -165,7 +156,6 @@ module.exports = {
         mimeType: "audio/mpeg",
         fileSize: 4713765,
         coverUrl: "/storage/covers/メズマライザー_(feat._初音ミク&重音テト).jpg",
-        albumId: null,
         createdAt: yesterday,
         updatedAt: now,
         listeners: 48000000
