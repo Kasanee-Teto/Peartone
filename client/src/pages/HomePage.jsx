@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import ChartList from "../components/ChartList";
 import Sidebar from "../components/Sidebar";
 import PopularList from "../components/PopularList";
@@ -7,6 +8,7 @@ import SearchBar from "../components/SearchBar.jsx";
 import SearchResults from "../components/SearchResults.jsx";
 import { useFetch } from "../hooks/useFetch";
 import { tracksApi } from "../api/tracks.js";
+import { authApi } from "../api/auth.js";
 
 function normalizeTrack(t) {
   const artist =
@@ -33,6 +35,7 @@ function normalizeTrack(t) {
 }
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [showplaylist, setShowplaylist] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -95,6 +98,11 @@ const HomePage = () => {
     setSearchError("");
   }, []);
 
+  const handleLogout = useCallback(() => {
+    authApi.logout();
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;
   }
@@ -105,6 +113,7 @@ const HomePage = () => {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          onLogout={handleLogout}
           onHome={() => setIsSidebarOpen(false)}
           onPlaylist={() => {
             setShowplaylist(true);

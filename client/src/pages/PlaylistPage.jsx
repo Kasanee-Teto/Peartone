@@ -19,6 +19,7 @@ const PlaylistPage = ({ onBack }) => {
     const incoming = Array.isArray(playlistsResp)
       ? playlistsResp
       : playlistsResp?.data || [];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlaylists(incoming);
   }, [playlistsResp]);
 
