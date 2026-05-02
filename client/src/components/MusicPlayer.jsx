@@ -104,6 +104,23 @@ const MusicPlayer = () => {
   }, []);
 
   useEffect(() => {
+  const handleAddToQueue = (event) => {
+    const track = normalizePlayableTrack(event.detail);
+    if (!isValidTrackId(track.trackId)) return;
+    if (!track.streamUrl) return;
+ 
+    setQueue((currentQueue) => {
+      const alreadyIn = currentQueue.some((item) => item.id === track.id);
+      if (alreadyIn) return currentQueue;
+      return [...currentQueue, track];
+    });
+  };
+ 
+  window.addEventListener("pt:add-to-queue", handleAddToQueue);
+  return () => window.removeEventListener("pt:add-to-queue", handleAddToQueue);
+}, []);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 

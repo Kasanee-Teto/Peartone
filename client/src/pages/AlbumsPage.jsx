@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { FiPlay, FiMusic } from "react-icons/fi";
+import { useState, useCallback } from "react";
+import { FiPlay, FiMusic, FiLoader } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/AlbumsPage.css";
 import { useFetch } from "../hooks/useFetch";
+import { albumsApi } from "../api/album.js";
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -14,10 +16,65 @@ function buildCoverUrl(coverUrl) {
   return `${STORAGE_BASE}${coverUrl}`;
 }
 
+/* ─── Album Card ─────────────────────────────────────────── */
 const AlbumCard = ({ album }) => {
-  const coverUrl = buildCoverUrl(album.coverUrl);
-  const year = album.releaseDate ? new Date(album.releaseDate).getFullYear() : "";
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const coverUrl  = buildCoverUrl(album.coverUrl);
+  const year      = album.releaseDate ? new Date(album.releaseDate).getFullYear() : "";
   const trackCount = album.trackNumbers ?? (album.Tracks || []).length;
+
+  const handlePlay = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      // Fetch album detail → dapat Tracks[]
+      const detail = await albumsApi.getById(album.id);
+
+      // Support berbagai bentuk response
+      const tracks = Array.isArray(detail)
+        ? detail
+        : detail?.Tracks ?? detail?.tracks ?? detail?.data?.Tracks ?? detail?.data?.tracks ?? [];
+
+      if (!tracks.length) {
+        setError("Album ini belum punya track.");
+        return;
+      }
+
+      // Normalisasi setiap track agar siap di-play
+      const normalized = tracks.map((t) =>
+        normalizePlayableTrack({
+          ...t,
+          artist: t.Artist?.name || album.Artist?.name || "Unknown Artist",
+          album:  album.title,
+        })
+      );
+
+      // Play track pertama, sisanya masuk queue via MusicPlayer
+      // (MusicPlayer sudah handle queue via onPlayTrack)
+      emitPlayTrack(normalized[0]);
+
+      // Kalau ada lebih dari 1 track, emit sisanya ke queue
+      // MusicPlayer akan menangkap masing-masing dan append ke queue
+      // Kita pakai sedikit delay agar track pertama di-set dulu
+      for (let i = 1; i < normalized.length; i++) {
+        const track = normalized[i];
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("pt:add-to-queue", { detail: track })
+          );
+        }, i * 20);
+      }
+    } catch (err) {
+      console.error("AlbumCard play error:", err);
+      setError("Gagal memuat tracks.");
+    } finally {
+      setLoading(false);
+    }
+  }, [album, loading]);
 
   return (
     <article className="album-card">
@@ -35,12 +92,19 @@ const AlbumCard = ({ album }) => {
           </div>
         )}
         <div className="album-card__scrim" />
+
+        {/* Tombol Play */}
         <button
           type="button"
           aria-label={`Play ${album.title}`}
-          className="album-card__play"
+          className={`album-card__play${loading ? " album-card__play--loading" : ""}`}
+          onClick={handlePlay}
+          disabled={loading}
         >
-          <FiPlay size={18} fill="currentColor" />
+          {loading
+            ? <FiLoader size={18} className="album-card__play-spinner" />
+            : <FiPlay size={18} fill="currentColor" />
+          }
         </button>
       </div>
 
@@ -54,14 +118,21 @@ const AlbumCard = ({ album }) => {
           {year && <span className="album-card__meta-dot" />}
           <span>{trackCount} tracks</span>
         </div>
+
+        {/* Error inline di bawah card */}
+        {error && (
+          <p className="album-card__error">{error}</p>
+        )}
       </div>
     </article>
   );
 };
 
+/* ─── Albums Page ────────────────────────────────────────── */
 const AlbumsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: albumsResp, loading, error } = useFetch("/albums");
+
   const albums = Array.isArray(albumsResp)
     ? albumsResp
     : albumsResp?.data || [];
