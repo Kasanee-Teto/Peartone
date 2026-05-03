@@ -76,6 +76,18 @@ class AdminTrackService extends BaseService {
 
     return this.success(track, "Track uploaded");
   }
+
+  async getAll({ userId }) {
+    const tracks = await Track.findAll({
+      where: { uploadedBy: userId },
+      include: [
+        { model: Artist, as: "Artists", through: { attributes: [] } },
+        { model: Album, as: "Album", attributes: ["id", "title"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    return this.success(tracks, "Tracks fetched");
+  }
 }
 
 export default new AdminTrackService();

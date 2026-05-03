@@ -9,3 +9,12 @@ export const uploadTrack = asyncHandler(async (req, res) => {
   });
   res.status(201).json(result);
 });
+
+export const getTracks = async (req, res, next) => {
+  try {
+    const result = await adminTrackService.getAll({ userId: req.user.id });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
