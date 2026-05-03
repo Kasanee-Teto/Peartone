@@ -5,7 +5,7 @@ import "../styles/AdminUploadPage.css";
 import { useFetch } from "../hooks/useFetch";
 
 const GENRES = [
-  "pop", "rock", "hip-hop", "r&b", "jazz", "classical", "electronic",
+  "pop", "rock", "hip-hop", "r&b", "jazz", "classical", "electronic", "J-Pop", "Anime",
   "folk", "country", "reggae", "metal", "indie", "blues", "soul", "latin", "other"
 ];
 
@@ -171,18 +171,49 @@ const AdminUploadPage = () => {
             </label>
 
             {/* Genre */}
-            <label className="admin-field">
+            <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
               <span className="admin-field__label">Genre *</span>
-              <select
-                className="admin-field__input"
-                value={genre}
-                onChange={(e) => setGenre(e.target.value)}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  padding: "12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                }}
               >
-                {GENRES.map((g) => (
-                  <option key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</option>
-                ))}
-              </select>
-            </label>
+                {GENRES.map((g) => {
+                  const label = g.charAt(0).toUpperCase() + g.slice(1);
+                  const isActive = genre === g;
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setGenre(g)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        border: isActive
+                          ? "1px solid rgba(200,245,96,0.5)"
+                          : "1px solid rgba(255,255,255,0.12)",
+                        background: isActive
+                          ? "rgba(200,245,96,0.15)"
+                          : "rgba(255,255,255,0.06)",
+                        color: isActive ? "#c8f560" : "rgba(255,255,255,0.65)",
+                        transition: "all 140ms ease",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Duration */}
             <label className="admin-field">
