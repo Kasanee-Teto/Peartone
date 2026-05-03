@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiUploadCloud } from "react-icons/fi";
+import { FiUploadCloud, FiTrash2, FiAlertTriangle } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/AdminUploadPage.css";
 import { useFetch } from "../hooks/useFetch";
@@ -34,6 +34,50 @@ const parseDuration = (val) => {
   return 0;
 };
 
+const CustomSelect = ({ value, onChange, options, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const selectedLabel = options.find(opt => String(opt.id) === String(value))?.title || placeholder;
+
+  return (
+    <div className="custom-select-container">
+      <div 
+        className={`admin-field__input custom-select-trigger ${isOpen ? 'is-active' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={!value ? "placeholder-text" : ""}>{selectedLabel}</span>
+        <div className={`chevron-icon ${isOpen ? 'rotated' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <>
+          <div className="select-overlay" onClick={() => setIsOpen(false)} />
+          <div className="custom-options-list">
+            <div 
+              className="custom-option" 
+              onClick={() => { onChange(""); setIsOpen(false); }}
+            >
+              Tanpa album
+            </div>
+            {options.map((item) => (
+              <div 
+                key={item.id} 
+                className={`custom-option ${String(value) === String(item.id) ? 'selected' : ''}`}
+                onClick={() => {
+                  onChange(item.id);
+                  setIsOpen(false);
+                }}
+              >
+                {item.title}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const AdminUploadPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [tracks, setTracks] = useState([]);
@@ -47,6 +91,8 @@ const AdminUploadPage = () => {
   const [coverFile, setCoverFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: artistsResp } = useFetch("/artists");
   const { data: albumsResp } = useFetch("/albums");
@@ -56,10 +102,6 @@ const AdminUploadPage = () => {
   const durationSeconds = parseDuration(durationInput);
   const audioName = audioFile?.name ?? "Belum pilih file";
   const coverName = coverFile?.name ?? "Belum pilih file";
-  const selectedArtistNames = artists
-    .filter((a) => selectedArtistIds.includes(a.id))
-    .map((a) => a.name)
-    .join(", ");
 
   const canSubmit = useMemo(
     () => title.trim() && selectedArtistIds.length > 0 && audioFile && durationSeconds > 0,
@@ -69,10 +111,7 @@ const AdminUploadPage = () => {
   useEffect(() => {
     authFetch(`${API_BASE}/admin/tracks`)
       .then((r) => r.json())
-      .then((res) => {
-        console.log("Response data:", res);
-        setTracks(Array.isArray(res) ? res : res?.data || [])
-      })
+      .then((res) => setTracks(Array.isArray(res) ? res : res?.data || []))
       .catch(console.error);
   }, [refreshKey]);
 
@@ -113,6 +152,23 @@ const AdminUploadPage = () => {
       setUploadMsg(`❌ ${err.message || "Upload gagal"}`);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId || deleting) return;
+    setDeleting(true);
+    try {
+      const r = await authFetch(`${API_BASE}/admin/tracks/${confirmDeleteId}`, { method: "DELETE" });
+      const res = await r.json();
+      if (!r.ok) throw new Error(res?.message || "Gagal menghapus");
+      setTracks((prev) => prev.filter((t) => t.id !== confirmDeleteId));
+      setUploadMsg("✅ Lagu berhasil dihapus.");
+    } catch (err) {
+      setUploadMsg(`❌ ${err.message || "Gagal menghapus lagu"}`);
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -262,15 +318,15 @@ const AdminUploadPage = () => {
             </label>
 
             {/* Album */}
-            <label className="admin-field">
+            <div className="admin-field">
               <span className="admin-field__label">Album (opsional)</span>
-              <select className="admin-field__input" value={album} onChange={(e) => setAlbum(e.target.value)}>
-                <option value="">Tanpa album</option>
-                {albums.map((item) => (
-                  <option key={item.id} value={item.id}>{item.title}</option>
-                ))}
-              </select>
-            </label>
+              <CustomSelect 
+                value={album} 
+                onChange={setAlbum} 
+                options={albums} 
+                placeholder="Tanpa album" 
+              />
+            </div>
 
             {/* Audio file */}
             <div className="admin-field">
@@ -327,46 +383,119 @@ const AdminUploadPage = () => {
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
               {tracks.map((track) => {
                 const artistNames = Array.isArray(track.Artists)
-                  ? track.Artists.map((a) => a.name).join(", ")  
+                  ? track.Artists.map((a) => a.name).join(", ")
                   : track.artist?.name ?? "—";
                 const mins = Math.floor((track.duration || 0) / 60);
                 const secs = String((track.duration || 0) % 60).padStart(2, "0");
+                const isPendingDelete = confirmDeleteId === track.id;
 
                 return (
-                  <div
-                    key={track.id}
-                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, transition: "background 160ms ease" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                  >
-                    {track.coverUrl ? (
-                      <img
-                        src={track.coverUrl}
-                        alt={track.title}
-                        style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
-                      />
-                    ) : (
-                      <div style={{ width: 52, height: 52, borderRadius: 8, background: "rgba(255,255,255,0.08)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
-                        🎵
-                      </div>
-                    )}
+                  <div key={track.id}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: "10px 14px",
+                        background: isPendingDelete ? "rgba(255,92,110,0.05)" : "rgba(255,255,255,0.03)",
+                        border: `1px solid ${isPendingDelete ? "rgba(255,92,110,0.3)" : "rgba(255,255,255,0.07)"}`,
+                        borderRadius: isPendingDelete ? "14px 14px 0 0" : 14,
+                        transition: "all 160ms ease",
+                      }}
+                      onMouseEnter={(e) => { if (!isPendingDelete) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+                      onMouseLeave={(e) => { if (!isPendingDelete) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                    >
+                      {track.coverUrl ? (
+                        <img
+                          src={track.coverUrl}
+                          alt={track.title}
+                          style={{ width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+                        />
+                      ) : (
+                        <div style={{ width: 52, height: 52, borderRadius: 8, background: "rgba(255,255,255,0.08)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                          🎵
+                        </div>
+                      )}
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {track.title}
-                      </p>
-                      <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {artistNames}{track.Album?.title ? ` · ${track.Album.title}` : ""}
-                      </p>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {track.title}
+                        </p>
+                        <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {artistNames}{track.Album?.title ? ` · ${track.Album.title}` : ""}
+                        </p>
+                      </div>
+
+                      <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 20, background: "rgba(200,245,96,0.1)", border: "1px solid rgba(200,245,96,0.25)", color: "#c8f560", flexShrink: 0, textTransform: "capitalize" }}>
+                        {track.genre}
+                      </span>
+
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", flexShrink: 0, fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>
+                        {mins}:{secs}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(isPendingDelete ? null : track.id)}
+                        style={{
+                          flexShrink: 0,
+                          background: isPendingDelete ? "rgba(255,92,110,0.2)" : "rgba(255,255,255,0.05)",
+                          border: `1px solid ${isPendingDelete ? "rgba(255,92,110,0.5)" : "rgba(255,255,255,0.1)"}`,
+                          color: isPendingDelete ? "#ff8b85" : "rgba(255,255,255,0.4)",
+                          width: 32,
+                          height: 32,
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 140ms ease",
+                        }}
+                        aria-label="Hapus lagu"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
                     </div>
 
-                    <span style={{ fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 20, background: "rgba(200,245,96,0.1)", border: "1px solid rgba(200,245,96,0.25)", color: "#c8f560", flexShrink: 0, textTransform: "capitalize" }}>
-                      {track.genre}
-                    </span>
-
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", flexShrink: 0, fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>
-                      {mins}:{secs}
-                    </span>
+                    {isPendingDelete && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          padding: "10px 14px",
+                          background: "rgba(255,92,110,0.08)",
+                          border: "1px solid rgba(255,92,110,0.3)",
+                          borderTop: "none",
+                          borderRadius: "0 0 14px 14px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <FiAlertTriangle size={14} style={{ color: "#ff8b85", flexShrink: 0 }} />
+                          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                            Yakin ingin menghapus lagu ini? Tindakan tidak dapat dibatalkan.
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            style={{ fontSize: 12, padding: "5px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={confirmDelete}
+                            disabled={deleting}
+                            style={{ fontSize: 12, padding: "5px 12px", borderRadius: 8, border: "1px solid rgba(255,92,110,0.4)", background: "rgba(255,92,110,0.2)", color: "#ff8b85", cursor: deleting ? "wait" : "pointer", fontWeight: 500 }}
+                          >
+                            {deleting ? "Menghapus…" : "Hapus"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

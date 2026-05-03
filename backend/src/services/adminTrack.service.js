@@ -88,6 +88,13 @@ class AdminTrackService extends BaseService {
     });
     return this.success(tracks, "Tracks fetched");
   }
+
+  async remove({ userId, trackId }) {
+    const track = await Track.findOne({ where: { id: trackId, uploadedBy: userId } });
+    if (!track) throw new ApiError(404, "Track not found or unauthorized");
+    await track.destroy();
+    return this.success(null, "Track deleted");
+  }
 }
 
 export default new AdminTrackService();

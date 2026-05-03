@@ -18,3 +18,11 @@ export const getTracks = async (req, res, next) => {
     next(err);
   }
 };
+
+export const deleteTrack = asyncHandler(async (req, res) => {
+  const result = await adminTrackService.remove({
+    userId: req.user.id,
+    trackId: req.params.id,
+  });
+  res.json(result);
+});
