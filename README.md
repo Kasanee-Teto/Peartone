@@ -2,6 +2,9 @@
 
 PeartOne is a full-stack music streaming web app with authentication, audio streaming, track discovery, playlists, likes, lyrics, listening history, albums, and charts.
 
+Video :
+https://1drv.ms/v/c/8df62f32701f73be/IQBRhvar8OCrQ4s_TqyDHMg-AV5mnY4urcLIIURVGLb2Jfs?e=91tonE
+
 This repository contains:
 - `client/` — Frontend (React + Vite)
 - `backend/` — Backend API (Express + Sequelize)
