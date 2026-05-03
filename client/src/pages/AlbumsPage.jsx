@@ -5,6 +5,7 @@ import "../styles/AlbumsPage.css";
 import { useFetch } from "../hooks/useFetch";
 import { albumsApi } from "../api/album.js";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
+import { authApi } from "../api/auth";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -15,6 +16,16 @@ function buildCoverUrl(coverUrl) {
   if (coverUrl.startsWith("http")) return coverUrl;
   return `${STORAGE_BASE}${coverUrl}`;
 }
+
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
 /* ─── Album Card ─────────────────────────────────────────── */
 const AlbumCard = ({ album }) => {
@@ -137,7 +148,7 @@ const AlbumsPage = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <button

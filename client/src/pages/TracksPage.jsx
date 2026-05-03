@@ -6,10 +6,20 @@ import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import "../styles/TracksPage.css";
-
+import { authApi } from "../api/auth.js";
 
 const API_URL = "http://localhost:3000";
 const LIMIT = 20;
+
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
 function formatDuration(sec) {
   if (!sec || sec <= 0) return "0:00";
@@ -230,7 +240,7 @@ const TracksPage = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <button

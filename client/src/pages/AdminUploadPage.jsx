@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiUploadCloud, FiTrash2, FiAlertTriangle } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/AdminUploadPage.css";
 import { useFetch } from "../hooks/useFetch";
+import { authApi } from "../api/auth";
 
 const GENRES = [
   "pop", "rock", "hip-hop", "r&b", "jazz", "classical", "electronic", "J-Pop", "Anime",
@@ -102,11 +104,22 @@ const AdminUploadPage = () => {
   const durationSeconds = parseDuration(durationInput);
   const audioName = audioFile?.name ?? "Belum pilih file";
   const coverName = coverFile?.name ?? "Belum pilih file";
+  const navigate = useNavigate();
 
   const canSubmit = useMemo(
     () => title.trim() && selectedArtistIds.length > 0 && audioFile && durationSeconds > 0,
     [title, selectedArtistIds, audioFile, durationSeconds]
   );
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   useEffect(() => {
     authFetch(`${API_BASE}/admin/tracks`)
@@ -179,7 +192,7 @@ const AdminUploadPage = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <button

@@ -4,6 +4,17 @@ import Sidebar from "../components/Sidebar";
 import "../styles/LikedSongsPage.css";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
+import { authApi } from "../api/auth.js";
+
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -59,7 +70,7 @@ const LikedSongsPage = () => {
 
   return (
     <main className="liked liked--fullbleed">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={() => setIsSidebarOpen(false)} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={handleLogout} />
       <button className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`} type="button" aria-label="Tutup menu samping" onClick={() => setIsSidebarOpen(false)} />
       <button className="home__sidebar-toggle" type="button" aria-label="Buka menu samping" aria-controls="home-sidebar" aria-expanded={isSidebarOpen} onClick={() => setIsSidebarOpen(true)}>≡</button>
 

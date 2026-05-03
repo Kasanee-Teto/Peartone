@@ -5,6 +5,16 @@ import "../styles/ProfilePage.css";
 import { useFetch } from "../hooks/useFetch";
 import { authApi } from "../api/auth.js";
 
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
+
 const ProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen]   = useState(false);
   const [isEditing, setIsEditing]           = useState(false);
@@ -109,7 +119,7 @@ const ProfilePage = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
       <button
         className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}

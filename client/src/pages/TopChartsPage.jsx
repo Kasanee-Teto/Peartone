@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import MusicCard from "../components/MusicCard";
 import { useFetch } from "../hooks/useFetch";
+import { authApi } from "../api/auth";
 
 function normalizeTrack(track) {
   const artist =
@@ -25,6 +26,16 @@ function normalizeTrack(track) {
     duration: track?.duration || 0,
   };
 }
+
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
 const TopChartsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -50,7 +61,7 @@ const TopChartsPage = () => {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          onLogout={() => setIsSidebarOpen(false)}
+          onLogout={handleLogout}
         />
 
         <button

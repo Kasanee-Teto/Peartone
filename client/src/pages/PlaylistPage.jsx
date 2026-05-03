@@ -6,6 +6,7 @@ import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
 import "../styles/PlaylistPage.css";
+import { authApi } from "../api/auth.js";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -16,6 +17,16 @@ function buildCoverUrl(url) {
   if (url.startsWith("http")) return url;
   return `${STORAGE_BASE}${url}`;
 }
+
+const handleLogout = async () => {
+  try {
+    await authApi.logout();
+    setIsSidebarOpen(false);
+    navigate("/login"); 
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
 const PlaylistPage = ({ onBack }) => {
   const [isSidebarOpen, setIsSidebarOpen]         = useState(false);
@@ -107,7 +118,7 @@ const PlaylistPage = ({ onBack }) => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
       <button
         className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}

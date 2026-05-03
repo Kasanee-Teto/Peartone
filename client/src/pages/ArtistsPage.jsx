@@ -3,6 +3,7 @@ import { FiArrowRight, FiStar } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import "../styles/ArtistsPage.css";
 import { useFetch } from "../hooks/useFetch";
+import { authApi } from "../api/auth";
 
 const ArtistsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,6 +13,16 @@ const ArtistsPage = () => {
   const featuredArtists = useMemo(() => artists.slice(0, 6), [artists]);
   const spotlightArtist = featuredArtists[0] || null;
 
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   return (
     <main className="artists-page">
       <div className="artists-page__blob" aria-hidden="true" />
@@ -19,7 +30,7 @@ const ArtistsPage = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onLogout={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <button
