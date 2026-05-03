@@ -18,7 +18,7 @@
 .pt-lyrics__artist { font-size:12px; color:rgba(255,255,255,0.55) }
 .pt-lyrics__body { padding:12px; overflow-y:auto; max-height:340px; scrollbar-gutter: stable; }
 .pt-lyrics__content { display: flex; flex-direction: column; gap: 10px; }
-.pt-lyrics__text { white-space:pre-wrap; font-size:13px; line-height:1.5; margin: 0; }
+.pt-lyrics__text { white-space:pre-line; font-size:13px; line-height:1.5; margin: 0; }
 .pt-lyrics__loading, .pt-lyrics__error, .pt-lyrics__empty, .pt-lyrics__hint { color: rgba(255,255,255,0.6) }
 .pt-btn { background:transparent; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:6px; display:inline-flex; align-items:center; justify-content:center; border-radius: 6px; }
 .pt-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
