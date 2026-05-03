@@ -24,13 +24,29 @@ export const authApi = {
   async loginAndStore(credentials) {
     const res = await this.login(credentials);
     const { token, user } = res.data;
+
     localStorage.setItem("token", token);
     localStorage.setItem("pt_user", JSON.stringify(user));
+    window.dispatchEvent(new Event("auth-changed"));
+
     return { token, user };
   },
 
-  logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("pt_user");
+  async logout() {
+    const token = localStorage.getItem("token");
+
+    try {
+      if (token) {
+        await http("/auth/logout", {
+          method: "POST",
+        });
+      }
+    } catch (err) {
+      console.error("Logout request failed", err);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("pt_user"); 
+      window.dispatchEvent(new Event('auth-changed'));
+    }
   },
 };

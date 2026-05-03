@@ -38,6 +38,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [showplaylist, setShowplaylist] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // ── Search state ──
   const [searchQuery, setSearchQuery]   = useState("");
@@ -98,10 +99,17 @@ const HomePage = () => {
     setSearchError("");
   }, []);
 
-  const handleLogout = useCallback(() => {
-    authApi.logout();
-    navigate("/login", { replace: true });
-  }, [navigate]);
+  const handleLogout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+
+    try {
+      await authApi.logout();
+    } finally {
+      setLoggingOut(false);
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, loggingOut]);
 
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;

@@ -1,6 +1,7 @@
 import "../styles/LoginPage.css";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { authApi } from "../api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
@@ -22,15 +23,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(payload?.message || "Login gagal");
-
-      const token = payload?.data?.token;
-      const user = payload?.data?.user;
-      if (!token) throw new Error("Token tidak ditemukan di response login");
-
-      localStorage.setItem("token", token);
-      if (user) localStorage.setItem("pt_user", JSON.stringify(user));
+      await authApi.loginAndStore({ username, password });
       navigate("/", { replace: true });
     } catch (err) {
       setError(err?.message || "Terjadi kesalahan");

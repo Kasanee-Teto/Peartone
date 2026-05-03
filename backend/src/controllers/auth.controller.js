@@ -30,3 +30,8 @@ export const login = asyncHandler(async (req, res) => {
   const result = await authService.login({ username, password });
   res.status(200).json(result);
 });
+
+export const logout = asyncHandler(async (req, res) => {
+  const result = await authService.logout(req.user.id);
+  res.status(200).json(result);
+});

@@ -8,6 +8,8 @@ import {
   Navigate,
   Outlet,
 } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+
 import HomePage from './pages/HomePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import PlaylistPage from './pages/PlaylistPage.jsx'
@@ -32,12 +34,10 @@ function ProfileRoute() {
   return <ProfilePage onBack={() => navigate('/')} />
 }
 
-// Halaman yang TIDAK menampilkan Music Player
 const HIDE_PLAYER_ON = ['/login', '/register']
 
-function ProtectedRoute() {
-  const token = localStorage.getItem('token')
-  if (!token) return <Navigate to="/login" replace />
+function ProtectedRoute({ isAuthed }) {
+  if (!isAuthed) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
@@ -45,15 +45,29 @@ function AppLayout() {
   const location = useLocation()
   const showPlayer = !HIDE_PLAYER_ON.includes(location.pathname)
 
+  const [isAuthed, setIsAuthed] = useState(() => !!localStorage.getItem('token'))
+
+  useEffect(() => {
+    const syncAuth = () => setIsAuthed(!!localStorage.getItem('token'))
+
+    window.addEventListener('storage', syncAuth)
+    window.addEventListener('auth-changed', syncAuth)
+
+    return () => {
+      window.removeEventListener('storage', syncAuth)
+      window.removeEventListener('auth-changed', syncAuth)
+    }
+  }, [])
+
   return (
     <>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage setIsAuthed={setIsAuthed} />} />
+        <Route path="/register" element={<RegisterPage setIsAuthed={setIsAuthed} />} />
 
         {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedRoute isAuthed={isAuthed} />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/charts" element={<TopChartsPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
@@ -66,8 +80,7 @@ function AppLayout() {
           <Route path="/tracks" element={<TracksPage />} />
         </Route>
 
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={isAuthed ? "/" : "/login"} replace />} />
       </Routes>
 
       {showPlayer && <MusicPlayer />}
@@ -83,4 +96,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

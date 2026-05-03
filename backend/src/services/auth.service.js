@@ -107,6 +107,10 @@ class AuthService extends BaseService {
     );
   }
 
+  async logout(userId) {
+    return this.success({ userId }, "Logout successful!");
+  }
+
   _signToken(user) {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
