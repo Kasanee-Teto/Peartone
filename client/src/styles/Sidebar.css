@@ -1,162 +1,139 @@
-/* =============================================
-   SIDEBAR — Peartone (global, imported by Sidebar.jsx)
-   ============================================= */
-
 .home__sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: min(280px, 82vw);
+  width: 260px;
   transform: translateX(-110%);
-  transition: transform 250ms ease;
-  z-index: 600;            /* above player (300) and everything */
-  background: rgba(18, 18, 22, 0.97);
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
-  padding: 24px 14px 20px;
-  box-shadow: 4px 0 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(16px);
-  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 600;
+  background: #0d0d0f;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 20px 20px;
   display: flex;
   flex-direction: column;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
 }
 
 .home__sidebar.is-open {
   transform: translateX(0);
 }
 
-.home__sidebar-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.78rem;
-  cursor: pointer;
-  margin-bottom: 20px;
-  align-self: flex-start;
-  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+.home__sidebar::-webkit-scrollbar {
+  width: 4px;
 }
 
-.home__sidebar-close:hover {
-  color: white;
-  border-color: rgba(200, 245, 96, 0.4);
-  background: rgba(200, 245, 96, 0.08);
+.home__sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.home__sidebar::before {
+  content: 'PEARTONE';
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #c8f560;
+  letter-spacing: 0.1em;
+  padding: 20px 12px 12px;
+  display: block;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .home__sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  flex: 1;
+  gap: 0;
 }
 
 .home__sidebar-group-title {
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.25);
-  padding: 14px 10px 6px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 12px 12px 6px;
   margin: 0;
+}
+
+.home__sidebar-nav .home__sidebar-group-title:first-child {
+  padding-top: 4px;
+}
+
+.home__sidebar-group-title:last-of-type {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .home__sidebar-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 4px;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.home__sidebar-item {
-  list-style: none;
+.home__sidebar-list:last-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .home__sidebar-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.6);
   border: none;
-  border-radius: 10px;
-  padding: 9px 12px;
-  text-align: left;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+  transition: all 0.2s ease;
 }
 
 .home__sidebar-link:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateX(3px);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .home__sidebar-link.is-active {
-  color: #0d0d0f;
+  color: #000;
   background: #c8f560;
-  font-weight: 700;
-}
-
-.home__sidebar-link.is-active:hover {
-  background: #d4f770;
-  transform: none;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(200, 245, 96, 0.3);
 }
 
 .home__sidebar-icon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  font-size: 1.2rem;
+  opacity: 0.8;
 }
 
-/* Toggle button (hamburger) */
-.home__sidebar-toggle {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 500;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(18, 18, 22, 0.9);
-  color: #c8f560;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 9px 16px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: background 150ms ease, transform 150ms ease, border-color 150ms ease;
+.home__sidebar-link.is-active .home__sidebar-icon {
+  opacity: 1;
 }
 
-.home__sidebar-toggle:hover {
-  background: #c8f560;
-  color: #0d0d0f;
-  border-color: #c8f560;
-  transform: translateY(-1px);
+.home__sidebar-close {
+  display: none;
 }
 
-/* Overlay backdrop */
 .home__sidebar-overlay {
-  display: block;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 250ms ease;
-  z-index: 590;          /* just below sidebar */
-  border: none;
-  cursor: pointer;
+  transition: opacity 0.3s ease;
+  z-index: 590;
 }
 
 .home__sidebar-overlay.is-open {
