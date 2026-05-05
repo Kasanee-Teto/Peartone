@@ -225,7 +225,6 @@ Peartone/
     migrations/
     seeders/
     storage/
-    database.sqlite
     .env.example
   client/
     src/
