@@ -1,4 +1,3 @@
-import "../styles/LoginPage.css";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authApi } from "../api/auth";
@@ -18,7 +17,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -26,57 +25,39 @@ export default function LoginPage() {
       await authApi.loginAndStore({ username, password });
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err?.message || "Terjadi kesalahan");
+      setError(err?.message || "Error occured");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main
-      style={{
-        minHeight: "100svh",
-        background: "#0d0d0f",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px 16px",
-        color: "#fff",
-      }}
-    >
-      <div style={{ pointerEvents: "none", position: "fixed", inset: 0, overflow: "hidden", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-80px", left: "20%", width: "360px", height: "360px", borderRadius: "50%", background: "#7c6af7", opacity: 0.08, filter: "blur(120px)" }} />
-        <div style={{ position: "absolute", bottom: "0", right: "15%", width: "300px", height: "300px", borderRadius: "50%", background: "#c8f560", opacity: 0.08, filter: "blur(100px)" }} />
+    <main className="relative flex min-h-screen items-center justify-center bg-[#0d0d0f] px-4 py-6 text-white">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-[20%] top-[-80px] h-[360px] w-[360px] rounded-full bg-[#7c6af7] opacity-10 blur-[120px]" />
+        <div className="absolute bottom-0 right-[15%] h-[300px] w-[300px] rounded-full bg-[#c8f560] opacity-10 blur-[100px]" />
       </div>
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "360px" }}>
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.02em" }}>Peartone</div>
-          <div style={{ marginTop: "4px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Your music, your charts.</div>
+      <div className="relative z-10 w-full max-w-[360px]">
+        <div className="mb-6 text-center">
+          <div className="text-[22px] font-bold tracking-[-0.02em]">Peartone</div>
+          <div className="mt-1 text-xs text-white/35">Your music, your charts.</div>
         </div>
 
-        <div
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.09)",
-            borderRadius: "18px",
-            padding: "24px",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }}
-        >
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ fontSize: "15px", fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>Sign in</div>
-            <div style={{ marginTop: "3px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>Welcome back — enter your details below.</div>
+        <div className="rounded-[18px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+          <div className="mb-5">
+            <div className="text-[15px] font-semibold text-white/90">Sign in</div>
+            <div className="mt-1 text-xs text-white/35">
+              Welcome back — enter your details below.
+            </div>
           </div>
 
-          <form className="login__form" onSubmit={handleLogin}>
-            <label className="login__field">
+          <form onSubmit={handleLogin} className="flex w-full flex-col gap-4">
+            <label className="flex w-full flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40">
               <span>Username</span>
               <input
                 type="text"
-                className="login__input"
+                className="min-h-12 w-full appearance-none rounded-[10px] border border-white/10 bg-black/30 px-3.5 py-3 text-[15px] text-white outline-none transition placeholder:text-white/20 focus:border-[#c8f560] focus:ring-2 focus:ring-[#c8f560]/20"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
@@ -84,47 +65,30 @@ export default function LoginPage() {
               />
             </label>
 
-            <label className="login__field">
+            <label className="flex w-full flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40">
               <span>Password</span>
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="login__input"
+                  className="min-h-12 w-full appearance-none rounded-[10px] border border-white/10 bg-black/30 px-3.5 py-3 pr-11 text-[15px] text-white outline-none transition placeholder:text-white/20 focus:border-[#c8f560] focus:ring-2 focus:ring-[#c8f560]/20"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  style={{ paddingRight: "44px" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px",
-                    color: "rgba(255,255,255,0.35)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center p-1 text-white/35"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    // Eye-off icon
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
                       <line x1="1" y1="1" x2="23" y2="23" />
                     </svg>
                   ) : (
-                    // Eye icon
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
@@ -135,18 +99,22 @@ export default function LoginPage() {
             </label>
 
             {error && (
-              <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "10px 12px", fontSize: "12px", color: "#f87171" }}>
+              <div className="rounded-lg border border-red-400/25 bg-red-400/10 px-3 py-2.5 text-xs text-red-300">
                 {error}
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="login__button">
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 flex min-h-12 w-full items-center justify-center rounded-[10px] bg-[#c8f560] px-6 py-3 text-sm font-semibold tracking-[0.03em] text-[#0d0d0f] shadow-[0_4px_16px_rgba(200,245,96,0.25)] transition hover:shadow-[0_8px_24px_rgba(200,245,96,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {loading ? "Signing in…" : "Login"}
             </button>
 
-            <div style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", marginTop: "4px" }}>
-              Belum punya akun?{" "}
-              <Link to="/register" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+            <div className="mt-1 text-center text-xs text-white/35">
+              No account?{" "}
+              <Link to="/register" className="text-white/70 underline underline-offset-2">
                 Register
               </Link>
             </div>

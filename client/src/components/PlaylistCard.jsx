@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "../styles/PlaylistCard.css";
 import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
 import { playlistsApi } from "../api/playlists.js";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
@@ -31,28 +30,19 @@ function normalizeTrack(t) {
 
 const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
   const [isLoadingPlay, setIsLoadingPlay] = useState(false);
-
   if (!playlist) return null;
 
-  const songCount = Array.isArray(playlist.songs)
-    ? playlist.songs.length
-    : playlist.songs ?? 0;
+  const songCount = Array.isArray(playlist.songs) ? playlist.songs.length : playlist.songs ?? 0;
 
-  // ✅ Queue all tracks on card click
   const handleCardClick = async () => {
     if (isLoadingPlay) return;
     setIsLoadingPlay(true);
     try {
       const res = await playlistsApi.getMine(playlist.id);
       const tracks = res?.data?.tracks || res?.tracks || [];
-      if (tracks.length === 0) {
-        window.alert("Playlist ini belum ada lagu.");
-        return;
-      }
+      if (tracks.length === 0) return window.alert("This playlist has no track.");
 
       const normalized = tracks.map(normalizeTrack);
-
-      // Clear queue and start fresh
       window.dispatchEvent(new Event("pt:clear-queue"));
       emitPlayTrack(normalized[0]);
 
@@ -63,67 +53,69 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
         }, i * 20);
       }
     } catch (err) {
-      window.alert(err.message || "Gagal memuat lagu.");
+      window.alert(err.message || "Failed to load track.");
     } finally {
       setIsLoadingPlay(false);
     }
   };
 
-  // Keep the explicit play button separate from card click
   const handlePlayBtn = async (e) => {
     e.stopPropagation();
     await handleCardClick();
   };
 
   return (
-    <div className="playlist-card" onClick={handleCardClick} style={{ cursor: "pointer" }}>
-      <div className="playlist-card__image-wrapper">
+    <div
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#161618] transition hover:-translate-y-1 hover:border-lime-300/40 hover:shadow-[0_12px_40px_rgba(200,245,96,0.12)]"
+      onClick={handleCardClick}
+    >
+      <div className="relative aspect-square w-full overflow-hidden bg-[#1e1e22]">
         <img
           src={playlist.image || "/placeholder-album.png"}
           alt={playlist.title}
-          className="playlist-card__image"
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           loading="lazy"
           onError={(e) => { e.target.src = "/placeholder-album.png"; }}
         />
-        <div className="playlist-card__overlay" style={{ backgroundColor: playlist.color }} />
+        <div
+          className="absolute inset-0 opacity-25 transition group-hover:opacity-45"
+          style={{ backgroundColor: playlist.color }}
+        />
 
         <button
-          className="playlist-card__play-button"
-          aria-label={`Putar ${playlist.title}`}
+          className="absolute left-1/2 top-1/2 z-10 flex h-[52px] w-[52px] -translate-x-1/2 -translate-y-1/2 scale-90 items-center justify-center rounded-full bg-lime-300 text-[#0d0d0f] opacity-0 shadow-[0_8px_24px_rgba(200,245,96,0.4)] transition group-hover:scale-100 group-hover:opacity-100 hover:scale-105 hover:bg-lime-200"
+          aria-label={`Play ${playlist.title}`}
           onClick={handlePlayBtn}
           disabled={isLoadingPlay}
         >
-          {isLoadingPlay
-            ? <span style={{ fontSize: 13 }}>...</span>
-            : <FiPlay fill="currentColor" size={22} style={{ marginLeft: 2 }} />
-          }
+          {isLoadingPlay ? <span className="text-[13px]">...</span> : <FiPlay fill="currentColor" size={22} className="ml-[2px]" />}
         </button>
       </div>
 
-      <div className="playlist-card__content">
-        <div className="playlist-card__meta">
-          <div className="playlist-card__text">
-            <h3 className="playlist-card__title">{playlist.title}</h3>
-            <p className="playlist-card__songs">{songCount} lagu</p>
+      <div className="px-[14px] pb-[14px] pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="m-0 mb-[3px] truncate text-sm font-bold text-white">{playlist.title}</h3>
+            <p className="m-0 text-xs font-semibold text-lime-300">{songCount} lagu</p>
           </div>
 
-          <div className="playlist-card__actions">
+          <div className="flex shrink-0 items-center gap-1.5">
             {onAddTrack && (
               <button
-                className="playlist-card__add-button"
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-lime-300/30 bg-lime-300/10 text-lime-300 transition hover:scale-105 hover:bg-lime-300/20"
                 onClick={(e) => { e.stopPropagation(); onAddTrack(playlist); }}
-                aria-label={`Tambah lagu ke ${playlist.title}`}
-                title="Tambah lagu"
+                aria-label={`Added track to ${playlist.title}`}
+                title="Add track"
               >
                 <FiPlus size={15} />
               </button>
             )}
             {onDelete && (
               <button
-                className="playlist-card__delete-button"
+                className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-rose-300/30 bg-rose-300/10 text-rose-300 transition hover:scale-105 hover:bg-rose-300/20"
                 onClick={(e) => { e.stopPropagation(); onDelete(playlist); }}
-                aria-label={`Hapus ${playlist.title}`}
-                title="Hapus playlist"
+                aria-label={`Delete ${playlist.title}`}
+                title="Delete playlist"
               >
                 <FiTrash2 size={14} />
               </button>

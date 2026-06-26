@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
-import "../styles/LyricsPanel.css";
 
 function getLyricsText(payload) {
   if (!payload) return "";
@@ -27,13 +26,13 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
     const fetchLyrics = async () => {
       try {
         const res = await fetch(`/api/lyrics/${encodeURIComponent(trackId)}`);
-        if (!res.ok) throw new Error("Tidak ditemukan");
+        if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         if (!active) return;
         setLyrics(getLyricsText(data?.data || data));
       } catch {
         if (!active) return;
-        setError("Lirik tidak ditemukan");
+        setError("Lyric not found");
         setLyrics("");
       } finally {
         if (active) setLoading(false);
@@ -41,38 +40,37 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
     };
 
     fetchLyrics();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [open, trackId]);
 
   if (!open) return null;
 
-  const statusMessage = trackId ? error || "Lirik tidak tersedia" : "Track tidak tersedia";
+  const statusMessage = trackId ? error || "Lyric not available" : "Track not available";
 
   return (
-    <div className="pt-lyrics">
-      <div className="pt-lyrics__head">
-        <div>
-          <strong>{title}</strong>
-          <div className="pt-lyrics__artist">{artist}</div>
+    <div className="absolute bottom-[92px] right-[360px] z-[500] max-h-[420px] w-[420px] overflow-hidden rounded-lg border border-white/10 bg-[#0d0d0ff5] text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-[14px] py-3">
+        <div className="min-w-0">
+          <strong className="block truncate">{title}</strong>
+          <div className="truncate text-xs text-white/55">{artist}</div>
         </div>
-        <div className="pt-lyrics__actions">
-          <button type="button" className="pt-btn" onClick={onClose} title="Close">
-            <FiX />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          title="Close"
+          className="inline-flex items-center justify-center rounded-md p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
+        >
+          <FiX />
+        </button>
       </div>
-      <div className="pt-lyrics__body">
+
+      <div className="max-h-[340px] overflow-y-auto p-3">
         {loading ? (
-          <div className="pt-lyrics__loading">Memuat lirik…</div>
+          <div className="text-white/60">Load Lyric…</div>
         ) : lyrics ? (
-          <div className="pt-lyrics__content">
-            <pre className="pt-lyrics__text">{lyrics}</pre>
-          </div>
+          <pre className="m-0 whitespace-pre-line text-[13px] leading-relaxed">{lyrics}</pre>
         ) : (
-          <div className="pt-lyrics__empty">{statusMessage}</div>
+          <div className="text-white/60">{statusMessage}</div>
         )}
       </div>
     </div>

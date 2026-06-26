@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FiSearch, FiPlay, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import SelectPlaylistModal from "../components/SelectPlaylistModal";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
-import "../styles/TracksPage.css";
 import { authApi } from "../api/auth.js";
 
 const API_URL = "http://localhost:3000";
@@ -63,12 +62,17 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
     : null;
 
   return (
-    <li className="tr-row" role="row">
-      <div className="tr-row__index" role="cell">
-        <span className="tr-row__num">{index + 1}</span>
+    <li 
+      className="group grid grid-cols-[52px_3fr_2fr_1fr_72px_80px] gap-3 items-center p-[6px_10px] rounded-eb-md rounded-[10px] transition-colors duration-150 cursor-default hover:bg-white/4 max-[900px]:grid-cols-[44px_3fr_1.5fr_72px_64px] max-sm:grid-cols-[36px_1fr_56px_56px] max-sm:gap-2" 
+      role="row"
+    >
+      <div className="relative flex items-center justify-center w-9 h-9" role="cell">
+        <span className="absolute text-[13px] text-white/40 font-mono transition-opacity duration-150 group-hover:opacity-0">
+          {index + 1}
+        </span>
         <button
           type="button"
-          className="tr-row__play"
+          className="absolute bg-transparent border-none text-[#c8f560] cursor-pointer flex items-center justify-center w-7 h-7 rounded-full opacity-0 transition-all duration-150 group-hover:opacity-100 hover:scale-115"
           onClick={handlePlay}
           aria-label={`Play ${track.title}`}
         >
@@ -76,40 +80,39 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
         </button>
       </div>
 
-      <div className="tr-row__info" role="cell">
+      <div className="flex items-center gap-2.5 min-w-0" role="cell">
         <div
-        className="tr-row__cover"
-        style={{ 
-          backgroundImage: track.coverUrl ? `url("${safeUrl}")` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundColor: track.coverUrl ? 'transparent' : 'var(--bg-card-alt)'
-        }}
-        aria-hidden="true"
-      >
-        {!track.coverUrl && <span>♪</span>}
-      </div>
-        <div className="tr-row__text">
-          <span className="tr-row__title" title={track.title}>{track.title}</span>
-          <span className="tr-row__artist" title={artist}>{artist}</span>
+          className="w-10 h-10 rounded-md flex-shrink-0 bg-[#7c6af7]/20 flex items-center justify-center text-16 text-white/50 bg-cover bg-center"
+          style={{ 
+            backgroundImage: track.coverUrl ? `url("${safeUrl}")` : undefined,
+            backgroundColor: track.coverUrl ? 'transparent' : 'rgba(124, 106, 247, 0.2)'
+          }}
+          aria-hidden="true"
+        >
+          {!track.coverUrl && <span>♪</span>}
+        </div>
+        <div className="min-w-0 flex flex-col gap-0.5">
+          <span className="text-[13px] font-semibold text-white/90 truncate" title={track.title}>{track.title}</span>
+          <span className="text-[11px] text-white/45 truncate" title={artist}>{artist}</span>
         </div>
       </div>
 
-      <div className="tr-row__album" role="cell" title={album}>{album}</div>
+      <div className="text-xs text-white/50 truncate max-sm:hidden" role="cell" title={album}>{album}</div>
 
-      <div className="tr-row__genre" role="cell">
+      <div className="flex items-center max-[900px]:hidden max-sm:hidden" role="cell">
         {track.genre && track.genre !== "unknown" && (
-          <span className="tr-row__genre-tag">{track.genre}</span>
+          <span className="text-[10px] font-semibold p-[2px_8px] rounded-full bg-[#7c6af7]/15 text-[#a89ef7] border border-[#7c6af7]/20 capitalize whitespace-nowrap">
+            {track.genre}
+          </span>
         )}
       </div>
 
-      <div className="tr-row__duration" role="cell">{duration}</div>
+      <div className="text-xs text-white/40 text-right font-mono max-[900px]:pr-0" role="cell">{duration}</div>
 
-      <div className="tr-row__actions" role="cell">
+      <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 max-sm:opacity-100" role="cell">
         <button
           type="button"
-          className={`tr-row__like ${isLiked ? "is-liked" : ""}`}
+          className={`bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-sm text-white/40 transition-colors duration-150 hover:bg-[#c8f560]/10 hover:text-[#c8f560] ${isLiked ? "text-[#c8f560]" : ""}`}
           onClick={() => onLikeToggle(track)}
           aria-label={isLiked ? "Unlike" : "Like"}
           title={isLiked ? "Unlike" : "Like"}
@@ -118,10 +121,10 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
         </button>
         <button
           type="button"
-          className="tr-row__add"
+          className="bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-white/40 transition-colors duration-150 hover:bg-white/8 hover:text-white"
           onClick={() => onAddToPlaylist(track)}
-          aria-label="Tambah ke playlist"
-          title="Tambah ke playlist"
+          aria-label="Add to playlist"
+          title="Add to playlist"
         >
           <FiPlus size={14} />
         </button>
@@ -140,7 +143,7 @@ const TracksPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [likedIds, setLikedIds] = useState(new Set());
-  const [playlistTarget, setPlaylistTarget] = useState(null); // track to add
+  const [playlistTarget, setPlaylistTarget] = useState(null);
 
   // Debounce search
   useEffect(() => {
@@ -174,7 +177,7 @@ const TracksPage = () => {
         setMeta(m);
       })
       .catch(() => {
-        if (!cancelled) setError("Gagal memuat tracks");
+        if (!cancelled) setError("Failed to load tracks");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -234,8 +237,24 @@ const TracksPage = () => {
   const totalTracks = meta.total || 0;
 
   return (
-    <main className="tracks-page" aria-label="All Tracks">
-      <div className="tracks-page__blob" aria-hidden="true" />
+    <main className="min-h-screen bg-[#0d0d0f] text-white relative overflow-x-hidden" aria-label="All Tracks">
+
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div className="absolute rounded-full filter blur-[140px] w-[480px] h-[480px] bg-[#7c6af7] opacity-7 -top-16 -left-32" />
+        <div className="absolute rounded-full filter blur-[140px] w-[360px] h-[360px] bg-[#c8f560] opacity-5 -bottom-20 -right-10" />
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes tracks-shimmer {
+          0% { background-position: -400px 0; }
+          100% { background-position: 400px 0; }
+        }
+        .animate-shimmer {
+          background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+          background-size: 800px 100%;
+          animation: tracks-shimmer 1.4s infinite;
+        }
+      `}} />
 
       <Sidebar
         isOpen={isSidebarOpen}
@@ -244,16 +263,16 @@ const TracksPage = () => {
       />
 
       <button
-        className={`home__sidebar-overlay${isSidebarOpen ? " is-open" : ""}`}
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-200 hidden ${isSidebarOpen ? "!block" : ""}`}
         type="button"
-        aria-label="Tutup menu samping"
+        aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
 
       <button
-        className="home__sidebar-toggle"
+        className="fixed top-6 left-6 z-40 bg-[#18181c] text-white border border-white/10 rounded-md w-9 h-9 flex items-center justify-center cursor-pointer text-lg"
         type="button"
-        aria-label="Buka menu samping"
+        aria-label="Open Sidebar"
         aria-controls="home-sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
@@ -261,69 +280,68 @@ const TracksPage = () => {
         ≡
       </button>
 
-      <div className="tracks-page__inner">
-        <header className="tracks-header">
+      <div className="relative z-10 max-w-[1100px] mx-auto p-[48px_24px_120px]">
+        <header className="flex items-start justify-between gap-4 border-b border-white/6 pb-7 mb-6">
           <div>
-            <p className="tracks-header__eyebrow">Koleksi Musik</p>
-            <h1 className="tracks-header__title">All Tracks</h1>
-            <p className="tracks-header__desc">
+            <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">Music Collection</p>
+            <h1 className="m-0 text-[52px] font-black leading-none tracking-[-0.03em] max-sm:text-[40px]">All Tracks</h1>
+            <p className="m-0 mt-2.5 text-xs text-white/45">
               {totalTracks > 0 ? `${totalTracks} lagu tersedia` : "Semua lagu tersedia untuk diputar."}
             </p>
           </div>
-          <span className="tracks-header__badge">Library</span>
+          <span className="flex-shrink-0 mt-1 p-[4px_12px] rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#c8f560] bg-[#c8f560]/10 border border-[#c8f560]/20">
+            Library
+          </span>
         </header>
 
-        {/* Search */}
-        <div className="tracks-search" role="search">
-          <FiSearch className="tracks-search__icon" aria-hidden="true" />
+        <div className="relative flex items-center gap-2.5 p-[12px_16px] rounded-[14px] border border-white/10 bg-white/4 mb-5 transition-colors focus-within:border-[#c8f560]/35 focus-within:bg-white/5" role="search">
+          <FiSearch className="text-white/40 flex-shrink-0 text-base" aria-hidden="true" />
           <input
             type="search"
-            className="tracks-search__input"
-            placeholder="Cari judul, artis, genre, atau album…"
+            className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/35"
+            placeholder="Search for title, artist, and album…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Cari lagu"
+            aria-label="Search track"
           />
           {search && (
             <button
               type="button"
-              className="tracks-search__clear"
+              className="bg-transparent border-none text-white/40 cursor-pointer text-xs p-1 rounded transition-colors hover:text-white"
               onClick={() => setSearch("")}
-              aria-label="Hapus pencarian"
+              aria-label="Delete Search Result"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* Track list */}
-        <section className="tracks-table" aria-label="Daftar lagu">
-          {/* Table header */}
-          <div className="tracks-table__head" role="row" aria-label="Header tabel">
+        <section className="rounded-[14px] bg-white/3 border border-white/7 overflow-hidden" aria-label="Daftar lagu">
+          <div className="grid grid-cols-[52px_3fr_2fr_1fr_72px_80px] gap-3 items-center p-[10px_14px] text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/35 bg-black/20 border-b border-white/6 max-[900px]:grid-cols-[44px_3fr_1.5fr_72px_64px] max-sm:grid-cols-[36px_1fr_56px_56px]" role="row" aria-label="Header tabel">
             <div role="columnheader">#</div>
-            <div role="columnheader">Judul</div>
-            <div role="columnheader">Album</div>
-            <div role="columnheader">Genre</div>
-            <div role="columnheader">Durasi</div>
-            <div role="columnheader">Aksi</div>
+            <div role="columnheader">Title</div>
+            <div className="max-sm:hidden" role="columnheader">Album</div>
+            <div className="max-[900px]:hidden max-sm:hidden" role="columnheader">Genre</div>
+            <div className="text-right max-[900px]:pr-0" role="columnheader">Duration</div>
+            <div className="text-right" role="columnheader">Action</div>
           </div>
 
           {loading ? (
-            <div className="tracks-table__loading" aria-live="polite">
+            <div className="p-3 flex flex-col gap-2" aria-live="polite">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="tracks-skeleton" aria-hidden="true" />
+                <div key={i} className="h-[54px] rounded-[10px] animate-shimmer" aria-hidden="true" />
               ))}
             </div>
           ) : error ? (
-            <div className="tracks-error" role="alert">⚠️ {error}</div>
+            <div className="p-[32px_20px] text-center text-sm text-[#ff9d9d]" role="alert">⚠️ {error}</div>
           ) : tracks.length === 0 ? (
-            <div className="tracks-empty" role="status">
+            <div className="p-[32px_20px] text-center text-sm text-white/45" role="status">
               {debouncedSearch
-                ? `Tidak ada lagu untuk pencarian "${debouncedSearch}"`
-                : "Belum ada lagu tersedia."}
+                ? `No Track on result "${debouncedSearch}"`
+                : "No available track."}
             </div>
           ) : (
-            <ul className="tracks-table__rows" role="rowgroup">
+            <ul className="list-none p-1 m-0" role="rowgroup">
               {tracks.map((track, i) => (
                 <TrackRow
                   key={track.id}
@@ -338,20 +356,19 @@ const TracksPage = () => {
           )}
         </section>
 
-        {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <nav className="tracks-pagination" aria-label="Navigasi halaman">
+          <nav className="flex items-center justify-center gap-1.5 mt-7 flex-wrap" aria-label="Navigate page">
             <button
               type="button"
-              className="tracks-pagination__btn"
+              className="flex items-center justify-center w-9 h-9 rounded-md border border-white/10 bg-white/4 text-white/60 cursor-pointer transition-all hover:not-disabled:bg-white/8 hover:not-disabled:text-white hover:not-disabled:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              aria-label="Halaman sebelumnya"
+              aria-label="Previous page"
             >
               <FiChevronLeft />
             </button>
 
-            <div className="tracks-pagination__pages">
+            <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                 let pageNum;
                 if (totalPages <= 7) {
@@ -367,9 +384,9 @@ const TracksPage = () => {
                   <button
                     key={pageNum}
                     type="button"
-                    className={`tracks-pagination__page ${pageNum === page ? "is-active" : ""}`}
+                    className={`min-width min-w-[36px] h-9 p-[0_6px] rounded-md border border-transparent bg-transparent text-white/50 text-xs cursor-pointer transition-colors hover:bg-white/6 hover:text-white ${pageNum === page ? "!bg-[#c8f560] !text-[#0d0d0f] font-bold" : ""}`}
                     onClick={() => setPage(pageNum)}
-                    aria-label={`Halaman ${pageNum}`}
+                    aria-label={`Page ${pageNum}`}
                     aria-current={pageNum === page ? "page" : undefined}
                   >
                     {pageNum}
@@ -380,22 +397,21 @@ const TracksPage = () => {
 
             <button
               type="button"
-              className="tracks-pagination__btn"
+              className="flex items-center justify-center w-9 h-9 rounded-md border border-white/10 bg-white/4 text-white/60 cursor-pointer transition-all hover:not-disabled:bg-white/8 hover:not-disabled:text-white hover:not-disabled:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              aria-label="Halaman berikutnya"
+              aria-label="Next Page"
             >
               <FiChevronRight />
             </button>
 
-            <span className="tracks-pagination__info">
-              Hal {page} dari {totalPages}
+            <span className="ml-2 text-xs text-white/35">
+              Page {page} from {totalPages}
             </span>
           </nav>
         )}
       </div>
 
-      {/* Playlist picker modal */}
       {playlistTarget && (
         <SelectPlaylistModal
           track={playlistTarget}

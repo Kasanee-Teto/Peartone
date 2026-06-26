@@ -5,7 +5,6 @@ import Sidebar from "../components/Sidebar";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
-import "../styles/PlaylistPage.css";
 import { authApi } from "../api/auth.js";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
@@ -29,12 +28,12 @@ const handleLogout = async () => {
 };
 
 const PlaylistPage = ({ onBack }) => {
-  const [isSidebarOpen, setIsSidebarOpen]         = useState(false);
-  const [newPlaylistName, setNewPlaylistName]     = useState("");
-  const [isSaving, setIsSaving]                   = useState(false);
-  const [playlists, setPlaylists]                 = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [newPlaylistName, setNewPlaylistName]= useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
-  const [searchQuery, setSearchQuery]             = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: playlistsResp, loading, error } = useFetch("/playlists");
 
@@ -54,24 +53,23 @@ const PlaylistPage = ({ onBack }) => {
   }, [playlists, searchQuery]);
 
   const createPlaylist = async (e) => {
-  e.preventDefault();
-  if (!newPlaylistName.trim()) return;
-  const token = localStorage.getItem("token");
-  if (!token) { window.alert("Silakan login terlebih dahulu."); return; }
-  setIsSaving(true);
-  try {
-    const created = await playlistsApi.create(newPlaylistName.trim());
-    const playlist = created?.data || created;
-    setPlaylists((prev) => [{ ...playlist, trackCount: 0, coverUrl: null }, ...prev]);
-    setNewPlaylistName("");
-    // ✅ Auto-open AddTrackModal so user can add first song
-    setSelectedPlaylistId(playlist.id);
-  } catch (err) {
-    window.alert(err.message || "Gagal membuat playlist.");
-  } finally {
-    setIsSaving(false);
-  }
-};
+    e.preventDefault();
+    if (!newPlaylistName.trim()) return;
+    const token = localStorage.getItem("token");
+    if (!token) { window.alert("Please login to your account."); return; }
+    setIsSaving(true);
+    try {
+      const created = await playlistsApi.create(newPlaylistName.trim());
+      const playlist = created?.data || created;
+      setPlaylists((prev) => [{ ...playlist, trackCount: 0, coverUrl: null }, ...prev]);
+      setNewPlaylistName("");
+      setSelectedPlaylistId(playlist.id);
+    } catch (err) {
+      window.alert(err.message || "Failed to load playlist.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleTrackAdded = async () => {
     if (!selectedPlaylistId) return;
@@ -87,7 +85,6 @@ const PlaylistPage = ({ onBack }) => {
                 ...p,
                 ...freshPlaylist,
                 trackCount: tracks.length,
-                // Use first track's cover as playlist cover
                 coverUrl: tracks[0]?.coverUrl || p.coverUrl || null,
               }
             : p
@@ -102,76 +99,93 @@ const PlaylistPage = ({ onBack }) => {
   };
 
   const handleDeletePlaylist = async (playlist) => {
-    if (!window.confirm(`Hapus playlist "${playlist.title}"?`)) return;
+    if (!window.confirm(`Delete playlist "${playlist.title}"?`)) return;
     try {
       await playlistsApi.delete(playlist.id);
       setPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
     } catch (err) {
-      window.alert(err.message || "Gagal menghapus playlist.");
+      window.alert(err.message || "Failed to delete playlist.");
     }
   };
 
   return (
-    <main className="pl-page">
-      <div className="pl-page__blob" aria-hidden="true" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-[-64px] left-[-128px] w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-7 filter blur-[140px]" />
+        <div className="absolute bottom-[-80px] right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-6 filter blur-[140px]" />
+      </div>
 
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
       />
+  
       <button
-        className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
         type="button"
-        aria-label="Tutup menu samping"
+        aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
+
       <button
-        className="home__sidebar-toggle"
+        className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
         type="button"
-        aria-label="Buka menu samping"
+        aria-label="Open Sidebar"
         aria-controls="home-sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
-      >≡</button>
+      >
+        ≡
+      </button>
 
-      <div className="pl-page__inner">
+      <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24 max-md:pt-[72px]">
 
-        <header className="pl-header">
+        <header className="flex items-start justify-between gap-4 border-b border-white/5 pb-7 mb-7 max-md:flex-col-reverse max-md:items-start max-md:gap-3">
           <div>
-            <p className="pl-header__eyebrow">Library</p>
-            <h1 className="pl-header__title">Playlist Saya</h1>
-            <p className="pl-header__desc">Kelola dan nikmati koleksi playlist kamu.</p>
+            <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">Library</p>
+            <h1 className="m-0 text-[52px] font-black leading-none tracking-[-0.03em] text-white max-md:text-[36px]">
+              My Playlist
+            </h1>
+            <p className="m-0 mt-2.5 text-xs leading-[1.6] text-white/40">Enjoy and Organize Your Playlist(s).</p>
           </div>
           {onBack && (
-            <button className="pl-header__back" onClick={onBack} aria-label="Kembali">
-              ← Kembali
+            <button 
+              className="shrink-0 mt-1.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer bg-white/5 border border-white/10 text-white/60 transition-all duration-150 whitespace-nowrap hover:bg-white/10 hover:border-white/20 hover:text-white" 
+              onClick={onBack} 
+              aria-label="Back"
+            >
+              ← Back
             </button>
           )}
         </header>
 
-        <form className="pl-create" onSubmit={createPlaylist}>
+        <form className="flex gap-2.5 mb-4 flex-wrap" onSubmit={createPlaylist}>
           <input
-            className="pl-create__input"
+            className="flex-1 min-w-[220px] px-4 py-[11px] rounded-[10px] border border-white/10 bg-white/5 text-white text-sm outline-none transition-all duration-150 placeholder:text-white/30 focus:border-[#c8f560]/40 focus:bg-white/7"
             value={newPlaylistName}
             onChange={(e) => setNewPlaylistName(e.target.value)}
-            placeholder="Nama playlist baru..."
-            aria-label="Nama playlist baru"
+            placeholder="New Playlist Title..."
+            aria-label="New Playlist Title"
           />
           <button
-            className={`pl-create__btn${isSaving ? " is-saving" : ""}`}
+            className={`inline-flex items-center gap-1.75 px-5 py-[11px] rounded-[10px] border-none bg-[#c8f560] text-[#0d0d0f] text-[13px] font-bold cursor-pointer transition-all duration-150 whitespace-nowrap hover:bg-[#d4f770] hover:-translate-y-[1px] active:translate-y-0 ${
+              isSaving ? "opacity-65 cursor-not-allowed" : ""
+            }`}
             type="submit"
             disabled={isSaving}
           >
             <FiPlus size={16} />
-            {isSaving ? "Menyimpan..." : "Buat Playlist"}
+            {isSaving ? "Saving..." : "Create Playlist"}
           </button>
         </form>
 
-        <div className="pl-search">
-          <FiSearch className="pl-search__icon" size={15} />
+        <div className="relative flex items-center mb-6">
+          <FiSearch className="absolute left-3.5 text-white/35 pointer-events-none shrink-0" size={15} />
           <input
-            className="pl-search__input"
+            className="w-full px-10 py-[11px] rounded-[10px] border border-white/8 bg-white/4 text-white text-sm outline-none transition-all duration-150 placeholder:text-white/25 focus:border-white/15 focus:bg-white/6"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari playlist..."
@@ -180,34 +194,36 @@ const PlaylistPage = ({ onBack }) => {
           {searchQuery && (
             <button
               type="button"
-              className="pl-search__clear"
+              className="absolute right-3 bg-transparent border-none text-white/35 text-[18px] leading-none cursor-pointer p-1 flex items-center justify-center rounded-full transition-all duration-150 hover:text-white hover:bg-white/8"
               onClick={() => setSearchQuery("")}
-              aria-label="Hapus pencarian"
+              aria-label="Delete search history"
             >×</button>
           )}
         </div>
 
         {loading ? (
-          <div className="pl-state">
-            <div className="pl-state__spinner" />
-            <p>Memuat playlist...</p>
+          <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center text-white/30 text-sm">
+           
+            <div className="w-8 h-8 rounded-full border-[3px] border-white/8 border-t-[#c8f560] animate-spin mb-2" />
+            <p className="m-0">Load playlist...</p>
           </div>
         ) : error ? (
-          <div className="pl-state pl-state--error">
-            <p>Gagal memuat playlist.</p>
-            <span>{error}</span>
+          <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center text-[#ff5c6e] text-sm">
+            <p className="m-0">Failed to load playlist.</p>
+            <span className="text-[xs] text-[rgba(255,92,110,0.6)]">{error}</span>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="pl-state">
-            <FiMusic size={40} style={{ color: "rgba(255,255,255,0.15)", marginBottom: 12 }} />
-            <p>{searchQuery ? "Tidak ada playlist yang cocok." : "Belum ada playlist. Buat yang pertama!"}</p>
+          <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center text-white/30 text-sm">
+            <FiMusic size={40} className="text-white/15 mb-3" />
+            <p className="m-0">{searchQuery ? "No matched playlist." : "No playlist yet. Create first playlist!"}</p>
           </div>
         ) : (
           <>
-            <p className="pl-count">
-              {filtered.length} playlist{searchQuery ? ` untuk "${searchQuery}"` : ""}
+            <p className="m-0 mb-4 text-[12px] font-semibold uppercase tracking-[0.1em] text-white/30">
+              {filtered.length} playlist{searchQuery ? ` for "${searchQuery}"` : ""}
             </p>
-            <div className="pl-grid" role="list">
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" role="list">
               {filtered.map((playlist) => {
                 const rawCover = playlist.coverUrl || playlist.image || null;
                 return (

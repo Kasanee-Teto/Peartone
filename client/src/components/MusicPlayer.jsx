@@ -14,7 +14,6 @@ import {
   FiChevronUp,
   FiChevronDown,
 } from "react-icons/fi";
-import "../styles/MusicPlayer.css";
 import LyricsPanel from "./LyricsPanel";
 import QueueList from "./QueueList";
 import { buildStreamUrl, isValidTrackId, normalizePlayableTrack, onPlayTrack } from "../utils/playerBus.js";
@@ -44,9 +43,7 @@ const MusicPlayer = () => {
       const raw = localStorage.getItem("pt_queue");
       const parsed = raw ? JSON.parse(raw) : [];
       const normalized = Array.isArray(parsed)
-        ? parsed
-            .map(normalizePlayableTrack)
-            .filter((track) => track && isValidTrackId(track.trackId))
+        ? parsed.map(normalizePlayableTrack).filter((track) => track && isValidTrackId(track.trackId))
         : [];
       return normalized.length > 0 ? normalized : [];
     } catch {
@@ -80,12 +77,11 @@ const MusicPlayer = () => {
     const cleanup = onPlayTrack((incomingTrack) => {
       const track = normalizePlayableTrack(incomingTrack);
       if (!isValidTrackId(track.trackId)) {
-        setPlayerError("Track ini belum tersedia di server.");
+        setPlayerError("This track is not found at the server.");
         return;
       }
-
       if (!track.streamUrl) {
-        setPlayerError("Track ini belum tersedia untuk streaming.");
+        setPlayerError("This track is not available for streaming.");
         return;
       }
 
@@ -106,36 +102,31 @@ const MusicPlayer = () => {
   }, []);
 
   useEffect(() => {
-  const handleAddToQueue = (event) => {
-    const track = normalizePlayableTrack(event.detail);
-    if (!isValidTrackId(track.trackId)) return;
-    if (!track.streamUrl) return;
- 
-    setQueue((currentQueue) => {
-      const alreadyIn = currentQueue.some((item) => item.id === track.id);
-      if (alreadyIn) return currentQueue;
-      return [...currentQueue, track];
-    });
-  };
- 
-  window.addEventListener("pt:add-to-queue", handleAddToQueue);
-  return () => window.removeEventListener("pt:add-to-queue", handleAddToQueue);
-}, []);
+    const handleAddToQueue = (event) => {
+      const track = normalizePlayableTrack(event.detail);
+      if (!isValidTrackId(track.trackId) || !track.streamUrl) return;
+      setQueue((currentQueue) => {
+        const alreadyIn = currentQueue.some((item) => item.id === track.id);
+        if (alreadyIn) return currentQueue;
+        return [...currentQueue, track];
+      });
+    };
+
+    window.addEventListener("pt:add-to-queue", handleAddToQueue);
+    return () => window.removeEventListener("pt:add-to-queue", handleAddToQueue);
+  }, []);
 
   useEffect(() => {
-  const handleClearQueue = () => {
+    const handleClearQueue = () => {
       setQueue([]);
       setCurrentIndex(0);
       setIsPlaying(false);
       setProgress(0);
-  };
+    };
 
-  window.addEventListener("pt:clear-queue", handleClearQueue);
-
-  return () => {
-    window.removeEventListener("pt:clear-queue", handleClearQueue);
-  };
-}, []);
+    window.addEventListener("pt:clear-queue", handleClearQueue);
+    return () => window.removeEventListener("pt:clear-queue", handleClearQueue);
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -151,7 +142,7 @@ const MusicPlayer = () => {
 
     const source = currentTrack.streamUrl || buildStreamUrl(currentTrack);
     if (!source) {
-      setPlayerError("Track ini belum tersedia untuk streaming.");
+      setPlayerError("This track is not available for streaming.");
       setIsPlaying(false);
       audio.removeAttribute("src");
       audio.load();
@@ -163,20 +154,14 @@ const MusicPlayer = () => {
     audio.src = source;
     audio.load();
 
-    if (isPlaying) {
-      audio.play().catch(() => setIsPlaying(false));
-    }
-  }, [currentTrack?.id, currentTrack?.streamUrl]);
+    if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+  }, [currentTrack?.id, currentTrack?.streamUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (isPlaying) {
-      audio.play().catch(() => setIsPlaying(false));
-    } else {
-      audio.pause();
-    }
+    if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+    else audio.pause();
   }, [isPlaying, currentTrack?.streamUrl]);
 
   useEffect(() => {
@@ -192,7 +177,9 @@ const MusicPlayer = () => {
         if (!active) return;
         const likedTracks = Array.isArray(payload) ? payload : payload?.data || [];
         const currentTrackId = String(currentTrack.trackId || currentTrack.id || "").trim();
-        const liked = likedTracks.some((item) => String(item?.trackId || item?.Track?.id || item?.id || "").trim() === currentTrackId);
+        const liked = likedTracks.some(
+          (item) => String(item?.trackId || item?.Track?.id || item?.id || "").trim() === currentTrackId
+        );
         setIsLiked(liked);
       })
       .catch(() => {
@@ -202,7 +189,7 @@ const MusicPlayer = () => {
     return () => {
       active = false;
     };
-  }, [currentTrack?.id]);
+  }, [currentTrack?.id, currentTrack?.trackId]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -211,7 +198,6 @@ const MusicPlayer = () => {
     if (!token || !isValidTrackId(trackId) || !isPlaying) return;
     if (lastHistoryTrackIdRef.current === trackId) return;
 
-    // Only record after 15 seconds of active play
     const timer = setTimeout(() => {
       if (lastHistoryTrackIdRef.current === trackId) return;
       lastHistoryTrackIdRef.current = trackId;
@@ -229,17 +215,12 @@ const MusicPlayer = () => {
 
     const handleLoadedMetadata = () => {
       setPlayerError("");
-      if (audio.duration > 0) {
-        setProgress((audio.currentTime / audio.duration) * 100 || 0);
-      }
+      if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100 || 0);
     };
 
     const handleTimeUpdate = () => {
-      if (audio.duration > 0) {
-        setProgress((audio.currentTime / audio.duration) * 100);
-      } else if (duration > 0) {
-        setProgress((audio.currentTime / duration) * 100);
-      }
+      if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100);
+      else if (duration > 0) setProgress((audio.currentTime / duration) * 100);
     };
 
     const handleEnded = () => {
@@ -249,14 +230,10 @@ const MusicPlayer = () => {
         return;
       }
 
-      if (queue.length === 0) {
-        setIsPlaying(false);
-        return;
-      }
+      if (queue.length === 0) return setIsPlaying(false);
 
       if (isShuffle && queue.length > 1) {
-        const nextIndex = Math.floor(Math.random() * queue.length);
-        setCurrentIndex(nextIndex);
+        setCurrentIndex(Math.floor(Math.random() * queue.length));
         setIsPlaying(true);
         return;
       }
@@ -274,7 +251,7 @@ const MusicPlayer = () => {
 
     const handleError = () => {
       setIsPlaying(false);
-      setPlayerError("Gagal memutar lagu ini.");
+      setPlayerError("Failed to load this track.");
     };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -293,10 +270,9 @@ const MusicPlayer = () => {
   function addToQueue(track) {
     const item = normalizePlayableTrack(track);
     if (!item.streamUrl) {
-      setPlayerError("Track ini belum tersedia untuk streaming.");
+      setPlayerError("This track is not available for streaming.");
       return;
     }
-
     setQueue((currentQueue) => [...currentQueue, item]);
     setShowQueue(true);
   }
@@ -313,10 +289,7 @@ const MusicPlayer = () => {
         return current;
       });
 
-      if (copy.length === 0) {
-        setIsPlaying(false);
-      }
-
+      if (copy.length === 0) setIsPlaying(false);
       return copy;
     });
   }
@@ -332,7 +305,7 @@ const MusicPlayer = () => {
     if (queue.length === 0) return;
 
     if (isShuffle && queue.length > 1) {
-      setCurrentIndex(() => Math.floor(Math.random() * queue.length));
+      setCurrentIndex(Math.floor(Math.random() * queue.length));
       setIsPlaying(true);
       return;
     }
@@ -364,17 +337,14 @@ const MusicPlayer = () => {
   function toggleProgress(event) {
     const next = Number(event.target.value);
     setProgress(next);
-
     const audio = audioRef.current;
     const total = audio?.duration || duration;
-    if (audio && total > 0) {
-      audio.currentTime = (next / 100) * total;
-    }
+    if (audio && total > 0) audio.currentTime = (next / 100) * total;
   }
 
   function togglePlay() {
     if (!currentTrack?.streamUrl) {
-      setPlayerError("Track ini belum tersedia untuk streaming.");
+      setPlayerError("This track is not available for streaming.");
       return;
     }
 
@@ -389,10 +359,9 @@ const MusicPlayer = () => {
 
   async function toggleLike() {
     const trackId = currentTrack?.trackId || currentTrack?.id;
-    console.log("Debug Track ID:", trackId);
 
     if (!isValidTrackId(trackId)) {
-      setPlayerError("Track ini belum tersimpan di server.");
+      setPlayerError("This track is not found at the server.");
       return;
     }
 
@@ -402,71 +371,30 @@ const MusicPlayer = () => {
       setIsLiked(nextLiked);
       emitLikesChanged();
     } catch (error) {
-      setPlayerError(error.message || "Gagal memperbarui like");
+      setPlayerError(error.message || "Failed to update like");
     }
   }
 
+  const baseIconBtn =
+    "inline-flex items-center justify-center p-1 text-white/50 transition hover:text-white";
+  const activeIcon = "text-[#c8f560]";
+
   return (
-    <div
-      className={`player${isCollapsed ? " player--collapsed" : ""}`}
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 300,
-        display: "flex",
-        justifyContent: "flex-end",
-      }}
-    >
+    <div className="fixed inset-x-0 bottom-0 z-[300] flex justify-end pointer-events-none">
       <audio ref={audioRef} preload="metadata" />
+
       {isCollapsed ? (
         <button
           type="button"
-          onClick={() => {
-            setIsCollapsed(false);
-          }}
-          className="player__collapsed-toggle"
-          style={{
-            pointerEvents: "auto",
-            marginRight: "24px",
-            width: "auto",
-            height: "auto",
-            border: "none",
-            borderRadius: 0,
-            background: "transparent",
-            color: "rgba(255,255,255,0.85)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            boxShadow: "none",
-            padding: 0,
-            lineHeight: 0,
-          }}
+          onClick={() => setIsCollapsed(false)}
+          className="pointer-events-auto mr-6 flex items-center justify-center p-0 text-white/85 hover:text-white"
           aria-label="Show music player"
           title="Show music player"
         >
           <FiChevronUp size={18} />
         </button>
       ) : (
-        <div
-          className="player__body"
-          style={{
-            pointerEvents: "auto",
-            width: "100%",
-            height: "80px",
-            background: "rgba(13, 13, 15, 0.92)",
-            borderTop: "1px solid rgba(255,255,255,0.07)",
-            backdropFilter: "blur(20px)",
-            display: "flex",
-            alignItems: "center",
-            padding: "0 24px",
-            gap: "16px",
-            color: "#fff",
-            position: "relative",
-          }}
-        >
+        <div className="pointer-events-auto relative flex h-20 w-full items-center gap-4 border-t border-white/10 bg-[#0d0d0feb] px-6 text-white backdrop-blur-xl">
           <button
             type="button"
             onClick={() => {
@@ -474,74 +402,32 @@ const MusicPlayer = () => {
               setShowQueue(false);
               setShowLyrics(false);
             }}
-            className="player__toggle"
-            style={{
-              width: "auto",
-              height: "auto",
-              borderRadius: 0,
-              border: "none",
-              background: "transparent",
-              color: "rgba(255,255,255,0.85)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              boxShadow: "none",
-              flexShrink: 0,
-              marginLeft: "auto",
-              order: 4,
-              padding: 0,
-              lineHeight: 0,
-            }}
+            className="order-4 ml-auto flex shrink-0 items-center justify-center p-0 text-white/85 hover:text-white"
             aria-label="Hide music player"
             title="Hide music player"
           >
             <FiChevronDown size={18} />
           </button>
 
-          <div className="player__left" style={{ display: "flex", alignItems: "center", gap: "12px", width: "240px", flexShrink: 0, order: 1 }}>
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "8px",
-                flexShrink: 0,
-                background: "linear-gradient(135deg, #7c6af7, #c8f560)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "20px",
-              }}
-            >
+          <div className="order-1 flex w-[240px] shrink-0 items-center gap-3 min-w-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-xl">
               ♪
             </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {currentTrack?.title || "Belum ada lagu diputar"}
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold">
+                {currentTrack?.title || "No track played"}
               </p>
-              <p style={{ margin: 0, fontSize: "11px", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {currentTrack?.artist || "Pilih lagu untuk mulai"}
+              <p className="truncate text-[11px] text-white/45">
+                {currentTrack?.artist || "Choose a track to start listening"}
               </p>
-              {playerError && (
-                <p style={{ margin: "4px 0 0", fontSize: "10px", color: "#ffb3b3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {playerError}
-                </p>
-              )}
+              {playerError && <p className="mt-1 truncate text-[10px] text-red-200">{playerError}</p>}
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleLike}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: isLiked ? "#c8f560" : "rgba(255,255,255,0.4)",
-                  display: "flex",
-                  padding: "4px",
-                  flexShrink: 0,
-                  transition: "color 0.15s",
-                }}
+                className={`${baseIconBtn} ${isLiked ? activeIcon : ""}`}
                 aria-label={isLiked ? "Unlike" : "Like"}
                 disabled={!isValidTrackId(String(currentTrack?.trackId || currentTrack?.id || "").trim())}
               >
@@ -552,170 +438,106 @@ const MusicPlayer = () => {
                 type="button"
                 onClick={() => addToQueue(currentTrack)}
                 title="Add to queue"
-                style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 4 }}
+                className={baseIconBtn}
               >
                 <FiPlus size={14} />
               </button>
             </div>
           </div>
 
-          <div className="player__center" style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", order: 2, minWidth: 0 }}>
-            <div className="player__controls" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="order-2 flex min-w-0 flex-1 flex-col items-center gap-2">
+            <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => setIsShuffle(!isShuffle)}
-                className="player__btn player__btn--shuffle"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: isShuffle ? "#c8f560" : "rgba(255,255,255,0.4)",
-                  display: "flex",
-                  padding: "4px",
-                  transition: "color 0.15s",
-                }}
+                className={`${baseIconBtn} ${isShuffle ? activeIcon : ""}`}
                 aria-label="Shuffle"
               >
                 <FiShuffle size={16} />
               </button>
 
-              <button
-                type="button"
-                className="player__btn player__btn--skip"
-                onClick={playPrev}
-                style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex", padding: "4px" }}
-                aria-label="Previous"
-              >
+              <button type="button" className="inline-flex p-1 text-white/70 hover:text-white" onClick={playPrev} aria-label="Previous">
                 <FiSkipBack size={20} />
               </button>
 
               <button
                 type="button"
                 onClick={togglePlay}
-                className="player__play"
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "#ffffff",
-                  color: "#0d0d0f",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  boxShadow: "0 4px 16px rgba(255,255,255,0.15)",
-                  transition: "transform 0.1s",
-                }}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#0d0d0f] shadow-[0_4px_16px_rgba(255,255,255,0.15)] transition hover:scale-105"
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
-                {isPlaying ? <FiPause size={18} fill="currentColor" /> : <FiPlay size={18} fill="currentColor" style={{ marginLeft: "2px" }} />}
+                {isPlaying ? <FiPause size={18} fill="currentColor" /> : <FiPlay size={18} fill="currentColor" className="ml-[2px]" />}
               </button>
 
-              <button
-                type="button"
-                className="player__btn player__btn--skip"
-                onClick={playNext}
-                style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex", padding: "4px" }}
-                aria-label="Next"
-              >
+              <button type="button" className="inline-flex p-1 text-white/70 hover:text-white" onClick={playNext} aria-label="Next">
                 <FiSkipForward size={20} />
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsRepeat(!isRepeat)}
-                className="player__btn player__btn--repeat"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: isRepeat ? "#c8f560" : "rgba(255,255,255,0.4)",
-                  display: "flex",
-                  padding: "4px",
-                  transition: "color 0.15s",
-                }}
+                className={`${baseIconBtn} ${isRepeat ? activeIcon : ""}`}
                 aria-label="Repeat"
               >
                 <FiRepeat size={16} />
               </button>
             </div>
 
-            <div className="player__progress-row" style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", maxWidth: "480px" }}>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", flexShrink: 0, minWidth: "32px", textAlign: "right" }}>
-                {formatTime(currentTime)}
-              </span>
-              <div style={{ flex: 1, position: "relative", height: "4px" }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "2px", background: "rgba(255,255,255,0.15)" }} />
-                <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${progress}%`, borderRadius: "2px", background: "#c8f560", transition: "width 0.1s" }} />
+            <div className="flex w-full max-w-[480px] items-center gap-2">
+              <span className="min-w-8 shrink-0 text-right text-[11px] text-white/40">{formatTime(currentTime)}</span>
+              <div className="relative h-1 flex-1">
+                <div className="absolute inset-0 rounded-sm bg-white/15" />
+                <div
+                  className="absolute bottom-0 left-0 top-0 rounded-sm bg-[#c8f560] transition-[width] duration-100"
+                  style={{ width: `${progress}%` }}
+                />
                 <input
                   type="range"
                   min={0}
                   max={100}
                   value={progress}
                   onChange={toggleProgress}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    opacity: 0,
-                    cursor: "pointer",
-                    margin: 0,
-                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   aria-label="Progress"
                 />
               </div>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", flexShrink: 0, minWidth: "32px" }}>
-                {formatTime(duration)}
-              </span>
+              <span className="min-w-8 shrink-0 text-[11px] text-white/40">{formatTime(duration)}</span>
             </div>
           </div>
 
-          <div className="player__right" style={{ display: "flex", alignItems: "center", gap: "12px", width: "240px", flexShrink: 0, justifyContent: "flex-end", order: 3 }}>
+          <div className="order-3 flex w-[240px] shrink-0 items-center justify-end gap-3">
             <button
               type="button"
-              className="player__btn player__btn--extra"
               onClick={() => setShowLyrics((s) => !s)}
-              style={{ background: "transparent", border: "none", cursor: "pointer", color: showLyrics ? "#c8f560" : "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
-              aria-label="Lirik"
-              title="Lirik"
+              className={`${baseIconBtn} ${showLyrics ? activeIcon : ""}`}
+              aria-label="Lyric"
+              title="Lyric"
             >
               <FiMic size={16} />
             </button>
 
             <button
               type="button"
-              className="player__btn player__btn--extra"
               onClick={() => setShowQueue((s) => !s)}
-              style={{ background: "transparent", border: "none", cursor: "pointer", color: showQueue ? "#c8f560" : "rgba(255,255,255,0.4)", display: "flex", padding: "4px", transition: "color 0.15s" }}
+              className={`${baseIconBtn} ${showQueue ? activeIcon : ""}`}
               aria-label="Queue"
               title="Queue"
             >
               <FiList size={16} />
             </button>
 
-            <div className="player__volume-wrap" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <FiVolume2 size={16} style={{ color: "rgba(255,255,255,0.4)", flexShrink: 0 }} />
-              <div className="player__vol-bar-wrap" style={{ position: "relative", width: "80px", height: "4px" }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "2px", background: "rgba(255,255,255,0.15)" }} />
-                <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${volume}%`, borderRadius: "2px", background: "rgba(255,255,255,0.7)" }} />
+            <div className="ml-1 flex items-center gap-1.5">
+              <FiVolume2 size={16} className="shrink-0 text-white/40" />
+              <div className="relative h-1 w-20">
+                <div className="absolute inset-0 rounded-sm bg-white/15" />
+                <div className="absolute bottom-0 left-0 top-0 rounded-sm bg-white/70" style={{ width: `${volume}%` }} />
                 <input
                   type="range"
                   min={0}
                   max={100}
                   value={volume}
                   onChange={(event) => setVolume(Number(event.target.value))}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    opacity: 0,
-                    cursor: "pointer",
-                    margin: 0,
-                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   aria-label="Volume"
                 />
               </div>
@@ -723,6 +545,7 @@ const MusicPlayer = () => {
           </div>
         </div>
       )}
+
       {showQueue && (
         <QueueList
           queue={queue}
@@ -739,7 +562,14 @@ const MusicPlayer = () => {
       )}
 
       {showLyrics && (
-        <LyricsPanel key={currentTrack?.id || "no-track"} trackId={currentTrack?.id} artist={currentTrack?.artist} title={currentTrack?.title} open={showLyrics} onClose={() => setShowLyrics(false)} />
+        <LyricsPanel
+          key={currentTrack?.id || "no-track"}
+          trackId={currentTrack?.id}
+          artist={currentTrack?.artist}
+          title={currentTrack?.title}
+          open={showLyrics}
+          onClose={() => setShowLyrics(false)}
+        />
       )}
     </div>
   );

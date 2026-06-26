@@ -87,7 +87,7 @@ const HomePage = () => {
       const items = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(items);
     } catch (err) {
-      setSearchError(err?.message || "Pencarian gagal");
+      setSearchError(err?.message || "Failed to search");
     } finally {
       setSearchLoading(false);
     }
@@ -116,31 +116,38 @@ const HomePage = () => {
   }
 
   return (
-    <main className="home" aria-label="Halaman Utama Peartone">
-      <div className="home__layout">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={handleLogout}
-          onHome={() => setIsSidebarOpen(false)}
-          onPlaylist={() => {
-            setShowplaylist(true);
-            setIsSidebarOpen(false);
-          }}
-        />
+    <main 
+      className="w-full max-w-[1200px] mx-auto px-4 md:px-6 pb-20 md:pb-16 flex flex-col gap-12 md:gap-16 font-sans antialiased text-[#8a8a99]" 
+      aria-label="Peartone Home Page"
+    >
+      <div className="grid grid-columns-1 gap-8 items-start">
+        <div className={`fixed top-0 left-0 h-screen w-[min(280px,82vw)] z-50 bg-[#18181c]/90 border border-white/5 rounded-r-2xl p-6 md:p-4 shadow-2xl backdrop-blur-md transition-transform duration-250 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%]'}`}>
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onLogout={handleLogout}
+            onHome={() => setIsSidebarOpen(false)}
+            onPlaylist={() => {
+              setShowplaylist(true);
+              setIsSidebarOpen(false);
+            }}
+          />
+        </div>
 
         <button
-          className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
+          className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
+            isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
           type="button"
-          aria-label="Tutup menu samping"
+          aria-label="Close Sidebar"
           onClick={() => setIsSidebarOpen(false)}
         />
 
-        <div className="home__content">
+        <div className="flex flex-col gap-16 md:gap-12">
           <button
-            className="home__sidebar-toggle"
+            className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
             type="button"
-            aria-label="Buka menu samping"
+            aria-label="Open Sidebar"
             aria-controls="home-sidebar"
             aria-expanded={isSidebarOpen}
             onClick={() => setIsSidebarOpen(true)}
@@ -148,15 +155,21 @@ const HomePage = () => {
             ≡
           </button>
 
-          <section className="home__hero" aria-label="Banner Peartone">
-            <div className="home__hero-content flex flex-col justify-center items-center gap-6">
-              <h1 className="home__hero-title text-center">
+          <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Banner Peartone">
+
+            <div className="absolute -top-10 -left-20 w-[500px] height-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
+            <div className="absolute top-0 -right-[100px] w-[350px] height-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
+
+            <div className="relative z-10 w-full max-w-[640px] flex flex-col justify-center items-center gap-6 mx-auto">
+              <h1 className="font-display font-extrabold text-[clamp(1.8rem,6vw,4.5rem)] text-white text-center leading-[1.05] tracking-tight">
                 Find your
                 <br />
-                <span className="home__hero-accent">Favorites!</span>
+                <span className="text-[#c8f560] inline-block relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[3px] after:bg-gradient-to-r after:from-[#c8f560] after:to-[#7c6af7] after:rounded-[2px]">
+                  Favorites!
+                </span>
               </h1>
-              <p className="home__hero-subtitle w-full text-center mx-auto max-w-2xl px-4">
-                Dengarkan MUSIKmu sampai tak kenal waktu!
+              <p className="text-sm md:text-[1.05rem] text-[#8a8a99] font-light w-full text-center max-w-2xl px-4">
+                Listen to your musics till your weekend COMES!
               </p>
 
               <div className="w-full max-w-xl px-4">
@@ -168,16 +181,15 @@ const HomePage = () => {
 
               {!isSearching && (
                 <button
-                  className="home__hero-cta"
-                  aria-label="Mulai mendengarkan"
+                  className="inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-150 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(200,245,96,0.3)] active:translate-y-0"
+                  aria-label="Start Listening"
                   onClick={() => setShowplaylist(true)}
                 >
-                  Mulai Dengarkan
+                  Start Listening
                 </button>
               )}
             </div>
           </section>
-
 
           {isSearching ? (
             <div className="px-4 pb-8 max-w-3xl mx-auto w-full">
