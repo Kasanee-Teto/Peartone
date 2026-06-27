@@ -27,7 +27,7 @@ const handleLogout = async () => {
   }
 };
 
-const PlaylistPage = ({ onBack }) => {
+const PlaylistPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newPlaylistName, setNewPlaylistName]= useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -151,15 +151,6 @@ const PlaylistPage = ({ onBack }) => {
             </h1>
             <p className="m-0 mt-2.5 text-xs leading-[1.6] text-white/40">Enjoy and Organize Your Playlist(s).</p>
           </div>
-          {onBack && (
-            <button 
-              className="shrink-0 mt-1.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer bg-white/5 border border-white/10 text-white/60 transition-all duration-150 whitespace-nowrap hover:bg-white/10 hover:border-white/20 hover:text-white" 
-              onClick={onBack} 
-              aria-label="Back"
-            >
-              ← Back
-            </button>
-          )}
         </header>
 
         <form className="flex gap-2.5 mb-4 flex-wrap" onSubmit={createPlaylist}>

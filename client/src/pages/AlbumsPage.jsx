@@ -75,7 +75,7 @@ const AlbumCard = ({ album }) => {
           <img
             src={coverUrl}
             alt={album.title}
-            className="absolute inset-0 w-full height-full object-cover block transition-transform duration-300 ease-out group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover block transition-transform duration-300 ease-out group-hover:scale-105"
             onError={(e) => { e.target.style.display = "none"; }}
           />
         ) : (
@@ -155,7 +155,7 @@ const AlbumsPage = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
         <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
@@ -167,18 +167,18 @@ const AlbumsPage = () => {
       />
 
       <button
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden ${
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
           isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         type="button"
-        aria-label="Tutup menu samping"
+        aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
 
       <button
-        className="fixed top-4 left-4 z-40 p-2 bg-[#161618] rounded-md text-xl md:hidden"
+        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
-        aria-label="Buka menu samping"
+        aria-label="Open Sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
       >

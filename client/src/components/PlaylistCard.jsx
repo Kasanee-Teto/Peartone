@@ -66,7 +66,7 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
 
   return (
     <div
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#161618] transition hover:-translate-y-1 hover:border-lime-300/40 hover:shadow-[0_12px_40px_rgba(200,245,96,0.12)]"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#161618] transition hover:-translate-y-0.5 hover:border-lime-300/20"
       onClick={handleCardClick}
     >
       <div className="relative aspect-square w-full overflow-hidden bg-[#1e1e22]">
@@ -78,7 +78,7 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
           onError={(e) => { e.target.src = "/placeholder-album.png"; }}
         />
         <div
-          className="absolute inset-0 opacity-25 transition group-hover:opacity-45"
+          className="absolute inset-0 opacity-25 transition group-hover:opacity-25"
           style={{ backgroundColor: playlist.color }}
         />
 

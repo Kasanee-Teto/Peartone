@@ -19,13 +19,13 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
       aria-hidden={!isOpen}
       className={`fixed left-0 top-0 z-[600] flex h-screen w-[260px] flex-col overflow-y-auto border-r border-white/10 bg-[#0d0d0f] px-5 pb-5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-[110%]"}`}
     >
-      <div className="shrink-0 px-3 pb-3 pt-5 text-[1.2rem] font-black tracking-[0.1em] text-lime-300">
+      <div className="shrink-0 px-3 pb-3 pt-5 text-lg font-bold tracking-[0.2em] font-sans text-lime-300 uppercase antialiased">
         PEARTONE
       </div>
 
       <nav className="flex flex-col" aria-label="Navigasi Utama">
         <p className="px-3 pb-1.5 pt-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Discover</p>
-        <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
+        <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
           <li><NavLink to="/" end onClick={onClose} className={navClass}><FiHome className="shrink-0 text-[1.2rem]" /><span>Home</span></NavLink></li>
           <li><NavLink to="/tracks" onClick={onClose} className={navClass}><FiMusic className="shrink-0 text-[1.2rem]" /><span>All Tracks</span></NavLink></li>
           <li><NavLink to="/charts" onClick={onClose} className={navClass}><FiTrendingUp className="shrink-0 text-[1.2rem]" /><span>Top Charts</span></NavLink></li>

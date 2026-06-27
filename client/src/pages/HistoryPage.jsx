@@ -56,26 +56,30 @@ const HistoryPage = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="History">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-[70px] -left-[120px] w-[520px] h-[520px] rounded-full bg-[#1ed760] opacity-[0.06] blur-[150px]" />
-        <div className="absolute -bottom-[90px] -right-[40px] w-[420px] h-[420px] rounded-full bg-[#7c6af7] opacity-[0.05] blur-[160px]" />
+        <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
+        <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
 
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={handleLogout} />
-
-      <button 
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`} 
-        type="button" 
-        aria-label="Close Sidebar" 
-        onClick={() => setIsSidebarOpen(false)} 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
-      <button 
-        className="fixed top-4 left-4 z-40 p-2 bg-[#161618] rounded-md text-xl md:hidden" 
-        type="button" 
-        aria-label="Open Sidebar" 
-        aria-expanded={isSidebarOpen} 
+      <button
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        type="button"
+        aria-label="Close Sidebar"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
+        type="button"
+        aria-label="Open Sidebar"
+        aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
       >
         ≡

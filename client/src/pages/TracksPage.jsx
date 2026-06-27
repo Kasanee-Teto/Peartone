@@ -239,22 +239,10 @@ const TracksPage = () => {
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white relative overflow-x-hidden" aria-label="All Tracks">
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute rounded-full filter blur-[140px] w-[480px] h-[480px] bg-[#7c6af7] opacity-7 -top-16 -left-32" />
-        <div className="absolute rounded-full filter blur-[140px] w-[360px] h-[360px] bg-[#c8f560] opacity-5 -bottom-20 -right-10" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
+        <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes tracks-shimmer {
-          0% { background-position: -400px 0; }
-          100% { background-position: 400px 0; }
-        }
-        .animate-shimmer {
-          background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
-          background-size: 800px 100%;
-          animation: tracks-shimmer 1.4s infinite;
-        }
-      `}} />
 
       <Sidebar
         isOpen={isSidebarOpen}
@@ -263,17 +251,18 @@ const TracksPage = () => {
       />
 
       <button
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-200 hidden ${isSidebarOpen ? "!block" : ""}`}
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
         type="button"
         aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
 
       <button
-        className="fixed top-6 left-6 z-40 bg-[#18181c] text-white border border-white/10 rounded-md w-9 h-9 flex items-center justify-center cursor-pointer text-lg"
+        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
         aria-label="Open Sidebar"
-        aria-controls="home-sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
       >

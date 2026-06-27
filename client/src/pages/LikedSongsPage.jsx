@@ -1,19 +1,10 @@
 import { useEffect, useState } from "react";
-import { FiHeart, FiX, FiLoader } from "react-icons/fi";
+import { FiHeart, FiX, FiLoader, FiPlay } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import { likesApi } from "../api/likes.js";
-import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
+import { emitLikesChanged, onLikesChanged, emitPlayTrack, normalizePlayableTrack } from "../utils/likeBus.js";
 import { authApi } from "../api/auth.js";
-
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
+import { useNavigate } from "react-router-dom";
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,7 +12,18 @@ const LikedSongsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [removingId, setRemovingId] = useState("");
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("pt_user") || "null") || {};
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -34,11 +36,16 @@ const LikedSongsPage = () => {
         const items = Array.isArray(response) ? response : response?.data || [];
         if (active) setTracks(items);
       } catch (err) {
-        if (active) setError(err.message || "Failed to load liked songs");
+        if (active) setError(err.message || "Invalid or expired token");
       } finally {
         if (active) setLoading(false);
       }
     };
+
+    const handleSufflePlay = () => {
+      if (tracks.length === 0) return;
+      const suffledTracks = [...tracks].sort(() => Math.random - 0.5);
+    }
 
     loadLikedSongs();
     const cleanup = onLikesChanged(loadLikedSongs);
@@ -68,108 +75,157 @@ const LikedSongsPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white overflow-x-hidden overflow-y-auto text-left w-screen ml-[calc(50%-50vw)] font-sans antialiased">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onLogout={handleLogout} />
+    <main className="min-h-screen bg-[#0d0d0f] text-white overflow-x-hidden overflow-y-auto font-sans antialiased">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
+        <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
+      </div>
 
-      <button 
-        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} 
-        type="button" 
-        aria-label="Close Sidebar" 
-        onClick={() => setIsSidebarOpen(false)} 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
-      <button 
-        className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]" 
-        type="button" 
-        aria-label="Open Sidebar" 
-        aria-controls="home-sidebar" 
-        aria-expanded={isSidebarOpen} 
+      <button
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        type="button"
+        aria-label="Close Sidebar"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <button
+        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
+        type="button"
+        aria-label="Open Sidebar"
+        aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
       >
         ≡
       </button>
 
-      <section className="relative border-b border-white/10 bg-gradient-to-b from-[#0f4d3a] via-[#0b2f24] to-[#0b0b0f] px-5 lg:px-14 pt-11 pb-6.5">
-        <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_70%_0%,rgba(30,215,96,0.22),transparent_60%),radial-gradient(900px_500px_at_0%_10%,rgba(52,211,153,0.14),transparent_55%)] pointer-events-none" />
+      <section className="relative border-b border-white/[0.06] bg-gradient-to-b from-[#0c3e2f] via-[#09221a] to-[#0d0d0f] px-6 lg:px-12 pt-20 pb-8">
+        <div className="absolute inset-0 bg-[radial-gradient(800px_400px_at_80%_0%,rgba(200,245,96,0.12),transparent_70%)] pointer-events-none" />
         
-        <div className="relative z-10">
-          <div className="flex gap-8 items-end">
-            <div className="w-40 h-40 md:w-60 md:h-60 rounded-ff-12 bg-gradient-to-br from-[#16a34a] via-[#22c55e_40%] to-[#bbf7d0] shadow-[0_18px_60px_rgba(0,0,0,0.45)] grid place-items-center shrink-0" aria-hidden="true">
-              <img src="/like.png" alt="Disukai" className="w-[78px] h-[78px] object-contain filter drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)]" />
-            </div>
+        <div className="relative z-10 max-w-[1200px] mx-auto">
+          <div className="flex flex-col sm:flex-row gap-6 lg:gap-8 items-center sm:items-end text-center sm:text-left">
+          <div className="w-40 h-40 md:w-52 md:h-52 rounded-2xl bg-gradient-to-br from-[#10b981] via-[#059669] to-[#047857] shadow-[0_16px_40px_rgba(0,0,0,0.6)] flex items-center justify-center shrink-0 border border-white/10 group relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-20 h-20 md:w-28 md:h-28 text-white drop-shadow-sm"
+            >
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+            </svg>
+          </div>
 
-            <div className="pb-2 min-w-0">
-              <p className="m-0 mb-2 text-sm font-bold tracking-[0.18em] uppercase text-white/72">Playlist</p>
-              <h1 className="m-0 font-black tracking-tighter text-[35px] sm:text-[44px] lg:text-[64px] whitespace-normal sm:overflow-hidden sm:text-ellipsis">
-                Liked Track
+            <div className="pb-1 min-w-0">
+              <p className="m-0 mb-1.5 text-xs font-bold tracking-[0.25em] uppercase text-[#10b981]">Playlist</p>
+              <h1 className="m-0 font-black tracking-tight text-4xl sm:text-5xl lg:text-6xl text-white">
+                Liked Tracks
               </h1>
-              <p className="m-0 mt-3.5 text-sm text-white/65 flex gap-2.5 items-center">
-                <strong className="font-bold text-white/9">{user.username || "User"}</strong>
-                <span className="text-white/55">•</span>
-                <span>{tracks.length} tracks</span>
+              <p className="m-0 mt-4 text-xs sm:text-sm text-white/50 flex gap-2 items-center justify-center sm:justify-start font-medium">
+                <strong className="font-semibold text-white">{user.username || "User"}</strong>
+                <span className="text-white/20">•</span>
+                <span className="text-[#c8f560] bg-[#c8f560]/10 px-2.5 py-0.5 rounded-full font-bold text-xs">{tracks.length} songs</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4.5 mt-5.5">
-            <button type="button" className="w-11 h-11 border-none bg-transparent text-white/62 inline-flex items-center justify-center cursor-pointer transition-all duration-160 ease-in-out hover:text-white/85 hover:-translate-y-0.5" aria-label="Shuffle">Shuffle</button>
-          </div>
+          {tracks.length > 0 && (
+            <div className="flex items-center gap-4 mt-8 justify-center sm:justify-start">
+              <button 
+                type="button" 
+                className="px-6 py-3 rounded-full bg-[#c8f560] text-[#0d0d0f] font-bold text-sm tracking-wide inline-flex items-center gap-2 cursor-pointer shadow-[0_6px_20px_rgba(200,245,96,0.35)] transition-all duration-250 hover:scale-105 active:scale-95"
+              >
+                <FiPlay fill="currentColor" className="ml-0.5" />
+                <span>Shuffle Play</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="px-5 lg:px-14 pt-4.5 pb-32 bg-gradient-to-b from-black/24 to-transparent via-transparent to-65%" aria-label="List of Liked Songs">
-        
-        <div className="grid grid-cols-[36px_minmax(120px,1.7fr)_minmax(90px,1fr)_64px_minmax(86px,auto)] md:grid-cols-[44px_minmax(180px,5fr)_minmax(120px,3fr)_minmax(120px,3fr)_72px_minmax(110px,auto)] gap-2.5 md:gap-4 items-center px-3 md:px-4 py-3.5 border-b border-white/10 text-white/55 text-xs font-bold tracking-[0.14em] uppercase" role="row">
-          <div role="columnheader">#</div>
-          <div role="columnheader">Title</div>
-          <div role="columnheader">Artist</div>
-          <div className="hidden md:block" role="columnheader">Album</div>
-          <div className="flex justify-end" role="columnheader" aria-label="Durasi">Duration</div>
-          <div className="text-right" role="columnheader">Action</div>
-        </div>
-
+      <section className="px-6 lg:px-12 py-8 max-w-[1200px] mx-auto" aria-label="List of Liked Songs">
         {loading ? (
-          <div className="text-white/65 p-6">Loading…</div>
+          <div className="py-20 flex flex-col items-center gap-3 text-sm text-white/40 font-medium">
+            <FiLoader className="animate-spin text-[#c8f560]" size={24} />
+            Loading your favorites…
+          </div>
         ) : error ? (
-          <div className="flex items-center gap-3 bg-[rgba(255,92,110,0.08)] border border-[rgba(255,92,110,0.25)] rounded-ff-14 p-5 text-[#ff5c6e] text-sm mt-4">
-            Failed to load liked songs: {error}
+          <div className="flex items-center gap-4 bg-red-500/5 border border-red-500/10 rounded-2xl p-4 text-red-400 text-sm max-w-xl mx-auto shadow-inner">
+            <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-400 font-bold shrink-0">!</div>
+            <div className="flex-1 font-medium">Failed to load liked songs: {error}</div>
+          </div>
+        ) : tracks.length === 0 ? (
+          <div className="py-20 text-center text-sm text-white/40 font-medium bg-white/[0.02] border border-white/[0.04] rounded-2xl max-w-md mx-auto">
+            Your liked collection is currently empty.
           </div>
         ) : (
-          <ul className="m-0 mt-2.5 p-0 list-none">
-            {tracks.map((t, i) => (
-              <li 
-                key={t.id || i} 
-                className="grid grid-cols-[36px_minmax(120px,1.7fr)_minmax(90px,1fr)_64px_minmax(86px,auto)] md:grid-cols-[44px_minmax(180px,5fr)_minmax(120px,3fr)_minmax(120px,3fr)_72px_minmax(110px,auto)] gap-2.5 md:gap-4 items-center px-3 md:px-4 py-2.5 rounded-lg text-white/86 cursor-pointer transition-colors duration-160 ease-in-out hover:bg-white/6"
-              >
-                <div className="text-white/55 [font-variant-numeric:tabular-nums]">{i + 1}</div>
-                <div className="font-bold text-white/92 overflow-hidden text-ellipsis whitespace-nowrap">{t.title || t.Track?.title}</div>
-                <div className="text-white/55 overflow-hidden text-ellipsis whitespace-nowrap">{t.artist || (t.Artists || t.Track?.Artists || []).map?.((a) => a.name).join(", ")}</div>
-                <div className="hidden md:block text-white/55 overflow-hidden text-ellipsis whitespace-nowrap">{t.album || t.Track?.Album?.title}</div>
-                <div className="text-right [font-variant-numeric:tabular-nums] text-white/55">{Math.floor((t.duration || t.Track?.duration || 0) / 60)}:{String((t.duration || t.Track?.duration || 0) % 60).padStart(2, "0")}</div>
-                
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 py-2 md:px-3.5 md:py-2.5 rounded-full border border-white/12 bg-white/4 text-white/80 font-bold text-xs md:text-sm cursor-pointer transition-all duration-160 ease-in-out hover:enabled:translate-y-[-1px] hover:enabled:bg-[rgba(255,72,66,0.1)] hover:enabled:border-[rgba(255,72,66,0.45)] hover:enabled:text-[#ffb4ad] disabled:cursor-wait disabled:opacity-65"
-                    onClick={() => handleUnlike(t.id || t.trackId || t.Track?.id)}
-                    disabled={removingId === String(t.id || t.trackId || t.Track?.id || "").trim()}
-                    aria-label={`Delete from liked songs: ${t.title || t.Track?.title || "lagu"}`}
-                    title="Delete from liked songs"
+          <>
+            <div className="grid grid-cols-[40px_minmax(120px,2fr)_minmax(100px,1fr)_minmax(100px,1fr)_100px] gap-4 items-center px-4 py-3 border-b border-white/[0.06] text-white/40 text-[11px] font-bold tracking-wider uppercase" role="row">
+              <div role="columnheader">#</div>
+              <div role="columnheader">Title</div>
+              <div role="columnheader">Artist</div>
+              <div role="columnheader">Album</div>
+              <div className="text-right" role="columnheader">Action</div>
+            </div>
+
+            <ul className="m-0 mt-2 p-0 list-none space-y-1">
+              {tracks.map((t, i) => {
+                const uniqueId = String(t.id || t.trackId || t.Track?.id || "").trim();
+                const isCurrentRemoving = removingId === uniqueId;
+
+                return (
+                  <li 
+                    key={t.id || i} 
+                    className="grid grid-cols-[40px_minmax(120px,2fr)_minmax(100px,1fr)_minmax(100px,1fr)_100px] gap-4 items-center px-4 py-3 rounded-xl text-white/80 cursor-pointer transition-all duration-200 hover:bg-white/[0.05] group"
                   >
-                    {removingId === String(t.id || t.trackId || t.Track?.id || "").trim() ? (
-                      <FiLoader className="animate-spin" />
-                    ) : (
-                      <>
-                        <FiHeart fill="currentColor" />
-                        <span>Unlike</span>
-                        <FiX />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <div className="text-white/30 text-xs font-semibold [font-variant-numeric:tabular-nums]">{i + 1}</div>
+
+                    <div className="font-bold text-white text-sm truncate group-hover:text-[#c8f560] transition-colors duration-150" title={t.title || t.Track?.title}>
+                      {t.title || t.Track?.title}
+                    </div>
+
+                    <div className="text-white/50 text-xs font-medium truncate" title={t.artist || (t.Artists || t.Track?.Artists || []).map?.((a) => a.name).join(", ")}>
+                      {t.artist || (t.Artists || t.Track?.Artists || []).map?.((a) => a.name).join(", ")}
+                    </div>
+
+                    <div className="text-white/40 text-xs font-medium truncate" title={t.album || t.Track?.Album?.title || "—"}>
+                      {t.album || t.Track?.Album?.title || "—"}
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center p-2 rounded-full border border-white/10 bg-white/[0.02] text-white/60 hover:text-red-400 hover:bg-red-500/5 hover:border-red-500/10 transition-all duration-200 disabled:cursor-wait disabled:opacity-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUnlike(uniqueId);
+                        }}
+                        disabled={isCurrentRemoving}
+                        aria-label={`Remove ${t.title || t.Track?.title || "song"}`}
+                        title="Remove from liked songs"
+                      >
+                        {isCurrentRemoving ? (
+                          <FiLoader className="animate-spin text-[#c8f560]" size={14} />
+                        ) : (
+                          <FiHeart fill="currentColor" className="text-[#10b981] group-hover:text-red-400 group-hover:scale-90 transition-transform" size={14} />
+                        )}
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </section>
     </main>
