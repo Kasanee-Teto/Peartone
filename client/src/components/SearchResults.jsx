@@ -28,7 +28,7 @@ function normalizeResult(t) {
 const SearchResults = ({ results, loading, error, query }) => {
   if (loading) {
     return (
-      <div className="mx-auto mt-4 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <div className="mx-auto mt-0.5 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
         <div className="flex flex-col gap-3 p-3 px-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3">
@@ -46,7 +46,7 @@ const SearchResults = ({ results, loading, error, query }) => {
 
   if (error) {
     return (
-      <div className="mx-auto mt-4 w-full max-w-[520px] rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+      <div className="mx-auto mt-0.5 w-full max-w-[520px] rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
         Failed to load: {error}
       </div>
     );
@@ -54,7 +54,7 @@ const SearchResults = ({ results, loading, error, query }) => {
 
   if (!results || results.length === 0) {
     return (
-      <div className="mx-auto mt-4 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <div className="mx-auto mt-0.5 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
         <div className="px-4 py-8 text-center">
           <FiMusic size={28} className="mx-auto mb-3 text-white/20" />
           <p className="text-sm text-white/40">
@@ -66,7 +66,7 @@ const SearchResults = ({ results, loading, error, query }) => {
   }
 
   return (
-    <div className="mx-auto mt-4 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+    <div className="mx-auto mt-0.5 w-full max-w-[520px] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
       <div className="border-b border-white/10 px-4 py-2.5">
         <p className="m-0 text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">
           {results.length} results to "{query}"

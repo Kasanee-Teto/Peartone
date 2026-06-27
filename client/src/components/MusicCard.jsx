@@ -70,62 +70,60 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
 
   return (
     <article
-      className={`music-card music-card--${variant}`}
+      className={`flex flex-col w-full`}
       aria-label={`${title} by ${artist}`}
     >
-      {variant === "chart" && rank && (
-        <span className="music-card__rank" aria-label={`Rank ${rank}`}>
-          #{rank}
-        </span>
-      )}
-
-      <div className="music-card__cover-wrapper">
+       <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-white/5">
         {coverUrl ? (
           <img
             src={coverUrl}
-            alt={`Cover ${title}`}
-            className="music-card__cover"
+            alt={`Cover for ${title}`}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
-          <div
-            className="music-card__cover music-card__cover--placeholder"
-            aria-hidden="true"
-          >
-            <span>♪</span>
+          <div className="w-full h-full flex items-center justify-center text-4xl text-white/20" aria-hidden="true">
+            ♪
           </div>
         )}
 
         <button
           type="button"
-          className="music-card__play-btn"
           onClick={handlePlay}
           aria-label={`Play ${title}`}
+          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-xl"
         >
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <span className="flex items-center justify-center w-12 h-12 rounded-full bg-[#c8f560] shadow-lg">
+            <svg viewBox="0 0 24 24" fill="black" className="w-5 h-5 ml-0.5" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </span>
         </button>
       </div>
 
-      <div className="music-card__info">
-        <h3 className="music-card__title" title={title}>
+      <div className="mt-2 px-0.5 flex flex-col gap-0.5">
+        <h3
+          className="text-sm font-semibold text-white leading-snug truncate"
+          title={title}
+        >
           {title}
         </h3>
-        <p className="music-card__artist">{artist}</p>
+        <p className="text-xs text-white/50 truncate">{artist}</p>
 
-        {album && <p className="music-card__album">{album}</p>}
-
-        <div className="music-card__meta">
-          {genre && <span className="music-card__genre">{genre}</span>}
-          <span className="music-card__duration">{duration}</span>
-        </div>
-
-        {variant === "popular" && safePlayCount > 0 && (
-          <p className="music-card__plays">
-            {safePlayCount.toLocaleString("id-ID")} plays
+        {(album || genre) && (
+          <p className="text-xs text-white/30 truncate">
+            {[album, genre].filter(Boolean).join(" · ")}
           </p>
         )}
+
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-white/40">{duration}</span>
+          {variant === "popular" && safePlayCount > 0 && (
+            <span className="text-xs text-white/40">
+              {safePlayCount.toLocaleString("id-ID")} plays
+            </span>
+          )}
+        </div>
       </div>
     </article>
   );

@@ -117,7 +117,7 @@ const HomePage = () => {
 
   return (
     <main 
-      className="w-full max-w-[1200px] mx-auto px-4 md:px-6 pb-20 md:pb-16 flex flex-col gap-12 md:gap-16 font-sans antialiased text-[#8a8a99]" 
+      className="w-full max-w-7xl mx-auto px-6 md:px-8 pb-20 flex flex-col gap-16 font-sans antialiased text-[#8a8a99]" 
       aria-label="Peartone Home Page"
     >
       <div className="grid grid-columns-1 gap-8 items-start">
@@ -155,7 +155,7 @@ const HomePage = () => {
             ≡
           </button>
 
-          <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Banner Peartone">
+          <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Peartone Banner">
 
             <div className="absolute -top-10 -left-20 w-[500px] height-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
             <div className="absolute top-0 -right-[100px] w-[350px] height-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
@@ -172,44 +172,46 @@ const HomePage = () => {
                 Listen to your musics till your weekend COMES!
               </p>
 
-              <div className="w-full max-w-xl px-4">
+              <div className="w-full max-w-xl mx-auto flex flex-col items-center">
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
                 />
+
+                {!isSearching && (
+                    <button
+                      className="mt-8 inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-150 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(200,245,96,0.3)] active:translate-y-0"
+                      aria-label="Start Listening"
+                      onClick={() => setShowplaylist(true)}
+                    >
+                      Start Listening
+                    </button>
+                )}
+
+                {isSearching && (
+                  <div className="w-full mt-1.5">
+                    <SearchResults
+                      results={searchResults}
+                      loading={searchLoading}
+                      error={searchError}
+                      query={searchQuery}
+                    />
+                  </div>
+                )}
               </div>
 
               {!isSearching && (
-                <button
-                  className="inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-150 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(200,245,96,0.3)] active:translate-y-0"
-                  aria-label="Start Listening"
-                  onClick={() => setShowplaylist(true)}
-                >
-                  Start Listening
-                </button>
+                <div className="w-full mt-12 flex flex-col gap-12">
+                  <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
+                  <PopularList
+                    popular={popular}
+                    loading={popularLoading}
+                    error={popularError}
+                  />
+                </div>
               )}
             </div>
           </section>
-
-          {isSearching ? (
-            <div className="px-4 pb-8 max-w-3xl mx-auto w-full">
-              <SearchResults
-                results={searchResults}
-                loading={searchLoading}
-                error={searchError}
-                query={searchQuery}
-              />
-            </div>
-          ) : (
-            <>
-              <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
-              <PopularList
-                popular={popular}
-                loading={popularLoading}
-                error={popularError}
-              />
-            </>
-          )}
         </div>
       </div>
     </main>
