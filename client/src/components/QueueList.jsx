@@ -2,7 +2,7 @@ import { FiPlay, FiTrash2 } from "react-icons/fi";
 
 const QueueList = ({ queue = [], currentIndex = 0, onPlay, onRemove, onClear }) => {
   return (
-    <div className="absolute bottom-[92px] right-6 z-[500] w-[320px] max-h-[360px] overflow-hidden rounded-lg border border-white/10 bg-[#0d0d0ff5] text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
+    <div className="absolute bottom-[92px] right-6 z-[500] w-[320px] max-h-[360px] overflow-hidden rounded-lg border border-white/10 bg-[#0d0d0ff5] text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)] pointer-events-auto">
       <div className="flex items-center justify-between border-b border-white/10 px-[14px] py-3">
         <strong>Queue</strong>
         <button

@@ -48,7 +48,7 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
   const statusMessage = trackId ? error || "Lyric not available" : "Track not available";
 
   return (
-    <div className="absolute bottom-[92px] right-[360px] z-[500] max-h-[420px] w-[420px] overflow-hidden rounded-lg border border-white/10 bg-[#0d0d0ff5] text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
+    <div className="fixed sm:absolute bottom-24 right-0 sm:right-4 z-[600] max-h-[75vh] sm:max-h-[420px] w-full sm:w-[400px] overflow-hidden rounded-t-xl sm:rounded-lg border border-white/10 bg-[#0d0d0ff5] text-white shadow-[0_-8px_32px_rgba(0,0,0,0.5)] sm:shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md pointer-events-auto">
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-[14px] py-3">
         <div className="min-w-0">
           <strong className="block truncate">{title}</strong>
@@ -64,7 +64,7 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
         </button>
       </div>
 
-      <div className="max-h-[340px] overflow-y-auto p-3">
+      <div className="max-h-[50vh] sm:max-h-[340px] overflow-y-auto p-4 overscroll-contain touch-pan-y">
         {loading ? (
           <div className="text-white/60">Load Lyric…</div>
         ) : lyrics ? (

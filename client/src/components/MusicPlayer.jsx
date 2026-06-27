@@ -1,18 +1,9 @@
+// MusicPlayer.jsx — fully responsive rewrite
 import { useEffect, useRef, useState } from "react";
 import {
-  FiPlay,
-  FiPause,
-  FiSkipBack,
-  FiSkipForward,
-  FiShuffle,
-  FiRepeat,
-  FiHeart,
-  FiVolume2,
-  FiList,
-  FiMic,
-  FiPlus,
-  FiChevronUp,
-  FiChevronDown,
+  FiPlay, FiPause, FiSkipBack, FiSkipForward,
+  FiShuffle, FiRepeat, FiHeart, FiVolume2,
+  FiList, FiMic, FiPlus, FiChevronUp, FiChevronDown,
 } from "react-icons/fi";
 import LyricsPanel from "./LyricsPanel";
 import QueueList from "./QueueList";
@@ -43,12 +34,10 @@ const MusicPlayer = () => {
       const raw = localStorage.getItem("pt_queue");
       const parsed = raw ? JSON.parse(raw) : [];
       const normalized = Array.isArray(parsed)
-        ? parsed.map(normalizePlayableTrack).filter((track) => track && isValidTrackId(track.trackId))
+        ? parsed.map(normalizePlayableTrack).filter((t) => t && isValidTrackId(t.trackId))
         : [];
-      return normalized.length > 0 ? normalized : [];
-    } catch {
-      return [];
-    }
+      return normalized;
+    } catch { return []; }
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLyrics, setShowLyrics] = useState(false);
@@ -60,35 +49,20 @@ const MusicPlayer = () => {
   const currentTime = Math.round((progress / 100) * duration);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("pt_queue", JSON.stringify(queue));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem("pt_queue", JSON.stringify(queue)); } catch {}
   }, [queue]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = volume / 100;
+    if (audio) audio.volume = volume / 100;
   }, [volume]);
 
   useEffect(() => {
-    const cleanup = onPlayTrack((incomingTrack) => {
+    return onPlayTrack((incomingTrack) => {
       const track = normalizePlayableTrack(incomingTrack);
-      if (!isValidTrackId(track.trackId)) {
-        setPlayerError("This track is not found at the server.");
-        return;
-      }
-      if (!track.streamUrl) {
-        setPlayerError("This track is not available for streaming.");
-        return;
-      }
-
-      setQueue((currentQueue) => {
-        const withoutTrack = currentQueue.filter((item) => item.id !== track.id);
-        return [track, ...withoutTrack];
-      });
+      if (!isValidTrackId(track.trackId)) { setPlayerError("Track not found."); return; }
+      if (!track.streamUrl) { setPlayerError("Track not available for streaming."); return; }
+      setQueue((q) => [track, ...q.filter((item) => item.id !== track.id)]);
       setCurrentIndex(0);
       setProgress(0);
       setPlayerError("");
@@ -97,65 +71,41 @@ const MusicPlayer = () => {
       setIsCollapsed(false);
       setIsPlaying(true);
     });
-
-    return cleanup;
   }, []);
 
   useEffect(() => {
-    const handleAddToQueue = (event) => {
-      const track = normalizePlayableTrack(event.detail);
+    const handler = (e) => {
+      const track = normalizePlayableTrack(e.detail);
       if (!isValidTrackId(track.trackId) || !track.streamUrl) return;
-      setQueue((currentQueue) => {
-        const alreadyIn = currentQueue.some((item) => item.id === track.id);
-        if (alreadyIn) return currentQueue;
-        return [...currentQueue, track];
-      });
+      setQueue((q) => q.some((item) => item.id === track.id) ? q : [...q, track]);
     };
-
-    window.addEventListener("pt:add-to-queue", handleAddToQueue);
-    return () => window.removeEventListener("pt:add-to-queue", handleAddToQueue);
+    window.addEventListener("pt:add-to-queue", handler);
+    return () => window.removeEventListener("pt:add-to-queue", handler);
   }, []);
 
   useEffect(() => {
-    const handleClearQueue = () => {
-      setQueue([]);
-      setCurrentIndex(0);
-      setIsPlaying(false);
-      setProgress(0);
-    };
-
-    window.addEventListener("pt:clear-queue", handleClearQueue);
-    return () => window.removeEventListener("pt:clear-queue", handleClearQueue);
+    const handler = () => { 
+      setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0); };
+    window.addEventListener("pt:clear-queue", handler);
+    return () => window.removeEventListener("pt:clear-queue", handler);
   }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (!currentTrack) {
-      setIsPlaying(false);
-      setProgress(0);
-      audio.removeAttribute("src");
-      audio.load();
-      return;
+      setIsPlaying(false); setProgress(0);
+      audio.removeAttribute("src"); audio.load(); return;
     }
-
     const source = currentTrack.streamUrl || buildStreamUrl(currentTrack);
     if (!source) {
-      setPlayerError("This track is not available for streaming.");
-      setIsPlaying(false);
-      audio.removeAttribute("src");
-      audio.load();
-      return;
+      setPlayerError("Track not available for streaming.");
+      setIsPlaying(false); audio.removeAttribute("src"); audio.load(); return;
     }
-
-    setPlayerError("");
-    setProgress(0);
-    audio.src = source;
-    audio.load();
-
+    setPlayerError(""); setProgress(0);
+    audio.src = source; audio.load();
     if (isPlaying) audio.play().catch(() => setIsPlaying(false));
-  }, [currentTrack?.id, currentTrack?.streamUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentTrack?.id, currentTrack?.streamUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -165,47 +115,29 @@ const MusicPlayer = () => {
   }, [isPlaying, currentTrack?.streamUrl]);
 
   useEffect(() => {
-    if (!currentTrack?.id) {
-      setIsLiked(false);
-      return;
-    }
-
+    if (!currentTrack?.id) { setIsLiked(false); return; }
     let active = true;
-    likesApi
-      .list()
-      .then((payload) => {
-        if (!active) return;
-        const likedTracks = Array.isArray(payload) ? payload : payload?.data || [];
-        const currentTrackId = String(currentTrack.trackId || currentTrack.id || "").trim();
-        const liked = likedTracks.some(
-          (item) => String(item?.trackId || item?.Track?.id || item?.id || "").trim() === currentTrackId
-        );
-        setIsLiked(liked);
-      })
-      .catch(() => {
-        if (active) setIsLiked(false);
-      });
-
-    return () => {
-      active = false;
-    };
+    likesApi.list().then((payload) => {
+      if (!active) return;
+      const likedTracks = Array.isArray(payload) ? payload : payload?.data || [];
+      const tid = String(currentTrack.trackId || currentTrack.id || "").trim();
+      setIsLiked(likedTracks.some((item) =>
+        String(item?.trackId || item?.Track?.id || item?.id || "").trim() === tid
+      ));
+    }).catch(() => { if (active) setIsLiked(false); });
+    return () => { active = false; };
   }, [currentTrack?.id, currentTrack?.trackId]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
-
     if (!token || !isValidTrackId(trackId) || !isPlaying) return;
     if (lastHistoryTrackIdRef.current === trackId) return;
-
     const timer = setTimeout(() => {
       if (lastHistoryTrackIdRef.current === trackId) return;
       lastHistoryTrackIdRef.current = trackId;
-      historyApi.add({ trackId }).catch(() => {
-        lastHistoryTrackIdRef.current = "";
-      });
+      historyApi.add({ trackId }).catch(() => { lastHistoryTrackIdRef.current = ""; });
     }, 15000);
-
     return () => clearTimeout(timer);
   }, [isPlaying, currentTrack?.id, currentTrack?.trackId]);
 
@@ -217,48 +149,29 @@ const MusicPlayer = () => {
       setPlayerError("");
       if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100 || 0);
     };
-
     const handleTimeUpdate = () => {
       if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100);
       else if (duration > 0) setProgress((audio.currentTime / duration) * 100);
     };
-
     const handleEnded = () => {
-      if (isRepeat) {
-        audio.currentTime = 0;
-        audio.play().catch(() => setIsPlaying(false));
-        return;
-      }
-
+      if (isRepeat) { audio.currentTime = 0; audio.play().catch(() => setIsPlaying(false)); return; }
       if (queue.length === 0) return setIsPlaying(false);
-
       if (isShuffle && queue.length > 1) {
         setCurrentIndex(Math.floor(Math.random() * queue.length));
-        setIsPlaying(true);
-        return;
+        setIsPlaying(true); return;
       }
-
-      setCurrentIndex((current) => {
-        const next = current + 1;
-        if (next >= queue.length) {
-          setIsPlaying(false);
-          return current;
-        }
-        setIsPlaying(true);
-        return next;
+      setCurrentIndex((cur) => {
+        const next = cur + 1;
+        if (next >= queue.length) { setIsPlaying(false); return cur; }
+        setIsPlaying(true); return next;
       });
     };
-
-    const handleError = () => {
-      setIsPlaying(false);
-      setPlayerError("Failed to load this track.");
-    };
+    const handleError = () => { setIsPlaying(false); setPlayerError("Failed to load this track."); };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
-
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
@@ -269,26 +182,23 @@ const MusicPlayer = () => {
 
   function addToQueue(track) {
     const item = normalizePlayableTrack(track);
-    if (!item.streamUrl) {
-      setPlayerError("This track is not available for streaming.");
-      return;
+    if (!item.streamUrl) { 
+      setPlayerError("Track not available for streaming."); return; 
     }
-    setQueue((currentQueue) => [...currentQueue, item]);
+    setQueue((q) => [...q, item]);
     setShowQueue(true);
   }
 
   function removeFromQueue(idx) {
-    setQueue((currentQueue) => {
-      const copy = currentQueue.slice();
+    setQueue((q) => {
+      const copy = q.slice();
       copy.splice(idx, 1);
-
-      setCurrentIndex((current) => {
+      setCurrentIndex((cur) => {
         if (copy.length === 0) return 0;
-        if (idx < current) return current - 1;
-        if (idx === current) return Math.min(current, copy.length - 1);
-        return current;
+        if (idx < cur) return cur - 1;
+        if (idx === cur) return Math.min(cur, copy.length - 1);
+        return cur;
       });
-
       if (copy.length === 0) setIsPlaying(false);
       return copy;
     });
@@ -296,46 +206,36 @@ const MusicPlayer = () => {
 
   function playTrack(idx) {
     if (idx < 0 || idx >= queue.length) return;
-    setCurrentIndex(idx);
-    setIsPlaying(true);
-    setIsCollapsed(false);
+    setCurrentIndex(idx); setIsPlaying(true); setIsCollapsed(false);
   }
 
   function playNext() {
     if (queue.length === 0) return;
-
     if (isShuffle && queue.length > 1) {
       setCurrentIndex(Math.floor(Math.random() * queue.length));
-      setIsPlaying(true);
-      return;
+      setIsPlaying(true); return;
     }
-
-    setCurrentIndex((current) => {
-      const next = current + 1;
+    setCurrentIndex((cur) => {
+      const next = cur + 1;
       if (next >= queue.length) {
         if (isRepeat) {
           const audio = audioRef.current;
-          if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(() => setIsPlaying(false));
-          }
-          return current;
+          if (audio) { audio.currentTime = 0; audio.play().catch(() => setIsPlaying(false)); }
+          return cur;
         }
-        setIsPlaying(false);
-        return current;
+        setIsPlaying(false); return cur;
       }
-      setIsPlaying(true);
-      return next;
+      setIsPlaying(true); return next;
     });
   }
 
   function playPrev() {
-    setCurrentIndex((current) => Math.max(0, current - 1));
+    setCurrentIndex((cur) => Math.max(0, cur - 1));
     setIsPlaying(true);
   }
 
-  function toggleProgress(event) {
-    const next = Number(event.target.value);
+  function toggleProgress(e) {
+    const next = Number(e.target.value);
     setProgress(next);
     const audio = audioRef.current;
     const total = audio?.duration || duration;
@@ -343,231 +243,216 @@ const MusicPlayer = () => {
   }
 
   function togglePlay() {
-    if (!currentTrack?.streamUrl) {
-      setPlayerError("This track is not available for streaming.");
-      return;
-    }
-
+    if (!currentTrack?.streamUrl) { setPlayerError("Track not available for streaming."); return; }
     if (!isPlaying && progress >= 99 && duration > 0) {
       const audio = audioRef.current;
       if (audio) audio.currentTime = 0;
       setProgress(0);
     }
-
-    setIsPlaying((state) => !state);
+    setIsPlaying((s) => !s);
   }
 
   async function toggleLike() {
     const trackId = currentTrack?.trackId || currentTrack?.id;
-
-    if (!isValidTrackId(trackId)) {
-      setPlayerError("This track is not found at the server.");
-      return;
-    }
-
+    if (!isValidTrackId(trackId)) { setPlayerError("Track not found."); return; }
     try {
       const response = await likesApi.toggle(trackId);
-      const nextLiked = Boolean(response?.data?.liked ?? response?.liked);
-      setIsLiked(nextLiked);
+      setIsLiked(Boolean(response?.data?.liked ?? response?.liked));
       emitLikesChanged();
-    } catch (error) {
-      setPlayerError(error.message || "Failed to update like");
-    }
+    } catch (err) { setPlayerError(err.message || "Failed to update like"); }
   }
 
-  const baseIconBtn =
-    "inline-flex items-center justify-center p-1 text-white/50 transition hover:text-white";
-  const activeIcon = "text-[#c8f560]";
+  const iconBtn = "inline-flex items-center justify-center rounded-full p-1.5 text-white/50 transition-all hover:text-white hover:bg-white/5";
+  const activeIcon = "text-[#c8f560] hover:text-[#c8f560]";
+
+  const ProgressBar = () => (
+    <div className="flex w-full items-center gap-2">
+      <span className="w-8 shrink-0 text-right text-[10px] font-mono text-white/40">{formatTime(currentTime)}</span>
+
+      <div className="relative h-1 flex-1 py-2 flex items-center group">
+        <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full rounded-full bg-[#c8f560] transition-all" style={{ width: `${progress}%` }} />
+        </div>
+
+        <input
+          type="range" min={0} max={100} value={progress}
+          onChange={toggleProgress}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
+          aria-label="Seek"
+        />
+      </div>
+      <span className="w-8 shrink-0 text-left text-[10px] font-mono text-white/40">{formatTime(duration)}</span>
+    </div>
+  );
+
+  const PlayButton = ({ size = "md" }) => {
+    const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
+    const iconSize = size === "sm" ? 14 : 16;
+    return (
+      <button
+        type="button" onClick={togglePlay}
+        className={`${dim} shrink-0 flex items-center justify-center rounded-full bg-white text-[#0d0d0f] shadow-md transition hover:scale-105 active:scale-95`}
+        aria-label={isPlaying ? "Pause" : "Play"}
+      >
+        {isPlaying
+          ? <FiPause size={iconSize} fill="currentColor" />
+          : <FiPlay size={iconSize} fill="currentColor" className="ml-[2px]" />}
+      </button>
+    );
+  };
+
+  if (isCollapsed) {
+    return (
+      <div className="fixed inset-x-0 bottom-0 z-[300] flex justify-end pointer-events-none">
+        <button
+          type="button" onClick={() => setIsCollapsed(false)}
+          className="pointer-events-auto mr-4 mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1c1f] text-white/85 shadow-lg border border-white/5 hover:text-white transition hover:scale-105"
+          aria-label="Show music player"
+        >
+          <FiChevronUp size={20} />
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[300] flex justify-end pointer-events-none">
+    <div className="fixed inset-x-0 bottom-0 z-[300] pointer-events-none">
       <audio ref={audioRef} preload="metadata" />
 
-      {isCollapsed ? (
-        <button
-          type="button"
-          onClick={() => setIsCollapsed(false)}
-          className="pointer-events-auto mr-6 flex items-center justify-center p-0 text-white/85 hover:text-white"
-          aria-label="Show music player"
-          title="Show music player"
-        >
-          <FiChevronUp size={18} />
-        </button>
-      ) : (
-        <div className="pointer-events-auto relative flex h-20 w-full items-center gap-4 border-t border-white/10 bg-[#0d0d0feb] px-6 text-white backdrop-blur-xl">
-          <button
-            type="button"
-            onClick={() => {
-              setIsCollapsed(true);
-              setShowQueue(false);
-              setShowLyrics(false);
-            }}
-            className="order-4 ml-auto flex shrink-0 items-center justify-center p-0 text-white/85 hover:text-white"
-            aria-label="Hide music player"
-            title="Hide music player"
-          >
-            <FiChevronDown size={18} />
-          </button>
+      <div className="pointer-events-auto w-full border-t border-white/5 bg-[#0a0a0cd6] backdrop-blur-2xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)] text-white">
 
-          <div className="order-1 flex w-[240px] shrink-0 items-center gap-3 min-w-0">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-xl">
-              ♪
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold">
-                {currentTrack?.title || "No track played"}
-              </p>
-              <p className="truncate text-[11px] text-white/45">
-                {currentTrack?.artist || "Choose a track to start listening"}
-              </p>
-              {playerError && <p className="mt-1 truncate text-[10px] text-red-200">{playerError}</p>}
-            </div>
+        <div className="flex flex-col sm:hidden px-4 pt-3 pb-2 gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-base font-semibold shadow-md">♪</div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleLike}
-                className={`${baseIconBtn} ${isLiked ? activeIcon : ""}`}
-                aria-label={isLiked ? "Unlike" : "Like"}
-                disabled={!isValidTrackId(String(currentTrack?.trackId || currentTrack?.id || "").trim())}
-              >
-                <FiHeart size={16} fill={isLiked ? "currentColor" : "none"} />
-              </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-white/95">{currentTrack?.title || "No track"}</p>
 
-              <button
-                type="button"
-                onClick={() => addToQueue(currentTrack)}
-                title="Add to queue"
-                className={baseIconBtn}
-              >
-                <FiPlus size={14} />
-              </button>
+              <p className="truncate text-[10px] text-white/50">{currentTrack?.artist || "Start listening"}</p>
+              {playerError && <p className="truncate text-[9px] text-red-400">{playerError}</p>}
             </div>
+            <button type="button" onClick={toggleLike} className={`${iconBtn} shrink-0`} aria-label={isLiked ? "Unlike" : "Like"}>
+              <FiHeart size={15} className={isLiked ? "text-[#c8f560]" : ""} fill={isLiked ? "currentColor" : "none"} />
+            </button>
+            <PlayButton size="sm" />
           </div>
 
-          <div className="order-2 flex min-w-0 flex-1 flex-col items-center gap-2">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setIsShuffle(!isShuffle)}
-                className={`${baseIconBtn} ${isShuffle ? activeIcon : ""}`}
-                aria-label="Shuffle"
-              >
-                <FiShuffle size={16} />
-              </button>
+          <ProgressBar />
 
-              <button type="button" className="inline-flex p-1 text-white/70 hover:text-white" onClick={playPrev} aria-label="Previous">
-                <FiSkipBack size={20} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`} aria-label="Shuffle">
+                <FiShuffle size={13} />
               </button>
+              <button type="button" onClick={playPrev} className={iconBtn} aria-label="Previous"><FiSkipBack size={16} /></button>
 
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#0d0d0f] shadow-[0_4px_16px_rgba(255,255,255,0.15)] transition hover:scale-105"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? <FiPause size={18} fill="currentColor" /> : <FiPlay size={18} fill="currentColor" className="ml-[2px]" />}
-              </button>
-
-              <button type="button" className="inline-flex p-1 text-white/70 hover:text-white" onClick={playNext} aria-label="Next">
-                <FiSkipForward size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsRepeat(!isRepeat)}
-                className={`${baseIconBtn} ${isRepeat ? activeIcon : ""}`}
-                aria-label="Repeat"
-              >
-                <FiRepeat size={16} />
+              <button type="button" onClick={playNext} className={iconBtn} aria-label="Next"><FiSkipForward size={16} /></button>
+              
+              <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`} aria-label="Repeat">
+                <FiRepeat size={13} />
               </button>
             </div>
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setShowLyrics((s) => !s)} className={`${iconBtn} ${showLyrics ? activeIcon : ""}`} aria-label="Lyrics"><FiMic size={14} /></button>
 
-            <div className="flex w-full max-w-[480px] items-center gap-2">
-              <span className="min-w-8 shrink-0 text-right text-[11px] text-white/40">{formatTime(currentTime)}</span>
-              <div className="relative h-1 flex-1">
-                <div className="absolute inset-0 rounded-sm bg-white/15" />
-                <div
-                  className="absolute bottom-0 left-0 top-0 rounded-sm bg-[#c8f560] transition-[width] duration-100"
-                  style={{ width: `${progress}%` }}
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={progress}
-                  onChange={toggleProgress}
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  aria-label="Progress"
-                />
-              </div>
-              <span className="min-w-8 shrink-0 text-[11px] text-white/40">{formatTime(duration)}</span>
-            </div>
-          </div>
+              <button type="button" onClick={() => setShowQueue((s) => !s)} className={`${iconBtn} ${showQueue ? activeIcon : ""}`} aria-label="Queue"><FiList size={14} /></button>
 
-          <div className="order-3 flex w-[240px] shrink-0 items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowLyrics((s) => !s)}
-              className={`${baseIconBtn} ${showLyrics ? activeIcon : ""}`}
-              aria-label="Lyric"
-              title="Lyric"
-            >
-              <FiMic size={16} />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowQueue((s) => !s)}
-              className={`${baseIconBtn} ${showQueue ? activeIcon : ""}`}
-              aria-label="Queue"
-              title="Queue"
-            >
-              <FiList size={16} />
-            </button>
-
-            <div className="ml-1 flex items-center gap-1.5">
-              <FiVolume2 size={16} className="shrink-0 text-white/40" />
-              <div className="relative h-1 w-20">
-                <div className="absolute inset-0 rounded-sm bg-white/15" />
-                <div className="absolute bottom-0 left-0 top-0 rounded-sm bg-white/70" style={{ width: `${volume}%` }} />
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={volume}
-                  onChange={(event) => setVolume(Number(event.target.value))}
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  aria-label="Volume"
-                />
-              </div>
+              <button type="button" onClick={() => setIsCollapsed(true)} className={`${iconBtn}`} aria-label="Collapse"><FiChevronDown size={16} /></button>
             </div>
           </div>
         </div>
-      )}
+
+        <div className="hidden sm:flex lg:hidden flex-col px-5 pt-3 pb-2 gap-1.5">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-lg font-semibold shadow-md">♪</div>
+              
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white/95 max-w-[180px]">{currentTrack?.title || "No track"}</p>
+
+                <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>
+                {playerError && <p className="text-[9px] text-red-400 truncate">{playerError}</p>}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
+              <button type="button" onClick={playPrev} className={iconBtn}><FiSkipBack size={17} /></button>
+
+              <PlayButton />
+
+              <button type="button" onClick={playNext} className={iconBtn}><FiSkipForward size={17} /></button>
+              <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <button type="button" onClick={toggleLike} className={iconBtn}><FiHeart size={15} className={isLiked ? "text-[#c8f560]" : ""} fill={isLiked ? "currentColor" : "none"} /></button>
+
+              <button type="button" onClick={() => setShowLyrics((s) => !s)} className={`${iconBtn} ${showLyrics ? activeIcon : ""}`}><FiMic size={14} /></button>
+
+              <button type="button" onClick={() => setShowQueue((s) => !s)} className={`${iconBtn} ${showQueue ? activeIcon : ""}`}><FiList size={14} /></button>
+              
+              <button type="button" onClick={() => setIsCollapsed(true)} className={iconBtn}><FiChevronDown size={16} /></button>
+            </div>
+          </div>
+          <ProgressBar />
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-3 h-24 items-center px-8">
+          <div className="flex items-center gap-4 min-w-0 justify-self-start">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-xl font-semibold shadow-md">♪</div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white/95 max-w-[200px]">{currentTrack?.title || "No track played"}</p>
+              <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>
+              {playerError && <p className="text-[9px] text-red-400 truncate">{playerError}</p>}
+            </div>
+            <div className="flex items-center gap-0.5 ml-1 shrink-0">
+              <button type="button" onClick={toggleLike} className={iconBtn} disabled={!isValidTrackId(String(currentTrack?.trackId || currentTrack?.id || "").trim())}>
+                <FiHeart size={15} className={isLiked ? "text-[#c8f560]" : ""} fill={isLiked ? "currentColor" : "none"} />
+              </button>
+              <button type="button" onClick={() => addToQueue(currentTrack)} className={iconBtn} title="Add to queue"><FiPlus size={16} /></button>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 w-full max-w-[480px] justify-self-center">
+            <div className="flex items-center gap-4">
+              <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
+              <button type="button" onClick={playPrev} className="p-1 text-white/70 hover:text-white transition"><FiSkipBack size={18} /></button>
+              <PlayButton />
+              <button type="button" onClick={playNext} className="p-1 text-white/70 hover:text-white transition"><FiSkipForward size={18} /></button>
+              <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
+            </div>
+            <ProgressBar />
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 justify-self-end shrink-0">
+            <button type="button" onClick={() => setShowLyrics((s) => !s)} className={`${iconBtn} ${showLyrics ? activeIcon : ""}`} aria-label="Lyrics"><FiMic size={15} /></button>
+            <button type="button" onClick={() => setShowQueue((s) => !s)} className={`${iconBtn} ${showQueue ? activeIcon : ""}`} aria-label="Queue"><FiList size={15} /></button>
+            <div className="flex items-center gap-1.5 group">
+              <FiVolume2 size={15} className="shrink-0 text-white/50 group-hover:text-white transition" />
+              <div className="relative h-1 w-20 py-2 flex items-center">
+                <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-full rounded-full bg-white/80 group-hover:bg-[#c8f560] transition-colors" style={{ width: `${volume}%` }} />
+                </div>
+                <input type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10" aria-label="Volume" />
+              </div>
+            </div>
+            <div className="h-3.5 w-px bg-white/10 mx-0.5" />
+            <button type="button" onClick={() => { setIsCollapsed(true); setShowQueue(false); setShowLyrics(false); }} className={`${iconBtn} h-7 w-7`} aria-label="Hide player"><FiChevronDown size={18} /></button>
+          </div>
+        </div>
+      </div>
 
       {showQueue && (
-        <QueueList
-          queue={queue}
-          currentIndex={currentIndex}
-          onPlay={(i) => playTrack(i)}
-          onRemove={(i) => removeFromQueue(i)}
-          onClear={() => {
-            setQueue([]);
-            setCurrentIndex(0);
-            setIsPlaying(false);
-            setProgress(0);
-          }}
+        <QueueList queue={queue} currentIndex={currentIndex}
+          onPlay={playTrack} onRemove={removeFromQueue}
+          onClear={() => { setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0); }}
         />
       )}
-
       {showLyrics && (
-        <LyricsPanel
-          key={currentTrack?.id || "no-track"}
-          trackId={currentTrack?.id}
-          artist={currentTrack?.artist}
-          title={currentTrack?.title}
-          open={showLyrics}
+        <LyricsPanel key={currentTrack?.id || "no-track"}
+          trackId={currentTrack?.id} artist={currentTrack?.artist}
+          title={currentTrack?.title} open={showLyrics}
           onClose={() => setShowLyrics(false)}
         />
       )}

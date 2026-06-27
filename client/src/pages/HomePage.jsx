@@ -40,7 +40,6 @@ const HomePage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // ── Search state ──
   const [searchQuery, setSearchQuery]   = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -74,7 +73,6 @@ const HomePage = () => {
   const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
   const popular = useMemo(() => popularRaw.map(normalizeTrack), [popularRaw]);
 
-  // ── Handler search ──
   const handleSearch = useCallback(async (q) => {
     setSearchQuery(q);
     setSearchLoading(true);
