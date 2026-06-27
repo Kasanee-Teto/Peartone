@@ -19,7 +19,7 @@ const PopularList = ({ popular = [], loading, error }) => {
       <section aria-label="Popular Now">
         <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Popular Now</h2>
         <div className="mt-4 text-red-400" role="alert">
-          ⚠️ Gagal memuat lagu populer: {error}
+          ⚠️ Failed to load popular track: {error}
         </div>
       </section>
     );
@@ -49,7 +49,7 @@ const PopularList = ({ popular = [], loading, error }) => {
             <div className="absolute top-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 border border-white/10 text-xs font-bold text-white backdrop-blur-md shadow-md">
               #{index + 1}
             </div>
-            <MusicCard track={track} />
+            <MusicCard track={track} variant="popular" />
           </div>
         ))}
       </div>

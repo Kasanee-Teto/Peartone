@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiArrowRight, FiStar } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import { useFetch } from "../hooks/useFetch";
 import { authApi } from "../api/auth";
 
 const ArtistsPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: artistsResp, loading, error } = useFetch("/artists");
 
@@ -36,18 +38,18 @@ const ArtistsPage = () => {
       />
 
       <button
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden ${
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
           isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         type="button"
-        aria-label="Tutup menu samping"
+        aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
 
       <button
-        className="fixed top-4 left-4 z-40 p-2 bg-[#161618] rounded-md text-xl md:hidden"
+        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
-        aria-label="Buka menu samping"
+        aria-label="Open Sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
       >
@@ -56,7 +58,6 @@ const ArtistsPage = () => {
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24">
         
-        {/* Header */}
         <header className="flex items-start justify-between gap-4 border-b border-white/5 pb-7 mb-8">
           <div>
             <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">

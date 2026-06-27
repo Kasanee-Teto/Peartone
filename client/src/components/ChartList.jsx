@@ -49,7 +49,7 @@ const ChartList = ({ charts = [], loading, error }) => {
             <div className="absolute top-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 border border-white/10 text-xs font-bold text-white backdrop-blur-md shadow-md">
               #{index + 1}
             </div>
-            <MusicCard track={track} />
+            <MusicCard track={track} variant="chart" />
           </div>
         ))}
       </div>

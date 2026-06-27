@@ -19,6 +19,45 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
+const PlayButton = ({ isPlaying, onToggle, size = "md" }) => {
+  const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
+  const iconSize = size === "sm" ? 14 : 16;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`${dim} shrink-0 flex items-center justify-center rounded-full bg-white text-[#0d0d0f] shadow-md transition hover:scale-105 active:scale-95`}
+      aria-label={isPlaying ? "Pause" : "Play"}
+    >
+      {isPlaying
+        ? <FiPause size={iconSize} fill="currentColor" />
+        : <FiPlay size={iconSize} fill="currentColor" className="ml-[2px]" />}
+    </button>
+  );
+};
+
+const ProgressBar = ({ currentTime, duration, progress, onSeek }) => (
+  <div className="flex w-full items-center gap-2">
+    <span className="w-8 shrink-0 text-right text-[10px] font-mono text-white/40">
+      {formatTime(currentTime)}
+    </span>
+    <div className="relative h-1 flex-1 py-2 flex items-center group">
+      <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
+        <div className="h-full rounded-full bg-[#c8f560] transition-all" style={{ width: `${progress}%` }} />
+      </div>
+      <input
+        type="range" min={0} max={100} value={progress}
+        onChange={onSeek}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
+        aria-label="Seek"
+      />
+    </div>
+    <span className="w-8 shrink-0 text-left text-[10px] font-mono text-white/40">
+      {formatTime(duration)}
+    </span>
+  </div>
+);
+
 const MusicPlayer = () => {
   const audioRef = useRef(null);
   const lastHistoryTrackIdRef = useRef("");
@@ -104,15 +143,22 @@ const MusicPlayer = () => {
     }
     setPlayerError(""); setProgress(0);
     audio.src = source; audio.load();
-    if (isPlaying) audio.play().catch(() => setIsPlaying(false));
-  }, [currentTrack?.id, currentTrack?.streamUrl]);
+  }, [currentTrack?.id]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying) audio.play().catch(() => setIsPlaying(false));
-    else audio.pause();
-  }, [isPlaying, currentTrack?.streamUrl]);
+    if (isPlaying) {
+      const t = setTimeout(() => {
+         audio.play().catch((err) => {
+        if (err.name !== "AbortError") setIsPlaying(false); 
+      });
+      }, 50);
+      return () => clearTimeout(t);
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!currentTrack?.id) { setIsLiked(false); return; }
@@ -265,42 +311,6 @@ const MusicPlayer = () => {
   const iconBtn = "inline-flex items-center justify-center rounded-full p-1.5 text-white/50 transition-all hover:text-white hover:bg-white/5";
   const activeIcon = "text-[#c8f560] hover:text-[#c8f560]";
 
-  const ProgressBar = () => (
-    <div className="flex w-full items-center gap-2">
-      <span className="w-8 shrink-0 text-right text-[10px] font-mono text-white/40">{formatTime(currentTime)}</span>
-
-      <div className="relative h-1 flex-1 py-2 flex items-center group">
-        <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full rounded-full bg-[#c8f560] transition-all" style={{ width: `${progress}%` }} />
-        </div>
-
-        <input
-          type="range" min={0} max={100} value={progress}
-          onChange={toggleProgress}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
-          aria-label="Seek"
-        />
-      </div>
-      <span className="w-8 shrink-0 text-left text-[10px] font-mono text-white/40">{formatTime(duration)}</span>
-    </div>
-  );
-
-  const PlayButton = ({ size = "md" }) => {
-    const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
-    const iconSize = size === "sm" ? 14 : 16;
-    return (
-      <button
-        type="button" onClick={togglePlay}
-        className={`${dim} shrink-0 flex items-center justify-center rounded-full bg-white text-[#0d0d0f] shadow-md transition hover:scale-105 active:scale-95`}
-        aria-label={isPlaying ? "Pause" : "Play"}
-      >
-        {isPlaying
-          ? <FiPause size={iconSize} fill="currentColor" />
-          : <FiPlay size={iconSize} fill="currentColor" className="ml-[2px]" />}
-      </button>
-    );
-  };
-
   if (isCollapsed) {
     return (
       <div className="fixed inset-x-0 bottom-0 z-[300] flex justify-end pointer-events-none">
@@ -334,10 +344,10 @@ const MusicPlayer = () => {
             <button type="button" onClick={toggleLike} className={`${iconBtn} shrink-0`} aria-label={isLiked ? "Unlike" : "Like"}>
               <FiHeart size={15} className={isLiked ? "text-[#c8f560]" : ""} fill={isLiked ? "currentColor" : "none"} />
             </button>
-            <PlayButton size="sm" />
+            <PlayButton isPlaying={isPlaying} onToggle={togglePlay} />
           </div>
 
-          <ProgressBar />
+          <ProgressBar currentTime={currentTime} duration={duration} progress={progress} onSeek={toggleProgress}/>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
@@ -379,7 +389,7 @@ const MusicPlayer = () => {
               <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
               <button type="button" onClick={playPrev} className={iconBtn}><FiSkipBack size={17} /></button>
 
-              <PlayButton />
+              <PlayButton isPlaying={isPlaying} onToggle={togglePlay} size="sm" />
 
               <button type="button" onClick={playNext} className={iconBtn}><FiSkipForward size={17} /></button>
               <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
@@ -395,7 +405,7 @@ const MusicPlayer = () => {
               <button type="button" onClick={() => setIsCollapsed(true)} className={iconBtn}><FiChevronDown size={16} /></button>
             </div>
           </div>
-          <ProgressBar />
+          <ProgressBar currentTime={currentTime} duration={duration} progress={progress} onSeek={toggleProgress}/>
         </div>
 
         <div className="hidden lg:grid lg:grid-cols-3 h-24 items-center px-8">
@@ -417,12 +427,14 @@ const MusicPlayer = () => {
           <div className="flex flex-col items-center gap-2 w-full max-w-[480px] justify-self-center">
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
-              <button type="button" onClick={playPrev} className="p-1 text-white/70 hover:text-white transition"><FiSkipBack size={18} /></button>
-              <PlayButton />
-              <button type="button" onClick={playNext} className="p-1 text-white/70 hover:text-white transition"><FiSkipForward size={18} /></button>
+              <button type="button" onClick={playPrev} className={iconBtn} aria-label="Previous"><FiSkipBack size={18} /></button>
+              <PlayButton isPlaying={isPlaying} onToggle={togglePlay} />
+
+              <button type="button" onClick={playNext} className={iconBtn} aria-label="Next"><FiSkipForward size={18} /></button>
+              
               <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
             </div>
-            <ProgressBar />
+            <ProgressBar currentTime={currentTime} duration={duration} progress={progress} onSeek={toggleProgress}/>
           </div>
 
           <div className="flex items-center justify-end gap-2.5 justify-self-end shrink-0">

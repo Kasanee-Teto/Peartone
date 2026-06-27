@@ -17,7 +17,7 @@ const QueueList = ({ queue = [], currentIndex = 0, onPlay, onRemove, onClear }) 
 
       <div className="max-h-[300px] overflow-y-auto p-2">
         {queue.length === 0 ? (
-          <div className="p-4 text-center text-white/50">Queue kosong</div>
+          <div className="p-4 text-center text-white/50">Empty Queue</div>
         ) : (
           queue.map((t, i) => (
             <div
