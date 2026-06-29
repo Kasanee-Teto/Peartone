@@ -141,7 +141,7 @@ const ProfilePage = () => {
             {initial}
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">Public rofile</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">Public profile</span>
             <h1 className="text-[42px] font-extrabold line-height leading-[1.1] tracking-[-0.02em] m-0 text-white max-sm:text-[28px]">
               {profileUser.username || "Peartone User"}
             </h1>
@@ -173,7 +173,8 @@ const ProfilePage = () => {
                 </li>
                 <li className="flex items-center gap-2 text-[13px] text-white/60">
                   <span className="text-white/35 flex"><FiCalendar size={14} /></span>
-                  <span>{joinDate}</span>
+                  <span>{profileUser?.createdAt ? new Date(profileUser.createdAt).toLocaleDateString("en-US", {
+                        month: "long", year: "numeric", timeZone: "UTC"}) : "July 2026"}</span>
                 </li>
               </ul>
             </div>
