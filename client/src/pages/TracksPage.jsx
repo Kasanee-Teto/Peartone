@@ -6,19 +6,10 @@ import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import { authApi } from "../api/auth.js";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:3000";
 const LIMIT = 20;
-
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
 
 function formatDuration(sec) {
   if (!sec || sec <= 0) return "0:00";
@@ -38,7 +29,8 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
   const artist = getArtistName(track);
   const album = track?.Album?.title || track?.album || "—";
   const duration = formatDuration(track?.duration);
-  const isLiked = likedIds.has(String(track.id || ""));
+  const currentTrackId = String(track.id || "").trim();
+  const isLiked = likedIds.has(currentTrackId);
 
   const handlePlay = () => {
     const playable = normalizePlayableTrack({
@@ -109,19 +101,20 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
 
       <div className="text-xs text-white/40 text-right font-mono max-[900px]:pr-0" role="cell">{duration}</div>
 
-      <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 max-sm:opacity-100" role="cell">
+      <div className="flex items-center justify-end gap-1 max-sm:opacity-100" role="cell">
         <button
           type="button"
-          className={`bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-sm text-white/40 transition-colors duration-150 hover:bg-[#c8f560]/10 hover:text-[#c8f560] ${isLiked ? "text-[#c8f560]" : ""}`}
+          className={`bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-sm transition-all duration-150 hover:bg-[#c8f560]/10 ${isLiked ? "text-[#c8f560] opacity-100" : "text-white/40 opacity-0 group-hover:opacity-100"}`}
           onClick={() => onLikeToggle(track)}
           aria-label={isLiked ? "Unlike" : "Like"}
           title={isLiked ? "Unlike" : "Like"}
         >
           ♥
         </button>
+        
         <button
           type="button"
-          className="bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-white/40 transition-colors duration-150 hover:bg-white/8 hover:text-white"
+          className="bg-transparent border-none cursor-pointer flex items-center justify-center w-7 h-7 rounded-md text-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-white/8 hover:text-white"
           onClick={() => onAddToPlaylist(track)}
           aria-label="Add to playlist"
           title="Add to playlist"
@@ -134,6 +127,7 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
 };
 
 const TracksPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -145,7 +139,16 @@ const TracksPage = () => {
   const [likedIds, setLikedIds] = useState(new Set());
   const [playlistTarget, setPlaylistTarget] = useState(null);
 
-  // Debounce search
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
@@ -154,7 +157,6 @@ const TracksPage = () => {
     return () => clearTimeout(t);
   }, [search]);
 
-  // Fetch tracks
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -194,7 +196,8 @@ const TracksPage = () => {
       .list()
       .then((payload) => {
         const items = Array.isArray(payload) ? payload : payload?.data || [];
-        setLikedIds(new Set(items.map((t) => String(t.id || t.trackId || t.Track?.id || ""))));
+        const normalizedIds = items.map((t) =>  String(t.trackId || t.Track?.id || t.id || "").trim());
+        setLikedIds(new Set(normalizedIds));
       })
       .catch(() => {});
   }, []);

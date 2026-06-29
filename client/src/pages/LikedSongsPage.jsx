@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FiHeart, FiX, FiLoader, FiPlay } from "react-icons/fi";
 import Sidebar from "../components/Sidebar";
 import { likesApi } from "../api/likes.js";
-import { emitLikesChanged, onLikesChanged, emitPlayTrack, normalizePlayableTrack } from "../utils/likeBus.js";
+import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +26,42 @@ const LikedSongsPage = () => {
     }
   };
 
+  const handleSufflePlay = useCallback((e) => {
+    e.stopPropagation(); 
+    if (loading || tracks.length === 0) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const suffledTracks = [...tracks].sort(() => Math.random() - 0.5);
+
+      const normalized = suffledTracks.map((t) => 
+        normalizePlayableTrack({
+          ...t,
+          artist: t.Artists?.[0]?.name || t.Track?.Artists?.[0]?.name || "Unknown Artist",
+          album: t.title,
+        })
+      ); 
+      
+      window.dispatchEvent(new Event("pt:clear-queue"));
+      emitPlayTrack(normalized[0]);
+
+      for (let i = 1; i < normalized.length; i++) {
+        const track = normalized[i];
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("pt:add-to-queue", { detail: track })
+          );
+        }, i * 20);
+      }
+    } catch (error) {
+      console.error("LikedSongs play error:", error);
+      setError("Failed to load tracks.");
+    } finally {
+      setLoading(false);
+    }
+  }, [loading]);
+
   useEffect(() => {
     let active = true;
 
@@ -41,11 +78,6 @@ const LikedSongsPage = () => {
         if (active) setLoading(false);
       }
     };
-
-    const handleSufflePlay = () => {
-      if (tracks.length === 0) return;
-      const suffledTracks = [...tracks].sort(() => Math.random - 0.5);
-    }
 
     loadLikedSongs();
     const cleanup = onLikesChanged(loadLikedSongs);
@@ -65,6 +97,9 @@ const LikedSongsPage = () => {
       setTracks((current) => current.filter((item) => String(item.id || item.trackId || item.Track?.id || "").trim() !== normalizedTrackId));
       await likesApi.unlike(normalizedTrackId);
       emitLikesChanged();
+      window.dispatchEvent(
+        new CustomEvent("pt:remove-from-queue", { detail: { trackId: normalizedTrackId } })
+      );
     } catch (err) {
       window.alert(err.message || "Failed to remove like");
       const response = await likesApi.list();
@@ -144,7 +179,7 @@ const LikedSongsPage = () => {
               <button 
                 type="button" 
                 className="px-6 py-3 rounded-full bg-[#c8f560] text-[#0d0d0f] font-bold text-sm tracking-wide inline-flex items-center gap-2 cursor-pointer shadow-[0_6px_20px_rgba(200,245,96,0.35)] transition-all duration-250 hover:scale-105 active:scale-95"
-              >
+              onClick={handleSufflePlay}>
                 <FiPlay fill="currentColor" className="ml-0.5" />
                 <span>Shuffle Play</span>
               </button>

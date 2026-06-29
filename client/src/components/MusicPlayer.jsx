@@ -143,6 +143,7 @@ const MusicPlayer = () => {
     }
     setPlayerError(""); setProgress(0);
     audio.src = source; audio.load();
+    audio.play();
   }, [currentTrack?.id]);
 
   useEffect(() => {
@@ -195,10 +196,12 @@ const MusicPlayer = () => {
       setPlayerError("");
       if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100 || 0);
     };
+
     const handleTimeUpdate = () => {
       if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100);
       else if (duration > 0) setProgress((audio.currentTime / duration) * 100);
     };
+
     const handleEnded = () => {
       if (isRepeat) { audio.currentTime = 0; audio.play().catch(() => setIsPlaying(false)); return; }
       if (queue.length === 0) return setIsPlaying(false);
@@ -206,23 +209,53 @@ const MusicPlayer = () => {
         setCurrentIndex(Math.floor(Math.random() * queue.length));
         setIsPlaying(true); return;
       }
-      setCurrentIndex((cur) => {
-        const next = cur + 1;
-        if (next >= queue.length) { setIsPlaying(false); return cur; }
-        setIsPlaying(true); return next;
+      setCurrentIndex((curr) => {
+        const next = curr + 1;
+        const nextIndex = next >= queue.length ? 0 : next;
+        setIsPlaying(true); return nextIndex;
       });
     };
-    const handleError = () => { setIsPlaying(false); setPlayerError("Failed to load this track."); };
+
+    const handleRemoved = (e) => {
+      const targetId = String(e.detail?.TrackId || "").trim();
+      if (!targetId) return;
+
+      setQueue((curr) => {
+        const idx = curr.findIndex(track => 
+          String(track.trackId || track.id || "").trim() === targetId
+        );
+
+        if (idx === -1) return curr;
+        const sopy = curr.slice();
+        copy.splice(idx, 1);
+
+        setCurrentIndex(curr => {
+          if (copy.length === 0) return 0;
+          if (idx < curr) return curr - 1;
+          if (idx === curr) return Math.min(curr, copy.length - 1);
+          return curr;
+        }); 
+        
+        if (copy.length === 0) setIsPlaying(false);
+        return copy;
+      });
+    };
+
+    const handleError = () => { setIsPlaying(false);    
+      
+    setPlayerError("Failed to load this track."); };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
+    window.addEventListener("pt:remove-from-queue", handleRemoved);
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
+      window.removeEventListener("pt:remove-from-queue", handleRemoved);
     };
   }, [duration, isRepeat, isShuffle, queue.length]);
 
@@ -257,26 +290,24 @@ const MusicPlayer = () => {
 
   function playNext() {
     if (queue.length === 0) return;
+    let nextIndex;
     if (isShuffle && queue.length > 1) {
-      setCurrentIndex(Math.floor(Math.random() * queue.length));
-      setIsPlaying(true); return;
-    }
-    setCurrentIndex((cur) => {
-      const next = cur + 1;
-      if (next >= queue.length) {
-        if (isRepeat) {
-          const audio = audioRef.current;
-          if (audio) { audio.currentTime = 0; audio.play().catch(() => setIsPlaying(false)); }
-          return cur;
-        }
-        setIsPlaying(false); return cur;
+      nextIndex = Math.floor(Math.random() * queue.length);
+    } else {
+      nextIndex = currentIndex + 1;
+      if (nextIndex >= queue.length) {
+        nextIndex = 0;
       }
-      setIsPlaying(true); return next;
-    });
+    }
+    setCurrentIndex(nextIndex);
+    setProgress(0);
+    setIsPlaying(true);
   }
 
   function playPrev() {
-    setCurrentIndex((cur) => Math.max(0, cur - 1));
+    const prevIndex = Math.max(0, currentIndex - 1);
+    setCurrentIndex(prevIndex);
+    setProgress(0);
     setIsPlaying(true);
   }
 
@@ -311,25 +342,22 @@ const MusicPlayer = () => {
   const iconBtn = "inline-flex items-center justify-center rounded-full p-1.5 text-white/50 transition-all hover:text-white hover:bg-white/5";
   const activeIcon = "text-[#c8f560] hover:text-[#c8f560]";
 
-  if (isCollapsed) {
-    return (
-      <div className="fixed inset-x-0 bottom-0 z-[300] flex justify-end pointer-events-none">
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[300] pointer-events-none">
+      <audio ref={audioRef} preload="metadata" />
+
+      <div className={`fixed right-4 bottom-4 z-[310] ${isCollapsed ? "block" : "hidden"}`}>
         <button
-          type="button" onClick={() => setIsCollapsed(false)}
-          className="pointer-events-auto mr-4 mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1c1f] text-white/85 shadow-lg border border-white/5 hover:text-white transition hover:scale-105"
+          type="button" 
+          onClick={() => setIsCollapsed(false)}
+          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1c1f] text-white/85 shadow-lg border border-white/5 hover:text-white hover:scale-105 active:scale-95 transition-all"
           aria-label="Show music player"
         >
           <FiChevronUp size={20} />
         </button>
       </div>
-    );
-  }
 
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-[300] pointer-events-none">
-      <audio ref={audioRef} preload="metadata" />
-
-      <div className="pointer-events-auto w-full border-t border-white/5 bg-[#0a0a0cd6] backdrop-blur-2xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)] text-white">
+      <div className={`pointer-events-auto w-full border-t border-white/5 bg-[#0a0a0cd6] backdrop-blur-2xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)] text-white ${isCollapsed ? "hidden" : ""}`}>
 
         <div className="flex flex-col sm:hidden px-4 pt-3 pb-2 gap-2">
           <div className="flex items-center gap-3">
@@ -337,7 +365,6 @@ const MusicPlayer = () => {
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-white/95">{currentTrack?.title || "No track"}</p>
-
               <p className="truncate text-[10px] text-white/50">{currentTrack?.artist || "Start listening"}</p>
               {playerError && <p className="truncate text-[9px] text-red-400">{playerError}</p>}
             </div>
@@ -355,18 +382,14 @@ const MusicPlayer = () => {
                 <FiShuffle size={13} />
               </button>
               <button type="button" onClick={playPrev} className={iconBtn} aria-label="Previous"><FiSkipBack size={16} /></button>
-
               <button type="button" onClick={playNext} className={iconBtn} aria-label="Next"><FiSkipForward size={16} /></button>
-              
               <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`} aria-label="Repeat">
                 <FiRepeat size={13} />
               </button>
             </div>
             <div className="flex items-center gap-1">
               <button type="button" onClick={() => setShowLyrics((s) => !s)} className={`${iconBtn} ${showLyrics ? activeIcon : ""}`} aria-label="Lyrics"><FiMic size={14} /></button>
-
               <button type="button" onClick={() => setShowQueue((s) => !s)} className={`${iconBtn} ${showQueue ? activeIcon : ""}`} aria-label="Queue"><FiList size={14} /></button>
-
               <button type="button" onClick={() => setIsCollapsed(true)} className={`${iconBtn}`} aria-label="Collapse"><FiChevronDown size={16} /></button>
             </div>
           </div>
@@ -379,7 +402,6 @@ const MusicPlayer = () => {
               
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white/95 max-w-[180px]">{currentTrack?.title || "No track"}</p>
-
                 <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>
                 {playerError && <p className="text-[9px] text-red-400 truncate">{playerError}</p>}
               </div>
@@ -388,20 +410,15 @@ const MusicPlayer = () => {
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
               <button type="button" onClick={playPrev} className={iconBtn}><FiSkipBack size={17} /></button>
-
               <PlayButton isPlaying={isPlaying} onToggle={togglePlay} size="sm" />
-
               <button type="button" onClick={playNext} className={iconBtn}><FiSkipForward size={17} /></button>
               <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
               <button type="button" onClick={toggleLike} className={iconBtn}><FiHeart size={15} className={isLiked ? "text-[#c8f560]" : ""} fill={isLiked ? "currentColor" : "none"} /></button>
-
               <button type="button" onClick={() => setShowLyrics((s) => !s)} className={`${iconBtn} ${showLyrics ? activeIcon : ""}`}><FiMic size={14} /></button>
-
               <button type="button" onClick={() => setShowQueue((s) => !s)} className={`${iconBtn} ${showQueue ? activeIcon : ""}`}><FiList size={14} /></button>
-              
               <button type="button" onClick={() => setIsCollapsed(true)} className={iconBtn}><FiChevronDown size={16} /></button>
             </div>
           </div>
@@ -429,9 +446,7 @@ const MusicPlayer = () => {
               <button type="button" onClick={() => setIsShuffle((s) => !s)} className={`${iconBtn} ${isShuffle ? activeIcon : ""}`}><FiShuffle size={14} /></button>
               <button type="button" onClick={playPrev} className={iconBtn} aria-label="Previous"><FiSkipBack size={18} /></button>
               <PlayButton isPlaying={isPlaying} onToggle={togglePlay} />
-
               <button type="button" onClick={playNext} className={iconBtn} aria-label="Next"><FiSkipForward size={18} /></button>
-              
               <button type="button" onClick={() => setIsRepeat((s) => !s)} className={`${iconBtn} ${isRepeat ? activeIcon : ""}`}><FiRepeat size={14} /></button>
             </div>
             <ProgressBar currentTime={currentTime} duration={duration} progress={progress} onSeek={toggleProgress}/>
@@ -455,13 +470,13 @@ const MusicPlayer = () => {
         </div>
       </div>
 
-      {showQueue && (
+      {!isCollapsed && showQueue && (
         <QueueList queue={queue} currentIndex={currentIndex}
           onPlay={playTrack} onRemove={removeFromQueue}
           onClear={() => { setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0); }}
         />
       )}
-      {showLyrics && (
+      {!isCollapsed && showLyrics && (
         <LyricsPanel key={currentTrack?.id || "no-track"}
           trackId={currentTrack?.id} artist={currentTrack?.artist}
           title={currentTrack?.title} open={showLyrics}

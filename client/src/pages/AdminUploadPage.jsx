@@ -366,7 +366,7 @@ const AdminUploadPage = () => {
             {/* Album */}
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">Album (optional)</span>
-              <CustomSelect value={album} onChange={setAlbum} options={albums} placeholder="Tanpa album" />
+              <CustomSelect value={album} onChange={setAlbum} options={albums} placeholder="Without album" />
             </div>
 
             {/* Audio file */}
