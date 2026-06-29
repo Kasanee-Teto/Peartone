@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   FiHome, FiTrendingUp, FiMic, FiDisc, FiList, FiClock, FiHeart,
-  FiUploadCloud, FiUser, FiLogOut, FiMusic,
+  FiUploadCloud, FiUser, FiLogOut, FiMusic, FiX
 } from "react-icons/fi";
 
 const itemBase =
@@ -16,16 +16,25 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
     <aside
       id="home-sidebar"
       aria-label="Sidebar"
-      aria-hidden={!isOpen}
-      className={`fixed left-0 top-0 z-[600] flex h-screen w-[260px] flex-col overflow-y-auto border-r border-white/10 bg-[#0d0d0f] px-5 pb-5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-[110%]"}`}
+      className={`fixed right-0 top-0 z-[600] flex h-screen w-[260px] flex-col overflow-y-auto border-l border-white/10 bg-[#0d0d0f] px-5 pb-5 shadow-[-10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-[110%]"}`}
     >
-      <div className="shrink-0 px-3 pb-3 pt-5 text-lg font-bold tracking-[0.2em] font-sans text-lime-300 uppercase antialiased">
-        PEARTONE
+      <div className="shrink-0 flex items-center justify-between pb-3 pt-5 px-1">
+        <div className="text-base font-black tracking-[0.25em] font-sans text-lime-300 uppercase antialiased">
+          PEARTONE
+        </div>
+        <button
+          type="button"
+          aria-label="Close Sidebar"
+          onClick={onClose}
+          className="flex items-center justify-center h-8 w-8 rounded-lg border border-white/5 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all active:scale-95 cursor-pointer"
+        >
+          <FiX size={18} />
+        </button>
       </div>
 
       <nav className="flex flex-col" aria-label="Navigasi Utama">
         <p className="px-3 pb-1.5 pt-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Discover</p>
-        <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+        <ul className="m-1 flex list-none flex-col gap-2.5 p-0">
           <li><NavLink to="/" end onClick={onClose} className={navClass}><FiHome className="shrink-0 text-[1.2rem]" /><span>Home</span></NavLink></li>
           <li><NavLink to="/tracks" onClick={onClose} className={navClass}><FiMusic className="shrink-0 text-[1.2rem]" /><span>All Tracks</span></NavLink></li>
           <li><NavLink to="/charts" onClick={onClose} className={navClass}><FiTrendingUp className="shrink-0 text-[1.2rem]" /><span>Top Charts</span></NavLink></li>
@@ -34,14 +43,14 @@ const Sidebar = ({ isOpen, onClose, onLogout }) => {
         </ul>
 
         <p className="mt-3 border-t border-white/10 px-3 pb-1.5 pt-4 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Library</p>
-        <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
+        <ul className="m-1 flex list-none flex-col gap-0.5 p-0">
           <li><NavLink to="/playlists" onClick={onClose} className={navClass}><FiList className="shrink-0 text-[1.2rem]" /><span>Playlists</span></NavLink></li>
           <li><NavLink to="/liked" onClick={onClose} className={navClass}><FiHeart className="shrink-0 text-[1.2rem]" /><span>Liked Songs</span></NavLink></li>
           <li><NavLink to="/history" onClick={onClose} className={navClass}><FiClock className="shrink-0 text-[1.2rem]" /><span>History</span></NavLink></li>
         </ul>
 
         <p className="mt-3 border-t border-white/10 px-3 pb-1.5 pt-4 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Account</p>
-        <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
+        <ul className="m-1 flex list-none flex-col gap-0.5 p-0">
           <li><NavLink to="/admin" onClick={onClose} className={navClass}><FiUploadCloud className="shrink-0 text-[1.2rem]" /><span>Admin Upload</span></NavLink></li>
           <li><NavLink to="/profile" onClick={onClose} className={navClass}><FiUser className="shrink-0 text-[1.2rem]" /><span>Profile</span></NavLink></li>
           <li>

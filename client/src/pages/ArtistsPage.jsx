@@ -26,7 +26,7 @@ const ArtistsPage = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
         <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
@@ -47,7 +47,7 @@ const ArtistsPage = () => {
       />
 
       <button
-        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
+        className="fixed right-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
         aria-label="Open Sidebar"
         aria-expanded={isSidebarOpen}
@@ -70,7 +70,7 @@ const ArtistsPage = () => {
               Find your famous artists here!
             </p>
           </div>
-          <span className="shrink-0 mt-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#c8f560] bg-[#c8f560]/10 border border-[#c8f560]/20">
+          <span className="hidden lg:inline-block shrink-0 mt-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#c8f560] bg-[#c8f560]/10 border border-[#c8f560]/20">
             Popular
           </span>
         </header>

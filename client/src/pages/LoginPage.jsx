@@ -40,8 +40,12 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[360px]">
         <div className="mb-6 text-center">
-          <div className="text-[22px] font-bold tracking-[-0.02em]">Peartone</div>
-          <div className="mt-1 text-xs text-white/35">Your music, your charts.</div>
+          <h1 className="text-3xl font-black tracking-[-0.03em] uppercase bg-gradient-to-l from-brand-primary via-[#a8ea10] to-brand-secondary via-brand-primary to-[#a8ea10] bg-clip-text text-transparent bg-[length:200%_auto] animate-text-glow drop-shadow-[0_2px_8px_rgba(200,245,96,0.25)]">
+            Peartone
+          </h1>
+          <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">
+            Your music, your charts.
+          </p>
         </div>
 
         <div className="rounded-[18px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">

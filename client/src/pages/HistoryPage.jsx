@@ -55,7 +55,7 @@ const HistoryPage = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="History">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
         <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
@@ -76,7 +76,7 @@ const HistoryPage = () => {
       />
 
       <button
-        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
+        className="fixed right-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
         aria-label="Open Sidebar"
         aria-expanded={isSidebarOpen}
@@ -100,7 +100,7 @@ const HistoryPage = () => {
 
         <div className="flex flex-col min-[680px]:flex-row items-stretch min-[680px]:items-center justify-between gap-3 my-[18px] mx-0" aria-label="Kontrol history">
           <label className="flex-1 flex items-center gap-2.5 p-[10px_12px] rounded-xl border border-white/10 bg-white/[0.04]" aria-label="Cari di history">
-            <FiSearch className="shrink-0 text-white/[0.55]" aria-hidden="true" />
+            <FiSearch className="shrink-0 text-white/[0.55]" />
             <input 
               className="w-full bg-transparent border-none outline-none text-white/[0.88] text-xs sm:text-sm placeholder:text-white/45" 
               type="search" 
@@ -118,7 +118,7 @@ const HistoryPage = () => {
             aria-label="Hapus semua history" 
             title={rows.length === 0 ? "Empty History" : "Delete All Histories"}
           >
-            <FiTrash2 aria-hidden="true" />
+            <FiTrash2/>
             <span className="text-xs sm:text-sm font-semibold">{clearing ? "Deleting..." : "Delete"}</span>
           </button>
         </div>

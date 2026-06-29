@@ -107,7 +107,7 @@ const ProfilePage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-[#ffffff] relative overflow-x-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute rounded-full filter blur-[120px] w-[320px] h-[320px] bg-[#7c6af7] opacity-18 top-10 -left-20" />
         <div className="absolute rounded-full filter blur-[120px] w-[280px] h-[280px] bg-[#c8f560] opacity-12 bottom-10 right-0" />
       </div>
@@ -126,7 +126,7 @@ const ProfilePage = () => {
       />
 
       <button
-        className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
+        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
         type="button"
         aria-label="Open Sidebar"
         aria-controls="home-sidebar"
@@ -162,7 +162,6 @@ const ProfilePage = () => {
           </button>
         </div>
 
-        {/* ── Content grid ── */}
         <div className="grid grid-cols-[260px_1fr] gap-6 mt-7 items-start max-md:grid-cols-1">
           <aside className="flex flex-col gap-3">
             <div className="bg-white/4 border border-white/8 rounded-2xl px-4.5 py-4">

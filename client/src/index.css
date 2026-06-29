@@ -14,6 +14,16 @@
 
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
+  --animate-text-glow: textSweep 3.5s linear infinite;
+
+  @keyframes textSweep {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
+    }
+  }
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');

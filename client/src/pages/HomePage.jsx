@@ -119,18 +119,16 @@ const HomePage = () => {
       aria-label="Peartone Home Page"
     >
       <div className="grid grid-columns-1 gap-8 items-start">
-        <div className={`fixed top-0 left-0 h-screen w-[min(280px,82vw)] z-50 bg-[#18181c]/90 border border-white/5 rounded-r-2xl p-6 md:p-4 shadow-2xl backdrop-blur-md transition-transform duration-250 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%]'}`}>
-          <Sidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            onLogout={handleLogout}
-            onHome={() => setIsSidebarOpen(false)}
-            onPlaylist={() => {
-              setShowplaylist(true);
-              setIsSidebarOpen(false);
-            }}
-          />
-        </div>
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onLogout={handleLogout}
+          onHome={() => setIsSidebarOpen(false)}
+          onPlaylist={() => {
+            setShowplaylist(true);
+            setIsSidebarOpen(false);
+          }}
+        />
 
         <button
           className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
@@ -143,7 +141,7 @@ const HomePage = () => {
 
         <div className="flex flex-col gap-16 md:gap-12">
           <button
-            className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
+            className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
             type="button"
             aria-label="Open Sidebar"
             aria-controls="home-sidebar"

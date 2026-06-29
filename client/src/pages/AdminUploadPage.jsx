@@ -206,33 +206,33 @@ const AdminUploadPage = () => {
   const isSuccess = uploadMsg.startsWith("✅");
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload Lagu">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload">
 
-      {/* Ambient blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-[72px] -left-[140px] w-[560px] h-[560px] rounded-full bg-[#1ed760] opacity-[0.06] blur-[160px]" />
-        <div className="absolute -bottom-[100px] -right-[80px] w-[460px] h-[460px] rounded-full bg-[#7c6af7] opacity-[0.05] blur-[170px]" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-[-64px] left-[-128px] w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-7 filter blur-[140px]" />
+        <div className="absolute bottom-[-80px] right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-6 filter blur-[140px]" />
       </div>
 
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
+        inert={!isSidebarOpen}
       />
-
-      {/* Sidebar overlay */}
+  
       <button
-        className={`fixed inset-0 z-20 bg-black/40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
+          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
         type="button"
-        aria-label="Tutup menu samping"
+        aria-label="Close Sidebar"
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* Hamburger toggle */}
       <button
-        className="fixed top-5 left-5 z-30 w-10 h-10 flex items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-white text-xl hover:bg-white/10 transition-colors"
+        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
         type="button"
-        aria-label="Buka menu samping"
+        aria-label="Open Sidebar"
         aria-controls="home-sidebar"
         aria-expanded={isSidebarOpen}
         onClick={() => setIsSidebarOpen(true)}
@@ -240,10 +240,8 @@ const AdminUploadPage = () => {
         ≡
       </button>
 
-      {/* Main content */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 pt-12 pb-24">
 
-        {/* Header */}
         <header className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-7 mb-[18px]">
           <div>
             <p className="m-0 mb-2 text-[10px] font-[800] uppercase tracking-[0.18em] text-white/30">Admin</p>
@@ -256,7 +254,6 @@ const AdminUploadPage = () => {
           </div>
         </header>
 
-        {/* Status message */}
         {uploadMsg && (
           <div
             className={`
@@ -271,26 +268,23 @@ const AdminUploadPage = () => {
           </div>
         )}
 
-        {/* Form */}
         <form
           className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-[18px]"
           onSubmit={onSubmit}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[14px]">
 
-            {/* Title */}
             <label className="flex flex-col gap-2 md:col-span-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">Title *</span>
               <input
                 className="w-full px-3 py-[10px] rounded-xl border border-white/10 bg-white/[0.04] outline-none text-white/90 text-[13px] placeholder:text-white/45 focus:border-white/20 focus:bg-white/[0.07] transition-all"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Masukkan judul lagu"
+                placeholder="Insert Song Title"
                 required
               />
             </label>
 
-            {/* Genre */}
             <div className="flex flex-col gap-2 md:col-span-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">Genre *</span>
               <div className="flex flex-wrap gap-2 p-3 bg-white/[0.04] border border-white/10 rounded-xl">
@@ -313,10 +307,9 @@ const AdminUploadPage = () => {
               </div>
             </div>
 
-            {/* Duration */}
             <label className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
-                Duration * (format: 3:45 atau second(s))
+                Duration * (format: 3:45 or second(s))
               </span>
               <input
                 className="w-full px-3 py-[10px] rounded-xl border border-white/10 bg-white/[0.04] outline-none text-white/90 text-[13px] placeholder:text-white/45 focus:border-white/20 focus:bg-white/[0.07] transition-all"
@@ -332,7 +325,6 @@ const AdminUploadPage = () => {
               )}
             </label>
 
-            {/* Artists */}
             <div className="flex flex-col gap-2 md:col-span-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
                 Artist * (choose min. 1)
@@ -363,13 +355,11 @@ const AdminUploadPage = () => {
               </div>
             </div>
 
-            {/* Album */}
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">Album (optional)</span>
               <CustomSelect value={album} onChange={setAlbum} options={albums} placeholder="Without album" />
             </div>
 
-            {/* Audio file */}
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
                 File Audio * (MP3, WAV, OGG, FLAC — max 50 MB)
@@ -382,14 +372,13 @@ const AdminUploadPage = () => {
                   className="absolute w-px h-px opacity-0 pointer-events-none"
                 />
                 <span className="inline-flex items-center gap-2 px-[10px] py-2 rounded-[10px] border border-[rgba(30,215,96,0.22)] bg-[rgba(30,215,96,0.1)] text-[#1ed760] text-[13px] cursor-pointer select-none">
-                  <FiUploadCloud aria-hidden="true" />
+                  <FiUploadCloud />
                   <span>Choose Audio</span>
                 </span>
                 <span className="text-white/70 text-[13px] truncate" title={audioName}>{audioName}</span>
               </label>
             </div>
 
-            {/* Cover image */}
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
                 Cover (optional — JPG, PNG, WEBP)
@@ -402,7 +391,7 @@ const AdminUploadPage = () => {
                   className="absolute w-px h-px opacity-0 pointer-events-none"
                 />
                 <span className="inline-flex items-center gap-2 px-[10px] py-2 rounded-[10px] border border-[rgba(30,215,96,0.22)] bg-[rgba(30,215,96,0.1)] text-[#1ed760] text-[13px] cursor-pointer select-none">
-                  <FiUploadCloud aria-hidden="true" />
+                  <FiUploadCloud />
                   <span>Choose Cover</span>
                 </span>
                 <span className="text-white/70 text-[13px] truncate" title={coverName}>{coverName}</span>
@@ -410,7 +399,6 @@ const AdminUploadPage = () => {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-[14px] mt-4">
             <button
               className="w-full sm:w-auto px-4 py-[10px] rounded-full font-[900] tracking-[0.02em] cursor-pointer text-[#0d0d0f] bg-[#1ed760] transition-all duration-150 hover:-translate-y-px disabled:opacity-55 disabled:cursor-not-allowed disabled:translate-y-0"
@@ -425,7 +413,6 @@ const AdminUploadPage = () => {
           </div>
         </form>
 
-        {/* Track list */}
         <section className="mt-8 rounded-2xl bg-black/25 border border-white/[0.08] p-[18px]" aria-label="Daftar lagu tersimpan">
           <h2 className="m-0 mb-3 text-[14px] font-[800] text-white/85">
             Track saved ({tracks.length})
@@ -445,7 +432,6 @@ const AdminUploadPage = () => {
 
                 return (
                   <div key={track.id}>
-                    {/* Track row */}
                     <div
                       className={`
                         flex items-center gap-[14px] px-[14px] py-[10px] border transition-all duration-[160ms]
@@ -455,7 +441,6 @@ const AdminUploadPage = () => {
                         }
                       `}
                     >
-                      {/* Cover thumbnail */}
                       {track.coverUrl ? (
                         <img
                           src={track.coverUrl}
@@ -468,7 +453,6 @@ const AdminUploadPage = () => {
                         </div>
                       )}
 
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <p className="m-0 text-[14px] font-semibold text-white truncate">{track.title}</p>
                         <p className="m-0 mt-[3px] text-[12px] text-white/50 truncate">
@@ -476,17 +460,14 @@ const AdminUploadPage = () => {
                         </p>
                       </div>
 
-                      {/* Genre badge */}
                       <span className="text-[11px] font-medium px-[10px] py-1 rounded-full bg-[rgba(200,245,96,0.1)] border border-[rgba(200,245,96,0.25)] text-[#c8f560] shrink-0 capitalize">
                         {track.genre}
                       </span>
 
-                      {/* Duration */}
                       <span className="text-[12px] text-white/40 shrink-0 tabular-nums min-w-[36px] text-right">
                         {mins}:{secs}
                       </span>
 
-                      {/* Delete button */}
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(isPendingDelete ? null : track.id)}
@@ -503,7 +484,6 @@ const AdminUploadPage = () => {
                       </button>
                     </div>
 
-                    {/* Confirm delete panel */}
                     {isPendingDelete && (
                       <div className="flex items-center justify-between gap-3 px-[14px] py-[10px] bg-[rgba(255,92,110,0.08)] border border-[rgba(255,92,110,0.3)] border-t-0 rounded-[0_0_14px_14px]">
                         <div className="flex items-center gap-2">

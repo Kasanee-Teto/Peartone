@@ -6,6 +6,7 @@ import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
 import { authApi } from "../api/auth.js";
+import { useNavigate } from "react-router-dom";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -17,17 +18,8 @@ function buildCoverUrl(url) {
   return `${STORAGE_BASE}${url}`;
 }
 
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
-
 const PlaylistPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [newPlaylistName, setNewPlaylistName]= useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -108,9 +100,19 @@ const PlaylistPage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-[-64px] left-[-128px] w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-7 filter blur-[140px]" />
         <div className="absolute bottom-[-80px] right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-6 filter blur-[140px]" />
       </div>
@@ -119,6 +121,7 @@ const PlaylistPage = () => {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onLogout={handleLogout}
+        inert={!isSidebarOpen}
       />
   
       <button
@@ -131,7 +134,7 @@ const PlaylistPage = () => {
       />
 
       <button
-        className="fixed top-6 left-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
+        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
         type="button"
         aria-label="Open Sidebar"
         aria-controls="home-sidebar"

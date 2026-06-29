@@ -79,7 +79,6 @@ const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => 
             backgroundImage: track.coverUrl ? `url("${safeUrl}")` : undefined,
             backgroundColor: track.coverUrl ? 'transparent' : 'rgba(124, 106, 247, 0.2)'
           }}
-          aria-hidden="true"
         >
           {!track.coverUrl && <span>♪</span>}
         </div>
@@ -188,7 +187,6 @@ const TracksPage = () => {
     return () => { cancelled = true; };
   }, [page, debouncedSearch]);
 
-  // Fetch liked track IDs
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -242,7 +240,7 @@ const TracksPage = () => {
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white relative overflow-x-hidden" aria-label="All Tracks">
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
         <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
       </div>
@@ -263,7 +261,7 @@ const TracksPage = () => {
       />
 
       <button
-        className="fixed left-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
+        className="fixed right-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
         type="button"
         aria-label="Open Sidebar"
         aria-expanded={isSidebarOpen}
@@ -281,13 +279,10 @@ const TracksPage = () => {
               {totalTracks > 0 ? `${totalTracks} lagu tersedia` : "Semua lagu tersedia untuk diputar."}
             </p>
           </div>
-          <span className="flex-shrink-0 mt-1 p-[4px_12px] rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#c8f560] bg-[#c8f560]/10 border border-[#c8f560]/20">
-            Library
-          </span>
         </header>
 
         <div className="relative flex items-center gap-2.5 p-[12px_16px] rounded-[14px] border border-white/10 bg-white/4 mb-5 transition-colors focus-within:border-[#c8f560]/35 focus-within:bg-white/5" role="search">
-          <FiSearch className="text-white/40 flex-shrink-0 text-base" aria-hidden="true" />
+          <FiSearch className="text-white/40 flex-shrink-0 text-base" />
           <input
             type="search"
             className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/35"
@@ -321,7 +316,7 @@ const TracksPage = () => {
           {loading ? (
             <div className="p-3 flex flex-col gap-2" aria-live="polite">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-[54px] rounded-[10px] animate-shimmer" aria-hidden="true" />
+                <div key={i} className="h-[54px] rounded-[10px] animate-shimmer"  />
               ))}
             </div>
           ) : error ? (
