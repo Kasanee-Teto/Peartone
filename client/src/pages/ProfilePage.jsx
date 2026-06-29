@@ -173,8 +173,7 @@ const ProfilePage = () => {
                 </li>
                 <li className="flex items-center gap-2 text-[13px] text-white/60">
                   <span className="text-white/35 flex"><FiCalendar size={14} /></span>
-                  <span>{profileUser?.createdAt ? new Date(profileUser.createdAt).toLocaleDateString("en-US", {
-                        month: "long", year: "numeric", timeZone: "UTC"}) : "July 2026"}</span>
+                  <span>{joinDate}</span>
                 </li>
               </ul>
             </div>
