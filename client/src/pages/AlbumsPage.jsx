@@ -90,7 +90,6 @@ const AlbumCard = ({ album }) => {
         />
 
         <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-250 ease-out pointer-events-none z-20 group-hover:opacity-100" />
-]
         <button
           type="button"
           aria-label={`Play ${album.title}`}

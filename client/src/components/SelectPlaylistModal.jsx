@@ -63,7 +63,7 @@ const SelectPlaylistModal = ({ track, onClose }) => {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Tambah ke Playlist"
+        aria-label="Added to playlist"
         className="relative z-10 flex max-h-[70vh] w-[90%] max-w-[400px] flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[#1a1a1e] shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
       >
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-[18px] pb-[14px] pt-[18px]">

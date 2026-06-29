@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FiX } from "react-icons/fi";
+import { parseLRC } from "../utils/parseLRC";
 
 function getLyricsText(payload) {
   if (!payload) return "";
@@ -7,10 +8,13 @@ function getLyricsText(payload) {
   return payload?.text || payload?.lyrics || "";
 }
 
-const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
-  const [lyrics, setLyrics] = useState("");
+const LyricsPanel = ({ trackId, artist, title, open, onClose, currentTime = 0 }) => {
+  const [parsedLyrics, setParsedLyrics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const lyricContainerRef = useRef(null);
+  const lineRefs = useRef([]);
 
   useEffect(() => {
     if (!open || !trackId) return;
@@ -20,7 +24,7 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
       if (!active) return;
       setLoading(true);
       setError(null);
-      setLyrics("");
+      setParsedLyrics([]);
     });
 
     const fetchLyrics = async () => {
@@ -29,11 +33,11 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
         if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         if (!active) return;
-        setLyrics(getLyricsText(data?.data || data));
+        setParsedLyrics(parseLRC(getLyricsText(data?.data || data)));
       } catch {
         if (!active) return;
         setError("Lyric not found");
-        setLyrics("");
+        setParsedLyrics([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -42,6 +46,27 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
     fetchLyrics();
     return () => { active = false; };
   }, [open, trackId]);
+
+  useEffect(() => {
+    if (parsedLyrics.length === 0) return;
+
+    let currentLineIdx = -1;
+    parsedLyrics.forEach((lyric, index) => {
+      if (currentTime >= lyric.time) {
+        currentLineIdx = index;
+      } 
+    });
+
+    if (currentLineIdx !== activeIdx) {
+      setActiveIdx(currentLineIdx);
+
+      if (currentLineIdx !== -1 && lineRefs.current[currentLineIdx]) {
+        lineRefs.current[currentLineIdx].scrollIntoView({
+          behavior: "smooth", block: "nearest"
+        });
+      }
+    }
+  }, [currentTime, parsedLyrics, activeIdx]);
 
   if (!open) return null;
 
@@ -64,11 +89,36 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose }) => {
         </button>
       </div>
 
-      <div className="max-h-[50vh] sm:max-h-[340px] overflow-y-auto p-4 overscroll-contain touch-pan-y">
+      <div 
+        ref={lyricContainerRef}
+        className="max-h-[20vh] sm:max-h-[340px] overflow-y-auto overflow-x-hidden p-4 overscroll-contain touch-pan-y scroll-smooth [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: 'none' }}
+      >
         {loading ? (
           <div className="text-white/60">Load Lyric…</div>
-        ) : lyrics ? (
-          <pre className="m-0 whitespace-pre-line text-[13px] leading-relaxed">{lyrics}</pre>
+        ) : parsedLyrics.length > 0 ? (
+          <div className="flex flex-col gap-4 pt-8 pb-24"> 
+            {parsedLyrics.map((line, index) => {
+              const isActive = index === activeIdx;
+              const isPast = index < activeIdx;
+
+              return (
+                <p
+                  key={index}
+                  ref={(el) => (lineRefs.current[index] = el)}
+                  className={`m-0 text-sm font-bold transition-all duration-300 select-none max-w-full break-words ${
+                    isActive 
+                      ? "text-[#1db954] opacity-100" 
+                      : isPast 
+                      ? "text-white opacity-40" 
+                      : "text-white/50 opacity-50"
+                  }`}
+                >
+                  {line.text || "•••"}
+                </p>
+              );
+            })}
+          </div>
         ) : (
           <div className="text-white/60">{statusMessage}</div>
         )}

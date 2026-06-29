@@ -23,18 +23,6 @@ const authFetch = (url, options = {}) => {
   });
 };
 
-const parseDuration = (val) => {
-  const trimmed = (val || "").trim();
-  if (/^\d+$/.test(trimmed)) return parseInt(trimmed, 10);
-  const parts = trimmed.split(":");
-  if (parts.length === 2) {
-    const m = parseInt(parts[0], 10) || 0;
-    const s = parseInt(parts[1], 10) || 0;
-    return m * 60 + s;
-  }
-  return 0;
-};
-
 const CustomSelect = ({ value, onChange, options, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectedLabel = options.find(opt => String(opt.id) === String(value))?.title || placeholder;
@@ -104,13 +92,13 @@ const AdminUploadPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("pop");
-  const [durationInput, setDurationInput] = useState("");
   const [selectedArtistIds, setSelectedArtistIds] = useState([]);
   const [album, setAlbum] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -119,14 +107,13 @@ const AdminUploadPage = () => {
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
   const albums = Array.isArray(albumsResp) ? albumsResp : albumsResp?.data || [];
 
-  const durationSeconds = parseDuration(durationInput);
   const audioName = audioFile?.name ?? "Haven't choose file";
   const coverName = coverFile?.name ?? "Haven't choose file";
   const navigate = useNavigate();
 
   const canSubmit = useMemo(
-    () => title.trim() && selectedArtistIds.length > 0 && audioFile && durationSeconds > 0,
-    [title, selectedArtistIds, audioFile, durationSeconds]
+    () => title.trim() && selectedArtistIds.length > 0 && audioFile,
+    [title, selectedArtistIds, audioFile]
   );
 
   const handleLogout = async () => {
@@ -149,7 +136,6 @@ const AdminUploadPage = () => {
   const resetForm = () => {
     setTitle("");
     setGenre("pop");
-    setDurationInput("");
     setSelectedArtistIds([]);
     setAlbum("");
     setAudioFile(null);
@@ -162,11 +148,11 @@ const AdminUploadPage = () => {
 
     setUploading(true);
     setUploadMsg("");
+    setIsSuccess(false);
 
     const fd = new FormData();
     fd.append("title", title);
     fd.append("genre", genre);
-    fd.append("duration", String(durationSeconds));
     fd.append("artistIds", JSON.stringify(selectedArtistIds));
     if (album) fd.append("albumId", album);
     fd.append("audio", audioFile);
@@ -176,10 +162,12 @@ const AdminUploadPage = () => {
       const r = await authFetch(`${API_BASE}/admin/tracks`, { method: "POST", body: fd });
       const res = await r.json();
       if (!r.ok) throw new Error(res?.message || "Upload failed");
+      setIsSuccess(true);
       setUploadMsg("File Uploaded! Track has been added.");
       resetForm();
       setRefreshKey((k) => k + 1);
     } catch (err) {
+      setIsSuccess(false);
       setUploadMsg(`${err.message || "Upload failed"}`);
     } finally {
       setUploading(false);
@@ -192,18 +180,18 @@ const AdminUploadPage = () => {
     try {
       const r = await authFetch(`${API_BASE}/admin/tracks/${confirmDeleteId}`, { method: "DELETE" });
       const res = await r.json();
-      if (!r.ok) throw new Error(res?.message || "Gagal menghapus");
+      if (!r.ok) throw new Error(res?.message || "Failed to delete");
       setTracks((prev) => prev.filter((t) => t.id !== confirmDeleteId));
+      setIsSuccess(true);
       setUploadMsg("Track successfully deleted.");
     } catch (err) {
+      setIsSuccess(false);
       setUploadMsg(`${err.message || "Failed to delete track."}`);
     } finally {
       setDeleting(false);
       setConfirmDeleteId(null);
     }
   };
-
-  const isSuccess = uploadMsg.startsWith("✅");
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload">
@@ -307,24 +295,6 @@ const AdminUploadPage = () => {
               </div>
             </div>
 
-            <label className="flex flex-col gap-2">
-              <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
-                Duration * (format: 3:45 or second(s))
-              </span>
-              <input
-                className="w-full px-3 py-[10px] rounded-xl border border-white/10 bg-white/[0.04] outline-none text-white/90 text-[13px] placeholder:text-white/45 focus:border-white/20 focus:bg-white/[0.07] transition-all"
-                value={durationInput}
-                onChange={(e) => setDurationInput(e.target.value)}
-                placeholder="Ex: 3:45 or 225"
-                required
-              />
-              {durationInput && durationSeconds > 0 && (
-                <span className="text-[11px] text-white/40 mt-1">
-                  = {Math.floor(durationSeconds / 60)}m {durationSeconds % 60}s
-                </span>
-              )}
-            </label>
-
             <div className="flex flex-col gap-2 md:col-span-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
                 Artist * (choose min. 1)
@@ -408,7 +378,7 @@ const AdminUploadPage = () => {
               {uploading ? "Uploading…" : "Upload Track"}
             </button>
             <p className="m-0 text-[12px] text-white/50">
-              * Must fill: Title, Genre, Duration, Artist, dan Audio file.
+              * Must fill: Title, Genre,, Artist, and Audio file.
             </p>
           </div>
         </form>

@@ -84,8 +84,8 @@ const MusicPlayer = () => {
   const [playerError, setPlayerError] = useState("");
 
   const currentTrack = queue[currentIndex] || null;
-  const duration = Number(currentTrack?.duration) || 0;
-  const currentTime = Math.round((progress / 100) * duration);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     try { localStorage.setItem("pt_queue", JSON.stringify(queue)); } catch {}
@@ -104,6 +104,7 @@ const MusicPlayer = () => {
       setQueue((q) => [track, ...q.filter((item) => item.id !== track.id)]);
       setCurrentIndex(0);
       setProgress(0);
+      setCurrentTime(0);
       setPlayerError("");
       setShowQueue(false);
       setShowLyrics(false);
@@ -133,7 +134,7 @@ const MusicPlayer = () => {
     const audio = audioRef.current;
     if (!audio) return;
     if (!currentTrack) {
-      setIsPlaying(false); setProgress(0);
+      setIsPlaying(false); setProgress(0); setDuration(0);
       audio.removeAttribute("src"); audio.load(); return;
     }
     const source = currentTrack.streamUrl || buildStreamUrl(currentTrack);
@@ -141,23 +142,44 @@ const MusicPlayer = () => {
       setPlayerError("Track not available for streaming.");
       setIsPlaying(false); audio.removeAttribute("src"); audio.load(); return;
     }
-    setPlayerError(""); setProgress(0);
+    setPlayerError(""); setProgress(0); setDuration(0);
     audio.src = source; audio.load();
-    audio.play();
+    
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        if (err.name !== "AbortError") {
+          setIsPlaying(false);
+        }
+      });
+    } 
   }, [currentTrack?.id]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    
+    let isCurrent = true;
+    let timeoutId = null;
+
     if (isPlaying) {
-      const t = setTimeout(() => {
-         audio.play().catch((err) => {
-        if (err.name !== "AbortError") setIsPlaying(false); 
-      });
+      timeoutId = setTimeout(() => {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            if (!isCurrent) audio.pause();
+          }).catch((err) => {
+            if (err.name !== "AbortError") setIsPlaying(false);
+          });
+        }
       }, 50);
-      return () => clearTimeout(t);
     } else {
       audio.pause();
+    }
+
+    return () => {
+      isCurrent = false;
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }, [isPlaying]);
 
@@ -194,16 +216,20 @@ const MusicPlayer = () => {
 
     const handleLoadedMetadata = () => {
       setPlayerError("");
-      if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100 || 0);
+      setCurrentTime(0);
+      setDuration(audio.duration || 0);
+      setProgress(0);
     };
 
     const handleTimeUpdate = () => {
-      if (audio.duration > 0) setProgress((audio.currentTime / audio.duration) * 100);
-      else if (duration > 0) setProgress((audio.currentTime / duration) * 100);
+      if (audio.duration > 0) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+        setCurrentTime(audio.currentTime);
+      }
     };
 
     const handleEnded = () => {
-      if (isRepeat) { audio.currentTime = 0; audio.play().catch(() => setIsPlaying(false)); return; }
+      if (isRepeat) { audio.currentTime = 0; audio.play().catch((err) => { if (err.name !== "AbortError") setIsPlaying(false) }); return; }
       if (queue.length === 0) return setIsPlaying(false);
       if (isShuffle && queue.length > 1) {
         setCurrentIndex(Math.floor(Math.random() * queue.length));
@@ -226,7 +252,7 @@ const MusicPlayer = () => {
         );
 
         if (idx === -1) return curr;
-        const sopy = curr.slice();
+        const copy = curr.slice();
         copy.splice(idx, 1);
 
         setCurrentIndex(curr => {
@@ -480,7 +506,7 @@ const MusicPlayer = () => {
         <LyricsPanel key={currentTrack?.id || "no-track"}
           trackId={currentTrack?.id} artist={currentTrack?.artist}
           title={currentTrack?.title} open={showLyrics}
-          onClose={() => setShowLyrics(false)}
+          onClose={() => setShowLyrics(false)} currentTime={currentTime}
         />
       )}
     </div>

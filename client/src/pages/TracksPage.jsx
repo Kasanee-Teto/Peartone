@@ -276,7 +276,7 @@ const TracksPage = () => {
             <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">Music Collection</p>
             <h1 className="m-0 text-[52px] font-black leading-none tracking-[-0.03em] max-sm:text-[40px]">All Tracks</h1>
             <p className="m-0 mt-2.5 text-xs text-white/45">
-              {totalTracks > 0 ? `${totalTracks} lagu tersedia` : "Semua lagu tersedia untuk diputar."}
+              {totalTracks > 0 ? `${totalTracks} tracks available` : "All tracks available for audio playing."}
             </p>
           </div>
         </header>

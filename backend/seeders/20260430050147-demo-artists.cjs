@@ -49,13 +49,29 @@ module.exports = {
         updatedAt: now
       },
       {
-      id: "f1a2b3c4-6d7e-4f8a-9b0c-1d2e3f4a5b6c",
-      name: "32ki",
-      bio: "Vocal synth producer.",
-      imageUrl: "/storage/artists/32ki.jpg",
-      createdAt: yesterday,
-      updatedAt: now
-      }
+        id: "f1a2b3c4-6d7e-4f8a-9b0c-1d2e3f4a5b6c",
+        name: "32ki",
+        bio: "Vocal synth producer.",
+        imageUrl: "/storage/artists/32ki.jpg",
+        createdAt: yesterday,
+        updatedAt: now
+      },
+      {
+        id: "fe0e2083-43e2-4d44-a05e-445dc880ef52",
+        name: "Yoasobi",
+        bio: "Yoasobi is a Japanese musical duo formed in 2019. It consists of songwriter and producer Ayase and vocalist Ikura.",
+        imageUrl: "/storage/artists/yoasobi.jpg",
+        createdAt: yesterday,
+        updatedAt: now
+      },
+      {
+        id: "3cf8e44e-9751-4aad-b055-6334b4bde54a",
+        name: "Ayase",
+        bio: "Ayase is a Japanese musician, singer, songwriter, and record producer. He is best known as a vocaloid producer and songwriter for Yoasobi, a musical duo composed of himself and vocalist Ikura. He was also a vocalist of the rock band Davinci until its disbandment in 2020.",
+        imageUrl: "/storage/artists/ayase.jpg",
+        createdAt: yesterday,
+        updatedAt: now
+      },
     ]);
   },
 
