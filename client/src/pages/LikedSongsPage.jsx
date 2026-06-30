@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiHeart, FiX, FiLoader, FiPlay } from "react-icons/fi";
-import Sidebar from "../components/Sidebar";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
+import SidebarSetup from "../components/SidebarSetup.jsx";
 
 const LikedSongsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -111,35 +111,7 @@ const LikedSongsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white overflow-x-hidden overflow-y-auto font-sans antialiased">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
-        <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-      />
-
-      <button
-        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        type="button"
-        aria-label="Close Sidebar"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="fixed right-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
-        type="button"
-        aria-label="Open Sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <SidebarSetup handleLogout={handleLogout} />
 
       <section className="relative border-b border-white/[0.06] bg-gradient-to-b from-[#0c3e2f] via-[#09221a] to-[#0d0d0f] px-6 lg:px-12 pt-20 pb-8">
         <div className="absolute inset-0 bg-[radial-gradient(800px_400px_at_80%_0%,rgba(200,245,96,0.12),transparent_70%)] pointer-events-none" />

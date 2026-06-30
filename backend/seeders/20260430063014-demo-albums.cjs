@@ -66,7 +66,7 @@ module.exports = {
           updatedAt: now,
         },
         {
-          id: "f35f870ab-357b-4d21-bb8b-1a32b41feb20", 
+          id: "35f870ab-357b-4d21-bb8b-1a32b41feb20", 
           artistId: "fe0e2083-43e2-4d44-a05e-445dc880ef52",
           title: "Yoasobi - Collection",
           description: "Album of Yoasobi.",

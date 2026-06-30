@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ChartList from "../components/ChartList";
-import Sidebar from "../components/Sidebar";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
 import SearchBar from "../components/SearchBar.jsx";
@@ -9,6 +8,7 @@ import SearchResults from "../components/SearchResults.jsx";
 import { useFetch } from "../hooks/useFetch";
 import { tracksApi } from "../api/tracks.js";
 import { authApi } from "../api/auth.js";
+import SidebarSetup from "../components/SidebarSetup.jsx";
 
 function normalizeTrack(t) {
   const artist =
@@ -37,7 +37,6 @@ function normalizeTrack(t) {
 const HomePage = () => {
   const navigate = useNavigate();
   const [showplaylist, setShowplaylist] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const [searchQuery, setSearchQuery]   = useState("");
@@ -119,37 +118,10 @@ const HomePage = () => {
       aria-label="Peartone Home Page"
     >
       <div className="grid grid-columns-1 gap-8 items-start">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={handleLogout}
-          onHome={() => setIsSidebarOpen(false)}
-          onPlaylist={() => {
-            setShowplaylist(true);
-            setIsSidebarOpen(false);
-          }}
-        />
 
-        <button
-          className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
-            isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-          type="button"
-          aria-label="Close Sidebar"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        <SidebarSetup handleLogout={handleLogout} showPlaylist={() => {setShowplaylist(false)}} />
 
         <div className="flex flex-col gap-16 md:gap-12">
-          <button
-            className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
-            type="button"
-            aria-label="Open Sidebar"
-            aria-controls="home-sidebar"
-            aria-expanded={isSidebarOpen}
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            ≡
-          </button>
 
           <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Peartone Banner">
 

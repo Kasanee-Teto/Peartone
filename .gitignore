@@ -1,6 +1,1 @@
-backend/.env
-backend/config/config.json
-/backend/config
-backend/.env
-.env
-config.json
+node_modules/

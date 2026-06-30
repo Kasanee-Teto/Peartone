@@ -8,7 +8,7 @@ const { Track, TrackArtist, Artist, Album } = db;
 
 class AdminTrackService extends BaseService {
   async create({ userId, body, files }) {
-    const { title, albumId, artistIds } = body || {};
+    const { title, albumId, artistIds, genre } = body || {};
     if (!title) throw new ApiError(400, "Title is required!");
 
     let parsedArtistIds = [];
@@ -55,6 +55,7 @@ class AdminTrackService extends BaseService {
         {
           albumId: albumId || null,
           title,
+          genre,
           duration: duration,
           audioUrl,
           audioPath,

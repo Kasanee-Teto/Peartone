@@ -114,6 +114,27 @@ const MusicPlayer = () => {
   }, []);
 
   useEffect(() => {
+  const handleSetQueue = (e) => {
+    const incomingTracks = Array.isArray(e.detail) ? e.detail : [e.detail];
+    const normalizedTracks = incomingTracks
+      .map(normalizePlayableTrack)
+      .filter((t) => t && isValidTrackId(t.trackId || t.id) && t.streamUrl);
+
+    if (normalizedTracks.length === 0) return;
+
+    setQueue((currentQueue) => {
+      if (currentIndex === 0 && currentQueue.length <= 1) {
+        return [currentQueue[0], ...normalizedTracks].filter(Boolean);
+      }
+      return [...currentQueue, ...normalizedTracks];
+    });
+  };
+
+  window.addEventListener("pt:set-queue", handleSetQueue);
+  return () => window.removeEventListener("pt:set-queue", handleSetQueue);
+}, [currentIndex]);
+
+  useEffect(() => {
     const handler = (e) => {
       const track = normalizePlayableTrack(e.detail);
       if (!isValidTrackId(track.trackId) || !track.streamUrl) return;

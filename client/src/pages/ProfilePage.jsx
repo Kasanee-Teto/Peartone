@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { FiMusic, FiHeart, FiEdit2, FiMapPin, FiCalendar, FiX, FiUser, FiMail, FiFileText } from "react-icons/fi";
-import Sidebar from "../components/Sidebar";
 import { useFetch } from "../hooks/useFetch";
 import { authApi } from "../api/auth.js";
+import SidebarSetup from "../components/SidebarSetup.jsx";
 
 const handleLogout = async () => {
   try {
@@ -107,32 +107,7 @@ const ProfilePage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-[#ffffff] relative overflow-x-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute rounded-full filter blur-[120px] w-[320px] h-[320px] bg-[#7c6af7] opacity-18 top-10 -left-20" />
-        <div className="absolute rounded-full filter blur-[120px] w-[280px] h-[280px] bg-[#c8f560] opacity-12 bottom-10 right-0" />
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-      />
-
-      <button
-        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        type="button"
-        aria-label="Delete Sidebar"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
-        type="button"
-        aria-label="Open Sidebar"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >≡</button>
+      <SidebarSetup handleLogout={handleLogout} />
 
       <div className="relative z-10 max-w-[960px] mx-auto padding px-6 pt-12 pb-20">
 

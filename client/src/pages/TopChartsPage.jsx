@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import MusicCard from "../components/MusicCard";
 import { useFetch } from "../hooks/useFetch";
 import { authApi } from "../api/auth";
 import { FiTrendingUp, FiMusic } from "react-icons/fi";
+import SidebarSetup from "../components/SidebarSetup";
 
 function normalizeTrack(track) {
   const artist =
@@ -55,35 +55,7 @@ const TopChartsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white overflow-x-hidden pb-24 font-sans">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-16 -left-32 w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-[0.07] blur-[140px]" />
-        <div className="absolute -bottom-20 right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-[0.06] blur-[140px]" />
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-      />
-
-      <button
-        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        type="button"
-        aria-label="Close Sidebar"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="fixed right-6 top-6 z-50 inline-flex items-center justify-center bg-[#18181c] text-[#c8f560] border border-white/5 rounded-xl h-11 w-11 shadow-lg hover:bg-[#c8f560] hover:text-[#0d0d0f] transition-all duration-200 active:scale-95"
-        type="button"
-        aria-label="Open Sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <SidebarSetup handleLogout={handleLogout} />
 
       <div className="mx-auto max-w-7xl px-6 pt-24 md:px-12 lg:pt-28">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:h-[calc(100vh-160px)] lg:items-stretch">

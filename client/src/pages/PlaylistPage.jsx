@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import PlaylistCard from "../components/PlaylistCard";
 import AddTrackModal from "../components/AddTrackModal";
-import Sidebar from "../components/Sidebar";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
 import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
+import SidebarSetup from "../components/SidebarSetup.jsx";
 
 const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
@@ -112,37 +112,7 @@ const PlaylistPage = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-64px] left-[-128px] w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-7 filter blur-[140px]" />
-        <div className="absolute bottom-[-80px] right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-6 filter blur-[140px]" />
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-        inert={!isSidebarOpen}
-      />
-  
-      <button
-        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        type="button"
-        aria-label="Close Sidebar"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
-        type="button"
-        aria-label="Open Sidebar"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <SidebarSetup handleLogout={handleLogout} />
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24 max-md:pt-[72px]">
 

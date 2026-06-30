@@ -1,232 +1,48 @@
-import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiUploadCloud, FiTrash2, FiAlertTriangle } from "react-icons/fi";
-import Sidebar from "../components/Sidebar";
+import { FiUploadCloud } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
-import { authApi } from "../api/auth";
-
-const GENRES = [
-  "pop", "rock", "hip-hop", "r&b", "jazz", "classical", "electronic", "J-Pop", "Anime",
-  "folk", "country", "reggae", "metal", "indie", "blues", "soul", "latin", "other"
-];
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
-
-const authFetch = (url, options = {}) => {
-  const token = localStorage.getItem("token");
-  return fetch(url, {
-    ...options,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
-};
-
-const CustomSelect = ({ value, onChange, options, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectedLabel = options.find(opt => String(opt.id) === String(value))?.title || placeholder;
-
-  return (
-    <div className="relative w-full">
-      <div
-        className={`
-          flex items-center justify-between w-full px-3 py-[10px] rounded-xl
-          border bg-white/[0.04] text-[13px] text-white/90 cursor-pointer select-none
-          transition-all duration-200
-          ${isOpen
-            ? "border-white/20 bg-white/[0.08] shadow-[0_0_0_2px_rgba(200,245,96,0.1)]"
-            : "border-white/10 hover:bg-white/[0.08] hover:border-white/20"
-          }
-        `}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className={!value ? "text-white/45" : ""}>{selectedLabel}</span>
-        <span
-          className={`
-            inline-block w-[9px] h-[9px] border-r-2 border-b-2 border-white/50
-            transition-transform duration-300 mr-1
-            ${isOpen ? "-rotate-[135deg] translate-y-[-2px] translate-x-[-2px]" : "rotate-45"}
-          `}
-        />
-      </div>
-
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-[999]"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#181818] border border-white/10 rounded-2xl max-h-[250px] overflow-y-auto z-[1001] shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
-            <div
-              className="px-4 py-[14px] text-sm text-white/70 cursor-pointer transition-all duration-150 hover:bg-white/[0.08] hover:text-white"
-              onClick={() => { onChange(""); setIsOpen(false); }}
-            >
-              Without album
-            </div>
-            {options.map((item) => (
-              <div
-                key={item.id}
-                className={`
-                  px-4 py-[14px] text-sm cursor-pointer transition-all duration-150
-                  ${String(value) === String(item.id)
-                    ? "bg-[rgba(200,245,96,0.1)] text-[#c8f560]"
-                    : "text-white/70 hover:bg-white/[0.08] hover:text-white"
-                  }
-                `}
-                onClick={() => { onChange(item.id); setIsOpen(false); }}
-              >
-                {item.title}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+import SidebarSetup from "../components/SidebarSetup";
+import { API_BASE, authFetch, handleLogout } from "../api/client";
+import { GENRES } from "../constants/genre";
+import CustomSelect from "../components/CustomSelect";
+import { useAdminTracks } from "../hooks/useAdminTracks";
+import { formatDuration } from "../utils/format";
+import TrackRow from "../components/TrackRow";
 
 const AdminUploadPage = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tracks, setTracks] = useState([]);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("pop");
-  const [selectedArtistIds, setSelectedArtistIds] = useState([]);
-  const [album, setAlbum] = useState("");
-  const [audioFile, setAudioFile] = useState(null);
-  const [coverFile, setCoverFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadMsg, setUploadMsg] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
+  const {
+    tracks,
+    title,
+    genre,
+    selectedArtistIds,
+    album,
+    audioFile,
+    coverFile,
+    uploading,
+    uploadMsg,
+    isSuccess,
+    confirmDeleteId,
+    deleting,
+    canSubmit,
+    setFormField,
+    setConfirmDeleteId,
+    onSubmit,
+    confirmDelete,
+  } = useAdminTracks();
 
   const { data: artistsResp } = useFetch("/artists");
   const { data: albumsResp } = useFetch("/albums");
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
   const albums = Array.isArray(albumsResp) ? albumsResp : albumsResp?.data || [];
 
-  const audioName = audioFile?.name ?? "Haven't choose file";
-  const coverName = coverFile?.name ?? "Haven't choose file";
-  const navigate = useNavigate();
-
-  const canSubmit = useMemo(
-    () => title.trim() && selectedArtistIds.length > 0 && audioFile,
-    [title, selectedArtistIds, audioFile]
-  );
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
-  useEffect(() => {
-    authFetch(`${API_BASE}/admin/tracks`)
-      .then((r) => r.json())
-      .then((res) => setTracks(Array.isArray(res) ? res : res?.data || []))
-      .catch(console.error);
-  }, [refreshKey]);
-
-  const resetForm = () => {
-    setTitle("");
-    setGenre("pop");
-    setSelectedArtistIds([]);
-    setAlbum("");
-    setAudioFile(null);
-    setCoverFile(null);
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit || uploading) return;
-
-    setUploading(true);
-    setUploadMsg("");
-    setIsSuccess(false);
-
-    const fd = new FormData();
-    fd.append("title", title);
-    fd.append("genre", genre);
-    fd.append("artistIds", JSON.stringify(selectedArtistIds));
-    if (album) fd.append("albumId", album);
-    fd.append("audio", audioFile);
-    if (coverFile) fd.append("cover", coverFile);
-
-    try {
-      const r = await authFetch(`${API_BASE}/admin/tracks`, { method: "POST", body: fd });
-      const res = await r.json();
-      if (!r.ok) throw new Error(res?.message || "Upload failed");
-      setIsSuccess(true);
-      setUploadMsg("File Uploaded! Track has been added.");
-      resetForm();
-      setRefreshKey((k) => k + 1);
-    } catch (err) {
-      setIsSuccess(false);
-      setUploadMsg(`${err.message || "Upload failed"}`);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!confirmDeleteId || deleting) return;
-    setDeleting(true);
-    try {
-      const r = await authFetch(`${API_BASE}/admin/tracks/${confirmDeleteId}`, { method: "DELETE" });
-      const res = await r.json();
-      if (!r.ok) throw new Error(res?.message || "Failed to delete");
-      setTracks((prev) => prev.filter((t) => t.id !== confirmDeleteId));
-      setIsSuccess(true);
-      setUploadMsg("Track successfully deleted.");
-    } catch (err) {
-      setIsSuccess(false);
-      setUploadMsg(`${err.message || "Failed to delete track."}`);
-    } finally {
-      setDeleting(false);
-      setConfirmDeleteId(null);
-    }
-  };
+  const audioName = audioFile?.name ?? "No File Chosen";
+  const coverName = coverFile?.name ?? "No File Chosen";
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload">
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-64px] left-[-128px] w-[500px] h-[500px] rounded-full bg-[#7c6af7] opacity-7 filter blur-[140px]" />
-        <div className="absolute bottom-[-80px] right-0 w-[384px] h-[384px] rounded-full bg-[#c8f560] opacity-6 filter blur-[140px]" />
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-        inert={!isSidebarOpen}
-      />
-  
-      <button
-        className={`fixed inset-0 bg-black/55 z-40 transition-opacity duration-250 ease-in-out ${
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        type="button"
-        aria-label="Close Sidebar"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="fixed top-6 right-6 z-45 inline-flex items-center justify-center bg-[#222228] text-[#c8f560] border border-white/5 rounded-[9px] px-[18px] py-2.5 cursor-pointer transition-all duration-150 ease-in-out hover:bg-[#c8f560] hover:text-[#0d0d0f] hover:-translate-y-[1px]"
-        type="button"
-        aria-label="Open Sidebar"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
+      <SidebarSetup handleLogout={handleLogout} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 pt-12 pb-24">
 
@@ -267,7 +83,7 @@ const AdminUploadPage = () => {
               <input
                 className="w-full px-3 py-[10px] rounded-xl border border-white/10 bg-white/[0.04] outline-none text-white/90 text-[13px] placeholder:text-white/45 focus:border-white/20 focus:bg-white/[0.07] transition-all"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => setFormField("title", e.target.value)}
                 placeholder="Insert Song Title"
                 required
               />
@@ -280,7 +96,7 @@ const AdminUploadPage = () => {
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setGenre(g)}
+                    onClick={() => setFormField("genre", g)}
                     className={`
                       px-[14px] py-[6px] rounded-[20px] text-xs font-medium cursor-pointer transition-all duration-150
                       ${genre === g
@@ -312,10 +128,12 @@ const AdminUploadPage = () => {
                     <input
                       type="checkbox"
                       checked={selectedArtistIds.includes(item.id)}
-                      onChange={(e) =>
-                        setSelectedArtistIds((prev) =>
-                          e.target.checked ? [...prev, item.id] : prev.filter((id) => id !== item.id)
-                        )
+                      onChange={(e) => {
+                          const updatedIds = e.target.checked
+                            ? [...selectedArtistIds, item.id]
+                            : selectedArtistIds.filter((id) => id !== item.id);
+                          setFormField("selectedArtistIds",   updatedIds);
+                        }
                       }
                       className="accent-[#c8f560]"
                     />
@@ -327,7 +145,7 @@ const AdminUploadPage = () => {
 
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">Album (optional)</span>
-              <CustomSelect value={album} onChange={setAlbum} options={albums} placeholder="Without album" />
+              <CustomSelect value={album} onChange={(val) => setFormField("album", val)} options={albums} placeholder="Without album" />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -338,7 +156,7 @@ const AdminUploadPage = () => {
                 <input
                   type="file"
                   accept="audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/*"
-                  onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => setFormField("audioFile", e.target.files?.[0] ?? null)}
                   className="absolute w-px h-px opacity-0 pointer-events-none"
                 />
                 <span className="inline-flex items-center gap-2 px-[10px] py-2 rounded-[10px] border border-[rgba(30,215,96,0.22)] bg-[rgba(30,215,96,0.1)] text-[#1ed760] text-[13px] cursor-pointer select-none">
@@ -357,7 +175,7 @@ const AdminUploadPage = () => {
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => setFormField("coverFile", e.target.files?.[0] ?? null)}
                   className="absolute w-px h-px opacity-0 pointer-events-none"
                 />
                 <span className="inline-flex items-center gap-2 px-[10px] py-2 rounded-[10px] border border-[rgba(30,215,96,0.22)] bg-[rgba(30,215,96,0.1)] text-[#1ed760] text-[13px] cursor-pointer select-none">
@@ -378,7 +196,7 @@ const AdminUploadPage = () => {
               {uploading ? "Uploading…" : "Upload Track"}
             </button>
             <p className="m-0 text-[12px] text-white/50">
-              * Must fill: Title, Genre,, Artist, and Audio file.
+              * Must fill: Title, Genre, Artist, and Audio file.
             </p>
           </div>
         </form>
@@ -396,93 +214,14 @@ const AdminUploadPage = () => {
                 const artistNames = Array.isArray(track.Artists)
                   ? track.Artists.map((a) => a.name).join(", ")
                   : track.artist?.name ?? "—";
-                const mins = Math.floor((track.duration || 0) / 60);
-                const secs = String((track.duration || 0) % 60).padStart(2, "0");
+                const { mins, secs } = formatDuration(track);
                 const isPendingDelete = confirmDeleteId === track.id;
 
                 return (
-                  <div key={track.id}>
-                    <div
-                      className={`
-                        flex items-center gap-[14px] px-[14px] py-[10px] border transition-all duration-[160ms]
-                        ${isPendingDelete
-                          ? "bg-[rgba(255,92,110,0.05)] border-[rgba(255,92,110,0.3)] rounded-[14px_14px_0_0]"
-                          : "bg-white/[0.03] border-white/[0.07] rounded-[14px] hover:bg-white/[0.06]"
-                        }
-                      `}
-                    >
-                      {track.coverUrl ? (
-                        <img
-                          src={track.coverUrl}
-                          alt={track.title}
-                          className="w-[52px] h-[52px] rounded-lg object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-[52px] h-[52px] rounded-lg bg-white/[0.08] shrink-0 flex items-center justify-center text-xl">
-                          🎵
-                        </div>
-                      )}
-
-                      <div className="flex-1 min-w-0">
-                        <p className="m-0 text-[14px] font-semibold text-white truncate">{track.title}</p>
-                        <p className="m-0 mt-[3px] text-[12px] text-white/50 truncate">
-                          {artistNames}{track.Album?.title ? ` · ${track.Album.title}` : ""}
-                        </p>
-                      </div>
-
-                      <span className="text-[11px] font-medium px-[10px] py-1 rounded-full bg-[rgba(200,245,96,0.1)] border border-[rgba(200,245,96,0.25)] text-[#c8f560] shrink-0 capitalize">
-                        {track.genre}
-                      </span>
-
-                      <span className="text-[12px] text-white/40 shrink-0 tabular-nums min-w-[36px] text-right">
-                        {mins}:{secs}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(isPendingDelete ? null : track.id)}
-                        className={`
-                          shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border cursor-pointer transition-all duration-150
-                          ${isPendingDelete
-                            ? "bg-[rgba(255,92,110,0.2)] border-[rgba(255,92,110,0.5)] text-[#ff8b85]"
-                            : "bg-white/[0.05] border-white/10 text-white/40 hover:bg-white/10 hover:text-white/70"
-                          }
-                        `}
-                        aria-label="Delete track"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-
-                    {isPendingDelete && (
-                      <div className="flex items-center justify-between gap-3 px-[14px] py-[10px] bg-[rgba(255,92,110,0.08)] border border-[rgba(255,92,110,0.3)] border-t-0 rounded-[0_0_14px_14px]">
-                        <div className="flex items-center gap-2">
-                          <FiAlertTriangle size={14} className="text-[#ff8b85] shrink-0" />
-                          <span className="text-[12px] text-white/70">
-                            Do you want to delete this track? Action cannot be reverted.
-                          </span>
-                        </div>
-                        <div className="flex gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDeleteId(null)}
-                            className="text-[12px] px-3 py-[5px] rounded-lg border border-white/12 bg-white/[0.06] text-white/60 cursor-pointer hover:bg-white/10 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={confirmDelete}
-                            disabled={deleting}
-                            className="text-[12px] px-3 py-[5px] rounded-lg border border-[rgba(255,92,110,0.4)] bg-[rgba(255,92,110,0.2)] text-[#ff8b85] font-medium cursor-pointer disabled:cursor-wait hover:bg-[rgba(255,92,110,0.3)] transition-colors"
-                          >
-                            {deleting ? "Deleting…" : "Delete"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
+                  <TrackRow track={track} artistNames={artistNames} isPendingDelete={isPendingDelete} 
+                  confirmDelete={confirmDelete} deleting={deleting} mins={mins} secs={secs} setConfirmDeleteId={setConfirmDeleteId} />
+                )
+        
               })}
             </div>
           )}

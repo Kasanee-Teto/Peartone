@@ -904,53 +904,55 @@ module.exports = {
           trackId: "1faa1b7a-8214-48dc-956e-5fd2c8c60406",
           language: "Japanese",
           text: `
-            [00:05.10]
-            [00:05.35]君が触れたら、た、た、ただの花さえ笑って宙に咲け
-            [00:10.97]君に倣って、て、照れるまま座ってバスの最終時刻
-            [00:17.38]オーバー
-            [00:19.46]
-            [00:27.70]いつもの通りバス停で、君はサイダーを持っていた。
-            [00:32.48]それだって様になってるなあ。
-            [00:34.90]しがない物書きであった僕はその風景を描いていた。
-            [00:39.98]隣に座る間も無く消えた。
-            [00:43.08]バスが走っていく。
-            [00:45.33]
-            [00:45.64]書いて書いてようやく得たものが
-            [00:48.33]妬みとか蔑みとか！なんかもう忘れたい
-            [00:52.75]
-            [00:53.00]君が触れたら、た、た、ただの花さえ笑って宙に咲け
-            [00:58.50]君が登って、て、照れる雲も赤らんで飛んでいく
-            [01:04.28]君がいるなら、た、た、退屈な日々も何てことはないけど
-            [01:10.50]君がいた騒々しい夏もさよなら
-            [01:14.36]誰か応答願う オーバー
-            [01:16.89]
-            [01:25.80]雨の街路脇、君は立っていた
-            [01:29.62]片手には赤いカトレア
-            [01:32.24]君の流した水滴が夕立ちみたく伝っていた
-            [01:37.33]君が泣いてるのに手は動いた
-            [01:40.43]声もかけないでその顔を書いていた
-            [01:43.20]
-            [01:43.40]吐いて 吐いてようやくわかるのが
-            [01:46.06]痛みです 虚しさですなんかもう馬鹿みたい
-            [01:50.15]
-            [01:50.40]満たされるから、た、た、足りてた分を落として嫌になるんだよ
-            [01:56.24]それで良かったって笑えるほど大人じゃないのにさ
-            [02:02.04]君が乗り込む、バ、バ、バスの隙間に僕の場所はないから
-            [02:08.23]君がいた想像だけが嵩んでいく
-            [02:12.11]今日も人生不完、オーバー
-            [02:14.54]
-            [02:24.08]君が歩けば花が咲く
-            [02:26.54]君が歩けば空が泣く
-            [02:29.14]君が笑えば遠い夏
-            [02:31.54]笑う顔が書いてみたい
-            [02:33.86]夕立ちの中泣く君に僕が言えるのなら
-            [02:39.02]もう一回あの夏に戻って
-            [02:44.82]
-            [02:45.24]君が泣いてる、と、と、止まらない訳を僕は知っていたい
-            [02:51.10]君に触れたら、て、て、適当なことでも喋ってみよう
-            [02:56.88]君がいたから、た、た、退屈な日々も何てことはないのさ
-            [03:03.11]君に笑って、て、照れるまま座ってバスの最終時刻、オーバー
-            [03:10.35]
+            [00:01.50]
+            [00:02.10]Kimi ga furetara, ta, ta, tada no hana sae waratte chuu ni sake
+            [00:07.45]Kimi ni naratte, te, tereru mama suwatte
+            [00:11.40]Basu no saishuu jikoku oobaa
+            [00:14.30]
+            [00:20.15]Itsumo no toori basutei de, kimi wa saidaa o motte ita
+            [00:25.10]Sore datte sama ni natte'ru naa
+            [00:28.00]Shiganai monokaki de atta boku wa sono fuukei o kaite ita
+            [00:33.20]Tonari ni suwaru ma mo naku kieta basu ga hashitte iku
+            [00:38.25]
+            [00:38.55]Kaite kaite youyaku eta mono ga netami to ka sagesumi to ka!
+            [00:44.20]Nanka mou wasuretai
+            [00:47.35]
+            [00:47.60]Kimi ga furetara, ta, ta, tada no hana sae waratte chuu ni sake
+            [00:53.05]Kimi ga nobotte, te, tereru kumo mo akarande tonde iku
+            [00:58.20]Kimi ga iru nara, ta, ta, taikutsu na hibi mo nante koto wa nai kedo
+            [01:03.65]Kimi ga ita souzoushii natsu mo sayonara
+            [01:07.30]Dareka outou negau oobaa
+            [01:10.15]
+            [01:15.90]Ame no gairowaki, kimi wa tatte ita
+            [01:21.15]Katate ni wa akai katorea
+            [01:26.40]Kimi no nagashita suiteki ga yuudachi mitaku tsutatte ita
+            [01:31.70]Kimi ga naite'ru no ni te wa ugoita
+            [01:34.45]Koe mo kakenaide sono kao o kaite ita
+            [01:39.60]
+            [01:39.90]Haite haite youyaku wakaru no ga itami desu munashisa desu
+            [01:45.65]Nanka mou baka mitai
+            [01:48.55]
+            [01:48.80]Mitasareru kara, ta, ta, tarite'ta bun o otoshite iya ni naru n'da yo
+            [01:54.40]Sore de yokatta tte waraeru hodo otona ja nai no ni sa
+            [01:59.60]Kimi ga norikomu ba, ba, basu no sukima ni boku no basho wa nai kara
+            [02:05.10]Kimi ga ita souzou dake ga kasande iku
+            [02:08.75]Kyou mo jinsei fukan, oobaa
+            [02:11.70]
+            [02:22.05]Kimi ga arukeba hana ga saku
+            [02:24.70]Kimi ga arukeba sora ga naku
+            [02:27.40]Kimi ga waraeba tooi natsu
+            [02:30.00]Warau kao ga kaite mitai
+            [02:32.40]
+            [02:32.65]Yuudachi no naka naku kimi ni
+            [02:35.30]Boku ga ieru no nara
+            [02:38.25]Mou ikkai ano natsu ni modotte
+            [02:42.50]
+            [02:43.90]Kimi ga naite'ru, to, to, tomaranai wake o boku wa shitte itai
+            [02:49.25]Kimi ni furetara, te, te, tekitou na koto demo shabette miyou
+            [02:54.55]Kimi ga ita kara, ta, ta, taikutsu na hibi mo nante koto wa nai no sa
+            [03:00.00]Kimi ni waratte, te, tereru mama suwatte
+            [03:03.90]Basu no saishuu jikoku, oobaa
+            [03:07.50]
           `,
           createdAt: yesterday,
           updatedAt: now,
@@ -959,49 +961,330 @@ module.exports = {
           trackId: "1e94fd52-bd3a-4a8d-ade7-3f2c3240d960",
           language: "Japanese",
           text: `
-            [00:18.00]
-            [00:19.45]靴紐が解けてる 木漏れ日は足を舐む
-            [00:25.96]息を吸う音だけ聞こえてる
-            [00:31.06]貴方は今立ち上がる 古びた椅子の上から
-            [00:38.25]柔らかい麻の匂いがする
-            [00:44.20]
-            [00:44.75]遥か遠くへ まだ遠くへ
-            [00:50.15]僕らは身体も脱ぎ去って
-            [00:56.24]まだ遠くへ 雲も越えて まだ向こうへ
-            [01:02.94]風に乗って 僕の想像力という重力の向こうへ
-            [01:10.87]まだ遠くへ まだ遠くへ 海の方へ
-            [01:18.60]
-            [01:29.80]靴紐が解けてる 蛇みたいに跳ね遊ぶ
-            [01:36.20]貴方の靴が気になる
-            [01:41.25]僕らは今歩き出す 潮風は肌を舐む
-            [01:48.55]手を引かれるままの道
-            [01:54.40]
-            [01:54.65]さぁまだ遠くへ まだ遠くへ
-            [02:00.44]僕らはただの風になって
-            [02:06.40]まだ遠くへ 雲も越えて まだ向こうへ
-            [02:13.13]風に乗って 僕ら想像力という縛りを抜け出して
-            [02:21.08]まだ遠くへ まだ遠くへ 海の方へ
-            [02:28.90]
-            [02:44.70]靴紐が解けてる 僕はついにしゃがみ込む
-            [02:51.10]鳥の鳴く声だけ聞こえてる
-            [02:56.12]肩をそっと叩かれてようやく僕は気が付く
-            [03:03.45]海がもう目の先にある
-            [03:09.15]
-            [03:09.40]あぁまだ遠くへ まだ遠くへ
-            [03:15.28]僕らは心だけになって
-            [03:21.28]まだ遠くへ 海も越えて まだ向こうへ
-            [03:27.95]風に乗って 僕の想像力という重力の向こうへ
-            [03:35.91]まだ遠くへ まだ遠くへ 海の方へ
-            [03:43.70]
-            [03:44.15]僕らは今靴を脱ぐ さざなみは足を舐む
-            [03:50.55]貴方の眼は遠くを見る
-            [03:55.60]ライオンが戯れるアフリカの砂浜は
-            [04:02.90]海のずっと向こうにある
-            [04:10.00]
+            [00:10.00]
+            [00:14.30]Kutsuhimo ga hodoketeru
+            [00:17.30]Komorebi wa ashi o namu
+            [00:20.10]Iki o suu oto dake kikoeteru
+            [00:25.10]Anata wa ima tachiagaru
+            [00:28.15]Furubita isu no ue kara
+            [00:30.95]Yawarakai asa no nioi ga suru
+            [00:35.30]
+            [00:35.60]Haruka tooku e mada tooku e
+            [00:41.10]Bokura wa karada mo nugisatte
+            [00:46.50]Mada tooku e kumo mo koete mada mukou e
+            [00:52.45]Kaze ni notte
+            [00:54.60]Boku no souzouryoku to iu juuryoku no mukou e
+            [01:00.00]Mada tooku e mada tooku e, umi no hou e
+            [01:06.60]
+            [01:17.20]Kutsuhimo ga hodoketeru
+            [01:20.00]Hebi mitai ni hane asobu
+            [01:22.80]Anata no kutsu ga ki ni naru
+            [01:27.95]Bokura wa ima aruki dasu
+            [01:30.80]Shiokaze wa hada o namu
+            [01:33.60]Te o hikareru mama no michi
+            [01:38.10]
+            [01:38.35]Saa mada tooku e mada tooku e
+            [01:43.85]Bokura wa tada no kaze ni natte
+            [01:49.20]Mada tooku e kumo mo koete mada mukou e
+            [01:55.10]Kaze ni notte
+            [01:57.30]Bokura souzouryoku to iu shibari o nukedashite
+            [02:02.75]Mada tooku e mada tooku e, umi no hou e
+            [02:09.50]
+            [02:30.80]Kutsuhimo ga hodoketeru
+            [02:33.70]Boku wa tsui ni shagamikomu
+            [02:36.45]Tori no naku koe dake kikoeteru
+            [02:41.50]Kata o sotto tatakarete
+            [02:44.55]Youyaku boku wa ki ga tsuku
+            [02:47.30]Umi ga mou me no saki ni aru
+            [02:51.60]
+            [02:51.90]Aa mada tooku e mada tooku e
+            [02:57.45]Bokura wa kokoro dake ni natte
+            [03:02.80]Mada tooku e umi mo koete mada mukou e
+            [03:08.70]Kaze ni notte
+            [03:10.95]Boku no souzouryoku to iu juuryoku no mukou e
+            [03:16.40]Mada tooku e mada tooku e, umi no hou e
+            [03:22.85]
+            [03:23.10]Bokura wa ima kutsu o nugu
+            [03:26.05]Sazanami wa ashi o namu
+            [03:28.85]Anata no me wa tooku o miru
+            [03:33.95]Raion ga tawamureru
+            [03:36.95]Afurika no sunahama wa
+            [03:39.75]Umi no zutto mukou ni aru
+            [03:45.00]
           `,
           createdAt: yesterday,
           updatedAt: now,
-        }
+        },
+        {
+          trackId: "5c6c4049-4ded-45c5-bd77-e67a4c30c1fd",
+          language: "Japanese",
+          text: `
+            [00:15.00]
+            [00:22.15]Aa, toumei yori mo sumikitta kokoro de
+            [00:27.40]Yononaka o waratte iru nda yo
+            [00:32.70]Aa, ongaku nanka o eranda
+            [00:37.35]Ano hi no jibun o baka ni omou ne
+            [00:42.50]
+            [00:43.15]Tsutaetai zenbu wa mou
+            [00:48.30]Kono uta mo jibun no koe sura mo
+            [00:54.40]
+            [00:54.65]Kaze ni nattakara awa to kiete ittakara
+            [01:00.00]Kyou kankaku mitai kono kanshou wa dokoka e nagesutetai
+            [01:05.40]Boku de ii nonara kimi ga shiritai nonara
+            [01:10.75]Mou kakusu koto nante nai yo
+            [01:14.30]Ima kara sukoshidake odorou ze
+            [01:18.50]
+            [01:29.30]Aa, ningen'nante yametai na
+            [01:34.45]Soudaro, omoshiroku mo nani ni mo naidaro
+            [01:39.80]Aa, jiman no gitaa o misebirakashita
+            [01:44.50]Ano hi no jibun o tsubushite yaritai yo
+            [01:49.60]
+            [01:50.25]Tsutaetai zenbu wa mou
+            [01:55.45]Natsu mo fuyu mo ashita no mukou-gawa de
+            [02:01.50]
+            [02:01.75]Hai ni nattakara awaku kiesattakara
+            [02:07.10]Haya uni shitsu kushi teta kono joudou mo dokoka e nagesutete
+            [02:12.50]Kimi ga ii nonara tada wasuretai nonara
+            [02:17.85]Mou tamerau koto nante nai yo
+            [02:21.40]Kono mama yoake made odorou ze
+            [02:25.50]
+            [02:46.80]Aa, ongaku nanka yamete yaru no sa
+            [02:52.15]Omoide no kimi ga hitotsu mo tagawazu kaketara
+            [02:57.45]Douse mou yaritai koto hitotsu ienaikara sa
+            [03:03.50]Ukabanaikara sa
+            [03:07.80]
+            [03:08.50]Kimi o shitta mama hibi ga sugisattakara
+            [03:13.85]Dou ka oitsukitai kono joudou o konomama uta ni shitai
+            [03:19.25]Ima ga kurushiinara-sa iiwake wa iikara sa
+            [03:25.35]A~a mou, odorou ze hora
+            [03:30.40]
+            [03:30.95]Kaze ni natta no sa awa to kiete itta no sa
+            [03:36.30]Douse warikirenai kono kanshou mo dokoka e nagesutete
+            [03:41.70]Boku de ii nonara kimi ga shiritai nonara
+            [03:47.05]Mou kakusu koto nante nai yo
+            [03:50.60]Ima kara sukoshidake
+            [03:53.30]Kono mama sukoshidake odorou ze
+            [03:59.00]
+          `,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
+        {
+          trackId: "c40ca7e3-15ba-4245-8371-1cf9991b5775",
+          language: "Japanese",
+          text: `
+          [00:15.00]
+          [00:23.75]Mizuumi no soko ni iru mitai da
+          [00:28.95]Kokyuu no hitotsu ga nodo ni karanda
+          [00:34.05]Kihou wo hakidashite suubyou, yatto ashi ga tsuita
+          [00:39.60]Yawaraka na doro no kanshoku ga shita
+          [00:44.20]
+          [00:44.80]Zutto, zutto, zutto zutto zutto
+          [00:52.20]Kimi wo otteiru dake de
+          [00:57.25]Dou shiyou mo nai koto bakari iitakatta
+          [01:04.25]
+          [01:04.55]Suiren ga uiteita suiatsu de toumei da
+          [01:09.90]Mou shinkirou yori mo tashika nara sore de ii yo
+          [01:15.15]Tekitou demo ii kara mokuteki to ka ii kara
+          [01:20.45]Kono mama doko demo ii kara sa, nigeyou
+          [01:26.50]
+          [01:37.40]Mizuumi no soko ni iru mitai da
+          [01:42.50]Nureru komaku ga kusuguttain da
+          [01:47.65]Kitai mo shourai mo asu mo nanimo kikitaku nakatta
+          [01:53.30]Kuchi kara afureru awabuku ga kirei de
+          [01:57.90]
+          [01:58.45]Zutto, zutto, zutto zutto zutto
+          [02:05.80]Mitorete shimatta dake de
+          [02:11.00]Kokoro yori daiji na mono wo mitsuketakatta
+          [02:17.90]
+          [02:18.20]Kotoba tte hakujou da suiatsu de toumei da
+          [02:23.50]Naa, tatemae yori kirei na mono wo sagashterun da
+          [02:28.80]Sonna no wasurete ii kara mou, nigeyou
+          [02:34.90]
+          [02:59.30]Konna jibun nara iranai
+          [03:01.90]Boku ni wa nannimo iranai
+          [03:04.55]Okane mo meisei mo ai mo shousan mo nannimo iranai
+          [03:09.85]Kono mama tooku ni ikitai
+          [03:12.50]Omoide no soto ni sawaritai
+          [03:15.15]Mata kimi no uta ga kikitai
+          [03:19.45]
+          [03:20.00]Zutto, zutto, zutto zutto zutto
+          [03:27.40]Kimi wo otteiru dake de
+          [03:32.40]Dou shiyou mo nai koto dake utaitakatta
+          [03:39.40]
+          [03:39.75]Suiren ga uiteita suiatsu de toumei da
+          [03:45.05]Mou shinkirou yori mo tashika nara sore de ii yo
+          [03:50.30]Kono mama doko demo ii kara sa, hontou wa zenbu oite tada
+          [03:56.65]Nigedashitai dake datta
+          [04:00.60]
+          [04:00.85]Jinsei wa toumei da suiatsu de toumei da
+          [04:06.10]Mou shinkirou yori mo tashika nara sore de ii yo
+          [04:11.45]Tekitou demo ii kara mokuteki to ka ii kara
+          [04:16.70]Kono mama doko demo ii kara sa, nigeyou
+          [04:22.85]
+          `,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
+        {
+          trackId: "d0890bd1-d629-4d9c-8a75-469edf2dc531",
+          language: "Japanese",
+          text: `
+          [00:08.00]
+          [00:11.45]Asahi no sasu komorebi boku to eruma
+          [00:16.80]Mada mada nemui kai
+          [00:19.45]Shoka no hajime chikaduku gogatsu no mori
+          [00:24.80]Arukidashita kao ni wa hana no shizuku
+          [00:29.25]Hora namida mitaida
+          [00:32.40]
+          [00:32.65]Konomama akubi wo shiyou
+          [00:35.35]Nannara mata isu ni demo suwarou
+          [00:38.25]Yurusenai koto nante nainda yo
+          [00:43.00]Kimi wa yasashiku nante nareru
+          [00:47.30]
+          [00:47.55]Konomama dokoka no tooi kuni de
+          [00:52.80]Asai natsu no sukima ni nesobettamama
+          [00:58.20]Namida mo kotoba mo denaimamade
+          [01:03.55]Tada yoru no fukasa mo shiranaimamade
+          [01:08.55]
+          [01:08.85]Usotsuki nante wakatte furete
+          [01:14.20]Eruma mada mada itai yo
+          [01:19.55]Mou sayonara da tte utatte
+          [01:24.90]Kurete yoru ga kuru made
+          [01:30.35]
+          [01:40.40]Tsurai koto mo kurushii koto mo
+          [01:45.55]Nanimo mienai nara wakaranai shi
+          [01:50.90]Fusaida me tojitamamade nigeta
+          [01:56.25]Tsukiakari no michi wo aruku
+          [02:00.85]
+          [02:01.15]Semai heya mo tsumetai yoru mo
+          [02:03.80]Nemui hiru mo sabishii asa mo
+          [02:06.80]Sayonara no kotobagoshi ni kimi no kao wo miteru
+          [02:14.30]
+          [02:15.65]Konomama dokoka no tooi kuni de
+          [02:20.85]Asai natsu no sukima ni nesobettamama
+          [02:26.25]Namida mo kotoba mo denaimamade
+          [02:31.60]Tada sora no aosa dake mitamamade
+          [02:36.60]
+          [02:36.90]Tada kimi to owari mo shiranai mamade
+          [02:42.25]Usotsuki nante wakatte furete
+          [02:47.60]Eruma mada mada itai yo
+          [02:52.95]Mou sayonara da tte utatte
+          [02:58.30]Kurete yoru ga kuru made
+          [03:03.65]
+          [03:08.95]Mada mada itai yo
+          [03:14.30]Mou sayonara da tte utatte
+          [03:19.65]Kurete yoru ga kuru made
+          [03:25.80]
+          `,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
+        {
+          trackId: "e3de4309-6683-4409-8aa5-8d44c25c8e68",
+          language: "Japanese",
+          text: `
+          [00:15.00]
+          [00:23.50]Asa no kaze ga mado o t叩te
+          [00:28.45]Bokura wa me o samasu
+          [00:33.70]Kono machi o deru junbi wa sabishii na
+          [00:39.10]Nani mo nai kedo
+          [00:43.70]
+          [00:44.25]Kaban ni wa omoide to
+          [00:49.20]Sukoshi no choko reeto
+          [00:54.40]Kimi no te o hiite hashi o watarou
+          [00:59.60]Yoru ga kuru mae ni
+          [01:04.25]
+          [01:04.55]Nigechou daze, nigechou daze
+          [01:09.60]Kono sekai no hazure made
+          [01:14.85]Doko e ikou ka, nani o shiyou ka
+          [01:19.95]Kimi to futari nara sore de ii ya
+          [01:25.10]
+          [01:36.40]Hiru no hizashi ga tsuyoku natte
+          [01:41.45]Bokura wa kage o fumu
+          [01:46.70]Ano oka no mukou ni wa nani ga aru?
+          [01:52.10]Dare mo shiranai
+          [01:56.80]
+          [01:57.10]Uta o utao u, kaze no uta o
+          [02:02.15]Bokura no tabiji no uta
+          [02:07.45]Kimi no ashiato o oikakeru yo
+          [02:12.60]Oite ikanai de
+          [02:17.25]
+          [02:17.55]Nigechou daze, nigechou daze
+          [02:22.65]Kono yoru ga akeru mae ni
+          [02:27.80]Doko e ikou ka, nani o shiyou ka
+          [02:32.95]Kimi to futari nara sore de ii ya
+          [02:38.25]
+          [03:09.60]Sayonara dake ga boku no machi ni furu
+          [03:14.85]Kimi no kage o oikakeru hodo ni
+          [03:20.10]Yoru wa fukaku natteiku
+          [03:25.10]
+          [03:25.35]Nigechou daze, nigechou daze
+          [03:30.40]Kono sekai no hazure made
+          [03:35.60]Doko e ikou ka, nani o shiyou ka
+          [03:40.70]Kimi to futari nara sore de ii ya
+          [03:45.95]
+          [03:46.20]Kimi to futari de, yoru no sukima de
+          [03:51.35]Toubou o tsuzukeyou
+          [03:56.50]
+          `,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
+        {
+          trackId: "b5a1926f-d459-4c59-89f5-70a1ed5f7d95",
+          language: "Japanese",
+          text: `
+          [00:08.00]
+          [00:11.45]Asahi no sasu komorebi boku to eruma
+          [00:16.80]Mada mada nemui kai
+          [00:19.45]Shoka no hajime chikaduku gogatsu no mori
+          [00:24.80]Arukidashita kao ni wa hana no shizuku
+          [00:29.25]Hora namida mitaida
+          [00:32.40]
+          [00:32.65]Konomama akubi wo shiyou
+          [00:35.35]Nannara mata isu ni demo suwarou
+          [00:38.25]Yurusenai koto nante nainda yo
+          [00:43.00]Kimi wa yasashiku nante nareru
+          [00:47.30]
+          [00:47.55]Konomama dokoka no tooi kuni de
+          [00:52.80]Asai natsu no sukima ni nesobettamama
+          [00:58.20]Namida mo kotoba mo denaimamade
+          [01:03.55]Tada yoru no fukasa mo shiranaimamade
+          [01:08.55]
+          [01:08.85]Usotsuki nante wakatte furete
+          [01:14.20]Eruma mada mada itai yo
+          [01:19.55]Mou sayonara da tte utatte
+          [01:24.90]Kurete yoru ga kuru made
+          [01:30.35]
+          [01:40.40]Tsurai koto mo kurushii koto mo
+          [01:45.55]Nanimo mienai nara wakaranai shi
+          [01:50.90]Fusaida me tojitamamade nigeta
+          [01:56.25]Tsukiakari no michi wo aruku
+          [02:00.85]
+          [02:01.15]Semai heya mo tsumetai yoru mo
+          [02:03.80]Nemui hiru mo sabishii asa mo
+          [02:06.80]Sayonara no kotobagoshi ni kimi no kao wo miteru
+          [02:14.30]
+          [02:15.65]Konomama dokoka no tooi kuni de
+          [02:20.85]Asai natsu no sukima ni nesobettamama
+          [02:26.25]Namida mo kotoba mo denaimamade
+          [02:31.60]Tada sora no aosa dake mitamamade
+          [02:36.60]
+          [02:36.90]Tada kimi to owari mo shiranai mamade
+          [02:42.25]Usotsuki nante wakatte furete
+          [02:47.60]Eruma mada mada itai yo
+          [02:52.95]Mou sayonara da tte utatte
+          [02:58.30]Kurete yoru ga kuru made
+          [03:03.65]
+          [03:08.95]Mada mada itai yo
+          [03:14.30]Mou sayonara da tte utatte
+          [03:19.65]Kurete yoru ga kuru made
+          [03:25.80]
+          `,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
       ],
       {}
     );
