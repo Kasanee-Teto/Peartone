@@ -4,3 +4,4 @@ backend/config/config.json
 backend/.env
 .env
 config.json
+client/node_modules
