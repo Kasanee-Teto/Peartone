@@ -2,7 +2,7 @@ export function parseLRC(lrcText) {
     if (!lrcText) return [];
 
     const lines = lrcText.split('\n');
-    const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+    const timeRegex = /\[(\d{1,2}):(\d{2})\.(\d{2,3})\]/;
     const parsed = [];
 
     lines.forEach(line => {
