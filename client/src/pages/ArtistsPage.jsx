@@ -11,7 +11,7 @@ const ArtistsPage = () => {
   const { data: artistsResp, loading, error } = useFetch("/artists");
 
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
-  const featuredArtists = useMemo(() => artists.slice(0, 6), [artists]);
+  const featuredArtists = useMemo(() => artists, [artists]);
   const spotlightArtist = featuredArtists[0] || null;
 
   const handleLogout = async () => {
