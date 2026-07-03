@@ -18,6 +18,30 @@ export function buildStreamUrl(track) {
   return `${origin}/api/stream/tracks/${trackId}`;
 }
 
+export function normalizeTrack(t) {
+  const artist =
+    Array.isArray(t?.Artists) && t.Artists.length > 0
+      ? t.Artists.map((a) => a?.name).filter(Boolean).join(", ")
+      : t?.artist || t?.Artist?.name || "Unknown Artist";
+
+  return {
+    id: t?.id,
+    title: t?.title || t?.name || "Untitled",
+    artist,
+    album: t?.Album?.title || t?.album || "",
+    cover:
+      t?.cover ||
+      t?.coverUrl ||
+      t?.image ||
+      t?.imageUrl ||
+      t?.Album?.cover ||
+      t?.Album?.coverUrl ||
+      "",
+    duration: t?.duration || 0,
+    ...t,
+  };
+}
+
 export function normalizePlayableTrack(track) {
   const durationValue = Number(track?.duration ?? track?.durationSeconds ?? 0);
   const trackId = String(track?.trackId || track?.id || "").trim();

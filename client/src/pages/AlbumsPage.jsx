@@ -4,7 +4,6 @@ import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import AlbumCard from "../components/AlbumsCard.jsx";
 
-
 const AlbumsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: albumsResp, loading, error } = useFetch("/albums");

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSearch, FiTrash2, FiX, FiAlertTriangle } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
+import { useNavigate } from "react-router-dom";
 import { historyApi } from "../api/history.js";
-import { authApi } from "../api/auth.js";
+import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 
 const HistoryPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [clearing, setClearing] = useState(false);
@@ -43,15 +45,10 @@ const HistoryPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
+  useEffect(() => {
+    window.addEventListener("focus", reloadHistory);
+    return () => window.removeEventListener("focus", reloadHistory);
+  }, [reloadHistory]);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="History">

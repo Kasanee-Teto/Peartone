@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowRight, FiStar } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
-import { authApi } from "../api/auth";
 import SidebarSetup from "../components/SidebarSetup";
+import { handleLogout } from "../api/client.js";
 
 const ArtistsPage = () => {
   const navigate = useNavigate();
@@ -13,16 +13,6 @@ const ArtistsPage = () => {
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
   const featuredArtists = useMemo(() => artists, [artists]);
   const spotlightArtist = featuredArtists[0] || null;
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">

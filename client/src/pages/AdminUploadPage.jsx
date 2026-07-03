@@ -7,7 +7,7 @@ import { GENRES } from "../constants/genre";
 import CustomSelect from "../components/CustomSelect";
 import { useAdminTracks } from "../hooks/useAdminTracks";
 import { formatDuration } from "../utils/format";
-import TrackRow from "../components/TrackRow";
+import AdminTrackRow from "../components/AdminTrackRow";
 
 const AdminUploadPage = () => {
   const navigate = useNavigate();
@@ -218,7 +218,7 @@ const AdminUploadPage = () => {
                 const isPendingDelete = confirmDeleteId === track.id;
 
                 return (
-                  <TrackRow track={track} artistNames={artistNames} isPendingDelete={isPendingDelete} 
+                  <AdminTrackRow track={track} artistNames={artistNames} isPendingDelete={isPendingDelete} 
                   confirmDelete={confirmDelete} deleting={deleting} mins={mins} secs={secs} setConfirmDeleteId={setConfirmDeleteId} />
                 )
         

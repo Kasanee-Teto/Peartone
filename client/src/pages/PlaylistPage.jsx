@@ -4,19 +4,9 @@ import AddTrackModal from "../components/AddTrackModal";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
-import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
-
-const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
-  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-  : "http://localhost:3000";
-
-function buildCoverUrl(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `${STORAGE_BASE}${url}`;
-}
+import { buildCoverUrl, handleLogout } from "../api/client.js";
 
 const PlaylistPage = () => {
   const navigate = useNavigate();
@@ -97,16 +87,6 @@ const PlaylistPage = () => {
       setPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
     } catch (err) {
       window.alert(err.message || "Failed to delete playlist.");
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
     }
   };
 

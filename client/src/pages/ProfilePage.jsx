@@ -1,18 +1,8 @@
 import { useEffect, useState } from "react";
 import { FiMusic, FiHeart, FiEdit2, FiMapPin, FiCalendar, FiX, FiUser, FiMail, FiFileText } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
-import { authApi } from "../api/auth.js";
+import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
-
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
 
 const ProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen]   = useState(false);

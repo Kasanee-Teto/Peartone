@@ -6,25 +6,16 @@ import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
+import { handleLogout } from "../api/client.js";
 
 const LikedSongsPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [removingId, setRemovingId] = useState("");
-  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("pt_user") || "null") || {};
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
 
   const handleSufflePlay = useCallback((e) => {
     e.stopPropagation(); 

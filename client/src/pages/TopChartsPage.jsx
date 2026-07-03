@@ -2,47 +2,15 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MusicCard from "../components/MusicCard";
 import { useFetch } from "../hooks/useFetch";
-import { authApi } from "../api/auth";
+import { handleLogout } from "../api/client";
 import { FiTrendingUp, FiMusic } from "react-icons/fi";
 import SidebarSetup from "../components/SidebarSetup";
-
-function normalizeTrack(track) {
-  const artist =
-    Array.isArray(track?.Artists) && track.Artists.length > 0
-      ? track.Artists.map((item) => item?.name).filter(Boolean).join(", ")
-      : track?.artist || track?.Artist?.name || "Unknown Artist";
-
-  return {
-    ...track,
-    title: track?.title || track?.name || "Untitled",
-    artist,
-    album: track?.Album?.title || track?.album || "",
-    cover_url:
-      track?.cover ||
-      track?.coverUrl ||
-      track?.image ||
-      track?.imageUrl ||
-      track?.Album?.cover ||
-      track?.Album?.coverUrl ||
-      "",
-    duration: track?.duration || 0,
-  };
-}
+import { normalizeTrack } from "../utils/playerBus";
 
 const TopChartsPage = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: tracksResp, loading, error } = useFetch("/tracks?page=1&limit=20"); 
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
 
   const chartsRaw = useMemo(() => {
     let rawData = [];
