@@ -17,8 +17,24 @@ export const authFetch = (url, options = {}) => {
 export const buildCoverUrl = (coverUrl) => {
     if (!coverUrl) return null;
     if (coverUrl.startsWith("http")) return coverUrl;
+    if (coverUrl.includes(ASSET_BASE)) return coverUrl;
+
     const cleanPath = coverUrl.startsWith("/") ? coverUrl : `/${coverUrl}`;
     return `${ASSET_BASE}${cleanPath}`;
+};
+
+export const getCoverUrl = (track) => {
+  if (track?.cover_url) return track.cover_url;
+
+  return (
+    track?.cover ||
+    track?.coverUrl ||
+    track?.image ||
+    track?.imageUrl ||
+    track?.Album?.cover ||
+    track?.Album?.coverUrl ||
+    ""
+  );
 };
 
 export const handleLogout = async () => {

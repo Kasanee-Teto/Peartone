@@ -1,14 +1,15 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { FiSearch, FiX, FiPlus, FiTrash2 } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
 
-const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
+const AddTrackModal = ({ playlistId, onClose, onTrackChanged }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addingTrackId, setAddingTrackId] = useState("");
   const [removingTrackId, setRemovingTrackId] = useState("");
   const [playlistTracks, setPlaylistTracks] = useState([]);
   const { data: tracksResp } = useFetch("/tracks?limit=100");
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const loadPlaylistTracks = async () => {
@@ -22,6 +23,16 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
     };
     loadPlaylistTracks();
   }, [playlistId]);
+
+  useEffect(() => {
+    if (!message) return;
+    const m = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(m);
+  }, [message]);
+
+  const notify = useCallback((message, type="info") => {
+    setMessage({ message, type });
+  }, []);
 
   const tracks = Array.isArray(tracksResp) ? tracksResp : tracksResp?.data || [];
 
@@ -38,7 +49,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
 
   const handleAddTrack = async (trackId) => {
     const token = localStorage.getItem("token");
-    if (!token) return window.alert("Login to add track to Playlist");
+    if (!token) return notify("Login to add track to Playlist", "info");
 
     setAddingTrackId(trackId);
     try {
@@ -50,9 +61,9 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Failed to add track");
       setPlaylistTracks((current) => [...current, trackId]);
-      onTrackAdded?.();
+      onTrackChanged?.();
     } catch (err) {
-      window.alert(err.message || "Failed to add track");
+      notify(err.message || "Failed to add track", "error");
     } finally {
       setAddingTrackId("");
     }
@@ -60,7 +71,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
 
   const handleRemoveTrack = async (trackId) => {
     const token = localStorage.getItem("token");
-    if (!token) return window.alert("Login to delete track from playlist");
+    if (!token) return notify("Login to delete track from playlist", "info");
 
     setRemovingTrackId(trackId);
     try {
@@ -70,8 +81,9 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
       });
       if (!res.ok) throw new Error("Failed to delete track");
       setPlaylistTracks((current) => current.filter((id) => id !== trackId));
+      onTrackChanged?.();
     } catch (err) {
-      window.alert(err.message || "Failed to delete track");
+      notify(err.message || "Failed to delete track", "error");
     } finally {
       setRemovingTrackId("");
     }
@@ -81,6 +93,20 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative z-[10000] flex max-h-[80vh] w-[90%] max-w-[520px] flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#161618] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+
+        {message && (
+          <div
+            className={`absolute left-1/2 top-2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold shadow-lg ${
+              message.type === "error"
+                ? "bg-[rgba(255,92,110,0.9)] text-white"
+                : "bg-[#0d0d0f]/90 text-lime-300 border border-lime-300/30"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {message.message}
+          </div>
+        )}
+
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
           <h2 className="m-0 text-lg font-bold text-white">Add Track to Playlist</h2>
           <button
@@ -136,7 +162,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackAdded }) => {
                   disabled={busy}
                   aria-label={`${inPlaylist ? "Delete" : "Add"} ${track.title}`}
                 >
-                  <FiTrash2 />
+                  { !inPlaylist ? <FiPlus /> : <FiTrash2 /> }
                 </button>
               </li>
             );

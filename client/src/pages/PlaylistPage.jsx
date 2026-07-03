@@ -16,6 +16,10 @@ const PlaylistPage = () => {
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [message, setMessage] = useState(null);
 
   const { data: playlistsResp, loading, error } = useFetch("/playlists");
 
@@ -25,6 +29,16 @@ const PlaylistPage = () => {
       : playlistsResp?.data || [];
     setPlaylists(incoming);
   }, [playlistsResp]);
+
+  useEffect(() => {
+    if (!message) return;
+    const m = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(m);
+  }, [message]);
+
+  const notify = useCallback((message, type="info") => {
+    setMessage({ message, type });
+  }, []);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -38,7 +52,7 @@ const PlaylistPage = () => {
     e.preventDefault();
     if (!newPlaylistName.trim()) return;
     const token = localStorage.getItem("token");
-    if (!token) { window.alert("Please login to your account."); return; }
+    if (!token) { notify("Please login to your account.", "info"); return; }
     setIsSaving(true);
     try {
       const created = await playlistsApi.create(newPlaylistName.trim());
@@ -47,54 +61,79 @@ const PlaylistPage = () => {
       setNewPlaylistName("");
       setSelectedPlaylistId(playlist.id);
     } catch (err) {
-      window.alert(err.message || "Failed to load playlist.");
+      notify(err.message || "Failed to load playlist.", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleTrackAdded = async () => {
+  const handleTracksChanged = async () => {
     if (!selectedPlaylistId) return;
     try {
       const updated = await playlistsApi.getMine(selectedPlaylistId);
       const data = updated?.data;
-      const freshPlaylist = data?.playlist;
+      const playlist = data?.playlist;
       const tracks = data?.tracks || [];
-      if (freshPlaylist?.id) {
-        setPlaylists((prev) =>
-          prev.map((p) => p.id === freshPlaylist.id
-            ? {
-                ...p,
-                ...freshPlaylist,
-                trackCount: tracks.length,
-                coverUrl: tracks[0]?.coverUrl || p.coverUrl || null,
-              }
-            : p
-          )
-        );
-      }
+      
+      if (playlist?.id) {
+        setPlaylists((prev) => 
+          prev.map((p) => p.id === playlist.id ? {
+            ...p,
+            ...playlist,
+            trackCount: tracks.length,
+            coverUrl: tracks.length > 0 ? tracks[0]?.coverUrl : null,
+          } : p)
+        )
+      };
     } catch (err) {
       console.error("Failed to refresh playlist:", err);
-    } finally {
-      setSelectedPlaylistId(null);
     }
   };
 
-  const handleDeletePlaylist = async (playlist) => {
-    if (!window.confirm(`Delete playlist "${playlist.title}"?`)) return;
+  const requestDeletePlaylist = (playlist) => {
+    setDeleteError("");
+    setConfirmDeleteId((curr) => (curr === playlist.id ? null : playlist.id));
+  };
+
+  const cancelDeletePlaylist = () => {
+    setConfirmDeleteId(null);
+    setDeleteError("");
+  }
+
+  const confirmDeletePlaylist = async () => {
+    const id = confirmDeleteId;
+    if (!id) return;
+    setDeletingId(id);
+    setDeleteError("");
     try {
-      await playlistsApi.delete(playlist.id);
-      setPlaylists((prev) => prev.filter((p) => p.id !== playlist.id));
+      await playlistsApi.delete(id);
+      setPlaylists((prev) => prev.filter((p) => p.id !== id));
+      setConfirmDeleteId(null);
     } catch (err) {
-      window.alert(err.message || "Failed to delete playlist.");
+      setDeleteError(err.message || "Failed to delete playlist.");
+    } finally {
+      setDeletingId(null);
     }
   };
-
+  
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
       <SidebarSetup handleLogout={handleLogout} />
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24 max-md:pt-[72px]">
+
+        {message && (
+          <div
+            className={`absolute left-1/2 top-2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold shadow-lg ${
+              message.type === "error"
+                ? "bg-[rgba(255,92,110,0.9)] text-white"
+                : "bg-[#0d0d0f]/90 text-lime-300 border border-lime-300/30"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {message.message}
+          </div>
+        )}
 
         <header className="flex items-start justify-between gap-4 border-b border-white/5 pb-7 mb-7 max-md:flex-col-reverse max-md:items-start max-md:gap-3">
           <div>
@@ -181,7 +220,12 @@ const PlaylistPage = () => {
                         color: "#7c6af7",
                       }}
                       onAddTrack={(p) => setSelectedPlaylistId(p.id)}
-                      onDelete={handleDeletePlaylist}
+                      isPendingDelete={confirmDeleteId === playlist.id}
+                      deleting={deletingId === playlist.id}
+                      deleteError={confirmDeleteId === playlist.id ? deleteError : ""}
+                      onRequestDelete={requestDeletePlaylist}
+                      onCancelDelete={cancelDeletePlaylist}
+                      onConfirmDelete={confirmDeletePlaylist}
                     />
                   </div>
                 );
@@ -195,7 +239,7 @@ const PlaylistPage = () => {
         <AddTrackModal
           playlistId={selectedPlaylistId}
           onClose={() => setSelectedPlaylistId(null)}
-          onTrackAdded={handleTrackAdded}
+          onTrackChanged={handleTracksChanged}
         />
       )}
     </main>

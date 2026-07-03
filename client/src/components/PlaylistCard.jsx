@@ -1,35 +1,33 @@
-import { useState } from "react";
-import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
+import { useCallback, useEffect, useState } from "react";
+import { FiPlus, FiTrash2, FiPlay, FiAlertTriangle } from "react-icons/fi";
 import { playlistsApi } from "../api/playlists.js";
-import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
+import { emitPlayTrack, normalizePlayableTrack, buildStreamUrl, normalizeTrack } from "../utils/playerBus.js";
 
-const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
-  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-  : "http://localhost:3000";
+const DEFAULT_COVER =
+"data:image/svg+xml;utf8," +
+encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+    <rect width="400" height="400" fill="#232327"/>
+    <g fill="#4b4b52">
+      <path d="M270 120v120a30 30 0 1 1-14-25V150l-70 16v104a30 30 0 1 1-14-25V145a10 10 0 0 1 7.6-9.7l82-19a10 10 0 0 1 8.4 3.7 10 10 0 0 1 0 0z"/>
+    </g>
+  </svg>
+`);
 
-function buildStreamUrl(track) {
-  const id = track?.id || track?.trackId;
-  if (!id) return "";
-  return `${STORAGE_BASE}/api/stream/tracks/${id}`;
-}
-
-function normalizeTrack(t) {
-  const artist =
-    Array.isArray(t?.Artists) && t.Artists.length > 0
-      ? t.Artists.map((a) => a?.name).filter(Boolean).join(", ")
-      : t?.artist || t?.Artist?.name || "Unknown Artist";
-
-  return normalizePlayableTrack({
-    ...t,
-    trackId: t.id,
-    artist,
-    album: t?.Album?.title || t?.album || "",
-    streamUrl: buildStreamUrl(t),
-  });
-}
-
-const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
+const PlaylistCard = ({ playlist, onAddTrack, isPendingDelete = false, deleting = false, deleteError = "", onRequestDelete, onCancelDelete, onConfirmDelete }) => {
   const [isLoadingPlay, setIsLoadingPlay] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (!message) return;
+    const m = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(m);
+  }, [message]);
+
+  const notify = useCallback((message, type="info") => {
+    setMessage({ message, type });
+  }, []);
+
   if (!playlist) return null;
 
   const songCount = Array.isArray(playlist.songs) ? playlist.songs.length : playlist.songs ?? 0;
@@ -40,7 +38,7 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
     try {
       const res = await playlistsApi.getMine(playlist.id);
       const tracks = res?.data?.tracks || res?.tracks || [];
-      if (tracks.length === 0) return window.alert("This playlist has no track.");
+      if (tracks.length === 0) return notify("This playlist has no track.", "info");
 
       const normalized = tracks.map(normalizeTrack);
       window.dispatchEvent(new Event("pt:clear-queue"));
@@ -53,7 +51,7 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
         }, i * 20);
       }
     } catch (err) {
-      window.alert(err.message || "Failed to load track.");
+      notify(err.message || "Failed to load track.", "error");
     } finally {
       setIsLoadingPlay(false);
     }
@@ -69,13 +67,26 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
       className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-white/10 bg-[#161618] transition hover:-translate-y-0.5 hover:border-lime-300/20"
       onClick={handleCardClick}
     >
+      {message && (
+        <div
+          className={`absolute left-1/2 top-2 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold shadow-lg ${
+            message.type === "error"
+              ? "bg-[rgba(255,92,110,0.9)] text-white"
+              : "bg-[#0d0d0f]/90 text-lime-300 border border-lime-300/30"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {message.message}
+        </div>
+      )}
+
       <div className="relative aspect-square w-full overflow-hidden bg-[#1e1e22]">
         <img
-          src={playlist.image || "/placeholder-album.png"}
+          src={playlist.image || DEFAULT_COVER }
           alt={playlist.title}
           className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           loading="lazy"
-          onError={(e) => { e.target.src = "/placeholder-album.png"; }}
+          onError={(e) => { e.target.src = DEFAULT_COVER; }}
         />
         <div
           className="absolute inset-0 opacity-25 transition group-hover:opacity-25"
@@ -96,7 +107,7 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="m-0 mb-[3px] truncate text-sm font-bold text-white">{playlist.title}</h3>
-            <p className="m-0 text-xs font-semibold text-lime-300">{songCount} lagu</p>
+            <p className="m-0 text-xs font-semibold text-lime-300">{songCount} songs</p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
@@ -110,10 +121,10 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
                 <FiPlus size={15} />
               </button>
             )}
-            {onDelete && (
+            {onRequestDelete && (
               <button
                 className="flex h-[30px] w-[30px] items-center justify-center rounded-lg border border-rose-300/30 bg-rose-300/10 text-rose-300 transition hover:scale-105 hover:bg-rose-300/20"
-                onClick={(e) => { e.stopPropagation(); onDelete(playlist); }}
+                onClick={(e) => { e.stopPropagation(); onRequestDelete(playlist); }}
                 aria-label={`Delete ${playlist.title}`}
                 title="Delete playlist"
               >
@@ -123,6 +134,39 @@ const PlaylistCard = ({ playlist, onAddTrack, onDelete }) => {
           </div>
         </div>
       </div>
+
+      {isPendingDelete && (
+        <div
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 rounded-xl border border-[rgba(255,92,110,0.3)] bg-[#0d0d0f]/92 px-5 text-center backdrop-blur-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FiAlertTriangle size={18} className="shrink-0 text-[#ff8b85]" />
+          <span className="text-[12px] leading-snug text-white/70">
+            Do you want to delete this playlist? Action cannot be reverted.
+          </span>
+          {deleteError && (
+            <span className="text-[11px] text-[#ff8b85]">{deleteError}</span>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onCancelDelete?.()}
+              disabled={deleting}
+              className="text-[12px] px-3 py-[5px] rounded-lg border border-white/12 bg-white/[0.06] text-white/60 cursor-pointer hover:bg-white/10 transition-colors disabled:cursor-wait"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onConfirmDelete?.()}
+              disabled={deleting}
+              className="text-[12px] px-3 py-[5px] rounded-lg border border-[rgba(255,92,110,0.4)] bg-[rgba(255,92,110,0.2)] text-[#ff8b85] font-medium cursor-pointer disabled:cursor-wait hover:bg-[rgba(255,92,110,0.3)] transition-colors"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

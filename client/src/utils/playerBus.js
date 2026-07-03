@@ -18,6 +18,13 @@ export function buildStreamUrl(track) {
   return `${origin}/api/stream/tracks/${trackId}`;
 }
 
+export function getArtistName(track) {
+  if (Array.isArray(track?.Artists) && track.Artists.length > 0) {
+    return track.Artists.map((a) => a?.name).filter(Boolean).join(", ");
+  }
+  return track?.artist || track?.Artist?.name || "Unknown Artist";
+}
+
 export function normalizeTrack(t) {
   const artist =
     Array.isArray(t?.Artists) && t.Artists.length > 0

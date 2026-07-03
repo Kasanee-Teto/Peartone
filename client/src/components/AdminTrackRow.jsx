@@ -1,6 +1,6 @@
 import { FiTrash2, FiAlertTriangle } from "react-icons/fi";
 
-const AdminTrackRow = ({ track, artistNames, isPendingDelete, confirmDelete, deleting, setConfirmDeleteId, mins, secs}) => {
+const AdminTrackRow = ({ track, artistNames, isPendingDelete, confirmDelete, deleting, setConfirmDeleteId, duration}) => {
     return (
     <div key={track.id}>
         <div
@@ -36,7 +36,7 @@ const AdminTrackRow = ({ track, artistNames, isPendingDelete, confirmDelete, del
             </span>
 
             <span className="text-[12px] text-white/40 shrink-0 tabular-nums min-w-[36px] text-right">
-            {mins}:{secs}
+                {duration}
             </span>
 
             <button

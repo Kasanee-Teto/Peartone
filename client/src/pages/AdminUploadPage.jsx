@@ -214,12 +214,12 @@ const AdminUploadPage = () => {
                 const artistNames = Array.isArray(track.Artists)
                   ? track.Artists.map((a) => a.name).join(", ")
                   : track.artist?.name ?? "—";
-                const { mins, secs } = formatDuration(track);
+                const duration = formatDuration(track);
                 const isPendingDelete = confirmDeleteId === track.id;
 
                 return (
-                  <AdminTrackRow track={track} artistNames={artistNames} isPendingDelete={isPendingDelete} 
-                  confirmDelete={confirmDelete} deleting={deleting} mins={mins} secs={secs} setConfirmDeleteId={setConfirmDeleteId} />
+                  <AdminTrackRow key={track.id} track={track} artistNames={artistNames} isPendingDelete={isPendingDelete} 
+                  confirmDelete={confirmDelete} deleting={deleting} duration={duration} setConfirmDeleteId={setConfirmDeleteId} />
                 )
         
               })}

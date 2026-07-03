@@ -1,13 +1,7 @@
 import { FiPlay, FiPlus } from "react-icons/fi";
 import { formatDuration } from "../utils/format.js";
 import { ASSET_BASE } from "../api/client.js";
-
-function getArtistName(track) {
-  if (Array.isArray(track?.Artists) && track.Artists.length > 0) {
-    return track.Artists.map((a) => a?.name).filter(Boolean).join(", ");
-  }
-  return track?.artist || track?.Artist?.name || "Unknown Artist";
-}
+import { getArtistName } from "../utils/playerBus.js";
 
 const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => {
   const artist = getArtistName(track);
