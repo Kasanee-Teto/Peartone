@@ -1,29 +1,7 @@
 import { FiMusic, FiPlay } from "react-icons/fi";
 import { emitPlayTrack } from "../utils/playerBus.js";
-
-function formatDuration(seconds) {
-  const total = Math.max(0, Math.floor(Number(seconds) || 0));
-  const m = Math.floor(total / 60);
-  const s = String(total % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}
-
-function normalizeResult(t) {
-  const artist =
-    Array.isArray(t?.Artists) && t.Artists.length > 0
-      ? t.Artists.map((a) => a?.name).filter(Boolean).join(", ")
-      : t?.artist || t?.Artist?.name || "Unknown Artist";
-
-  return {
-    id: t?.id,
-    title: t?.title || t?.name || "Untitled",
-    artist,
-    album: t?.Album?.title || t?.album || "",
-    duration: t?.duration || 0,
-    cover: t?.cover || t?.coverUrl || t?.Album?.cover || "",
-    ...t,
-  };
-}
+import { formatDuration } from "../utils/format.js";
+import { normalizeTrack } from "../utils/playerBus.js";
 
 const SearchResults = ({ results, loading, error, query }) => {
   if (loading) {
@@ -75,7 +53,7 @@ const SearchResults = ({ results, loading, error, query }) => {
 
       <ul className="m-0 list-none p-0" role="list">
         {results.map((raw, index) => {
-          const track = normalizeResult(raw);
+          const track = normalizeTrack(raw);
           return (
             <li
               key={track.id || index}
@@ -106,7 +84,7 @@ const SearchResults = ({ results, loading, error, query }) => {
               </div>
 
               <span className="shrink-0 text-[11px] text-white/35">
-                {formatDuration(track.duration)}
+                {formatDuration(track)}
               </span>
             </li>
           );

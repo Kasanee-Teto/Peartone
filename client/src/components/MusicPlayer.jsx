@@ -1,4 +1,3 @@
-// MusicPlayer.jsx — fully responsive rewrite
 import { useEffect, useRef, useState } from "react";
 import {
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
@@ -11,13 +10,7 @@ import { buildStreamUrl, isValidTrackId, normalizePlayableTrack, onPlayTrack } f
 import { likesApi } from "../api/likes.js";
 import { historyApi } from "../api/history.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
-
-function formatTime(sec) {
-  const total = Math.max(0, Math.floor(Number(sec) || 0));
-  const m = Math.floor(total / 60);
-  const s = String(total % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}
+import { formatTime } from "../utils/format.js";
 
 const PlayButton = ({ isPlaying, onToggle, size = "md" }) => {
   const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";

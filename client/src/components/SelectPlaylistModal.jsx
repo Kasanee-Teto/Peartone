@@ -1,16 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiX, FiPlus, FiCheck, FiMusic } from "react-icons/fi";
 import { playlistsApi } from "../api/playlists.js";
-
-const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
-  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-  : "http://localhost:3000";
-
-function buildCoverUrl(url) {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `${STORAGE_BASE}${url}`;
-}
+import { buildCoverUrl } from "../api/client.js";
 
 const SelectPlaylistModal = ({ track, onClose }) => {
   const [playlists, setPlaylists] = useState([]);
