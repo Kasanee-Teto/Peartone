@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ChartList from "../components/ChartList";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
-import SearchBar from "../components/SearchBar.jsx";
+import SearchBar from "../components/Searchbar.jsx";
 import SearchResults from "../components/SearchResults.jsx";
 import { useFetch } from "../hooks/useFetch";
 import { tracksApi } from "../api/tracks.js";
