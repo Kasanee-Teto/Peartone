@@ -12,21 +12,22 @@ function normalizePath(path) {
 }
 
 export async function httpRaw(path, options = {}) {
+  const { skipAuth, ...fetchOptions } = options; 
+  
   const token = localStorage.getItem("token");
-
-  const headers = { ...(options.headers || {}) };
-  const isFormData = options.body instanceof FormData;
+  const headers = { ...(fetchOptions.headers || {}) };
+  const isFormData = fetchOptions.body instanceof FormData;
 
   if (!isFormData && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
 
-  // auto attach Bearer token
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token && !skipAuth) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const url = `${API_BASE_URL}${normalizePath(path)}`;
-
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...fetchOptions, headers });
   const payload = await parseBody(res);
 
   if (!res.ok) {

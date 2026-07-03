@@ -3,11 +3,11 @@ import MusicCard from "./MusicCard";
 const ChartList = ({ charts = [], loading, error }) => {
   if (loading) {
     return (
-      <section className="charts" aria-label="Top Charts">
-        <h2 className="section-title">Top Charts</h2>
-        <div className="skeleton-list" aria-busy="true" aria-live="polite">
+      <section aria-label="Top Charts">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Top Charts</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5" aria-busy="true" aria-live="polite">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton-card" aria-hidden="true" />
+            <div key={i} className="h-[380px] bg-white/5 rounded-xl animate-pulse" aria-hidden="true" />
           ))}
         </div>
       </section>
@@ -16,11 +16,10 @@ const ChartList = ({ charts = [], loading, error }) => {
 
   if (error) {
     return (
-      <section className="charts" aria-label="Top Charts">
-        <h2 className="section-title">Top Charts</h2>
-        <div className="error-state" role="alert">
-          <span className="error-state__icon" aria-hidden="true">⚠️</span>
-          <p className="error-state__message">Gagal memuat charts: {error}</p>
+      <section aria-label="Top Charts">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Top Charts</h2>
+        <div className="mt-4 text-red-400" role="alert">
+          ⚠️ Failed to load charts: {error}
         </div>
       </section>
     );
@@ -28,29 +27,32 @@ const ChartList = ({ charts = [], loading, error }) => {
 
   if (charts.length === 0) {
     return (
-      <section className="charts" aria-label="Top Charts">
-        <h2 className="section-title">Top Charts</h2>
-        <p className="empty-state">Belum ada data chart tersedia.</p>
+      <section aria-label="Top Charts">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Top Charts</h2>
+        <p className="text-white/50 mt-4">No music charts currently available.</p>
       </section>
     );
   }
 
   return (
-    <section className="charts" aria-label="Top Charts">
-      <div className="section-header">
-        <h2 className="section-title">Top Charts</h2>
-        <a href="/charts" className="section-link" aria-label="Lihat semua charts">
-          Lihat Semua →
+    <section aria-label="Top Charts">
+      <div className="flex justify-between items-center mb-6 w-full">
+        <h2 className="text-2xl font-bold text-white tracking-tight">Top Charts</h2>
+        <a href="/charts" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all charts">
+          See All →
         </a>
       </div>
 
-      <ol className="chart-list" aria-label="Daftar top charts">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
         {charts.map((track, index) => (
-          <li key={track?.id ?? index} className="chart-list__item">
-            <MusicCard track={track} variant="chart" rank={index + 1} />
-          </li>
+          <div key={track?.id ?? index} className="relative group w-full flex flex-col">
+            <div className="absolute top-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 border border-white/10 text-xs font-bold text-white backdrop-blur-md shadow-md">
+              #{index + 1}
+            </div>
+            <MusicCard track={track} variant="chart" />
+          </div>
         ))}
-      </ol>
+      </div>
     </section>
   );
 };

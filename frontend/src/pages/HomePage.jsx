@@ -1,46 +1,21 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ChartList from "../components/ChartList";
-import Sidebar from "../components/Sidebar";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
-import SearchBar from "../components/SearchBar.jsx";
+import SearchBar from "../components/Searchbar.jsx";
 import SearchResults from "../components/SearchResults.jsx";
 import { useFetch } from "../hooks/useFetch";
 import { tracksApi } from "../api/tracks.js";
-import { authApi } from "../api/auth.js";
-
-function normalizeTrack(t) {
-  const artist =
-    Array.isArray(t?.Artists) && t.Artists.length > 0
-      ? t.Artists.map((a) => a?.name).filter(Boolean).join(", ")
-      : t?.artist || t?.Artist?.name || "Unknown Artist";
-
-  return {
-    id: t?.id,
-    title: t?.title || t?.name || "Untitled",
-    artist,
-    album: t?.Album?.title || t?.album || "",
-    cover:
-      t?.cover ||
-      t?.coverUrl ||
-      t?.image ||
-      t?.imageUrl ||
-      t?.Album?.cover ||
-      t?.Album?.coverUrl ||
-      "",
-    duration: t?.duration || 0,
-    ...t,
-  };
-}
+import { handleLogout } from "../api/client.js";
+import SidebarSetup from "../components/SidebarSetup.jsx";
+import { normalizeTrack } from "../utils/playerBus.js";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [showplaylist, setShowplaylist] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // ── Search state ──
   const [searchQuery, setSearchQuery]   = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -74,7 +49,6 @@ const HomePage = () => {
   const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
   const popular = useMemo(() => popularRaw.map(normalizeTrack), [popularRaw]);
 
-  // ── Handler search ──
   const handleSearch = useCallback(async (q) => {
     setSearchQuery(q);
     setSearchLoading(true);
@@ -87,7 +61,7 @@ const HomePage = () => {
       const items = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(items);
     } catch (err) {
-      setSearchError(err?.message || "Pencarian gagal");
+      setSearchError(err?.message || "Failed to search");
     } finally {
       setSearchLoading(false);
     }
@@ -99,105 +73,78 @@ const HomePage = () => {
     setSearchError("");
   }, []);
 
-  const handleLogout = useCallback(async () => {
-    if (loggingOut) return;
-    setLoggingOut(true);
-
-    try {
-      await authApi.logout();
-    } finally {
-      setLoggingOut(false);
-      navigate("/login", { replace: true });
-    }
-  }, [navigate, loggingOut]);
-
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;
   }
 
   return (
-    <main className="home" aria-label="Halaman Utama Peartone">
-      <div className="home__layout">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          onLogout={handleLogout}
-          onHome={() => setIsSidebarOpen(false)}
-          onPlaylist={() => {
-            setShowplaylist(true);
-            setIsSidebarOpen(false);
-          }}
-        />
+    <main 
+      className="w-full max-w-7xl mx-auto px-6 md:px-8 pb-20 flex flex-col gap-16 font-sans antialiased text-[#8a8a99]" 
+      aria-label="Peartone Home Page"
+    >
+      <div className="grid grid-columns-1 gap-8 items-start">
 
-        <button
-          className={`home__sidebar-overlay ${isSidebarOpen ? "is-open" : ""}`}
-          type="button"
-          aria-label="Tutup menu samping"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+        <SidebarSetup handleLogout={handleLogout} showPlaylist={() => {setShowplaylist(false)}} />
 
-        <div className="home__content">
-          <button
-            className="home__sidebar-toggle"
-            type="button"
-            aria-label="Buka menu samping"
-            aria-controls="home-sidebar"
-            aria-expanded={isSidebarOpen}
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            ≡
-          </button>
+        <div className="flex flex-col gap-16 md:gap-12">
 
-          <section className="home__hero" aria-label="Banner Peartone">
-            <div className="home__hero-content flex flex-col justify-center items-center gap-6">
-              <h1 className="home__hero-title text-center">
+          <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Peartone Banner">
+
+            <div className="absolute -top-10 -left-20 w-[500px] height-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
+            <div className="absolute top-0 -right-[100px] w-[350px] height-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
+
+            <div className="relative z-10 w-full max-w-[640px] flex flex-col justify-center items-center gap-6 mx-auto">
+              <h1 className="font-display font-extrabold text-[clamp(1.8rem,6vw,4.5rem)] text-white text-center leading-[1.05] tracking-tight">
                 Find your
                 <br />
-                <span className="home__hero-accent">Favorites!</span>
+                <span className="text-[#c8f560] inline-block relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[3px] after:bg-gradient-to-r after:from-[#c8f560] after:to-[#7c6af7] after:rounded-[2px]">
+                  Favorites!
+                </span>
               </h1>
-              <p className="home__hero-subtitle w-full text-center mx-auto max-w-2xl px-4">
-                Dengarkan MUSIKmu sampai tak kenal waktu!
+              <p className="text-sm md:text-[1.05rem] text-[#8a8a99] font-light w-full text-center max-w-2xl px-4">
+                Listen to your musics till your weekend COMES!
               </p>
 
-              <div className="w-full max-w-xl px-4">
+              <div className="w-full max-w-xl mx-auto flex flex-col items-center">
                 <SearchBar
                   onSearch={handleSearch}
                   onClear={handleClearSearch}
                 />
+
+                {!isSearching && (
+                    <button
+                      className="mt-8 inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-150 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(200,245,96,0.3)] active:translate-y-0"
+                      aria-label="Start Listening"
+                      onClick={() => setShowplaylist(true)}
+                    >
+                      Start Listening
+                    </button>
+                )}
+
+                {isSearching && (
+                  <div className="w-full mt-1.5">
+                    <SearchResults
+                      results={searchResults}
+                      loading={searchLoading}
+                      error={searchError}
+                      query={searchQuery}
+                    />
+                  </div>
+                )}
               </div>
 
               {!isSearching && (
-                <button
-                  className="home__hero-cta"
-                  aria-label="Mulai mendengarkan"
-                  onClick={() => setShowplaylist(true)}
-                >
-                  Mulai Dengarkan
-                </button>
+                <div className="w-full mt-12 flex flex-col gap-12">
+                  <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
+                  <PopularList
+                    popular={popular}
+                    loading={popularLoading}
+                    error={popularError}
+                  />
+                </div>
               )}
             </div>
           </section>
-
-
-          {isSearching ? (
-            <div className="px-4 pb-8 max-w-3xl mx-auto w-full">
-              <SearchResults
-                results={searchResults}
-                loading={searchLoading}
-                error={searchError}
-                query={searchQuery}
-              />
-            </div>
-          ) : (
-            <>
-              <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
-              <PopularList
-                popular={popular}
-                loading={popularLoading}
-                error={popularError}
-              />
-            </>
-          )}
         </div>
       </div>
     </main>

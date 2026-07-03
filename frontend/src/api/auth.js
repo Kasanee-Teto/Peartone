@@ -5,12 +5,14 @@ export const authApi = {
     httpRaw("/auth/register", {
       method: "POST",
       body: JSON.stringify({ username, email, password }),
+      skipAuth: true
     }),
 
   login: ({ username, password }) =>
     httpRaw("/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
+      skipAuth: true
     }),
 
   getProfile: () => http("/auth/me"),

@@ -65,6 +65,28 @@ module.exports = {
           createdAt: yesterday,
           updatedAt: now,
         },
+        {
+          id: "35f870ab-357b-4d21-bb8b-1a32b41feb20", 
+          artistId: "fe0e2083-43e2-4d44-a05e-445dc880ef52",
+          title: "Yoasobi - Collection",
+          description: "Album of Yoasobi.",
+          coverUrl: "/storage/albums/yoasobi.jpg",
+          releaseDate: "2024-10-22",
+          trackNumbers: 2,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
+        {
+          id: "70f9d8bb-aa36-4989-a3db-839c0a54c6b0", 
+          artistId: "3cf8e44e-9751-4aad-b055-6334b4bde54a",
+          title: "Ayase - Collection",
+          description: "Album of Ayase.",
+          coverUrl: "/storage/albums/ayase.jpg",
+          releaseDate: "2021-05-25",
+          trackNumbers: 2,
+          createdAt: yesterday,
+          updatedAt: now,
+        },
       ],
       {}
     );

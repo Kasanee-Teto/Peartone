@@ -1,179 +1,72 @@
 import { NavLink } from "react-router-dom";
 import {
-  FiHome,
-  FiTrendingUp,
-  FiMic,
-  FiDisc,
-  FiList,
-  FiClock,
-  FiHeart,
-  FiUploadCloud,
-  FiUser,
-  FiLogOut,
-  FiMusic,
+  FiHome, FiTrendingUp, FiMic, FiDisc, FiList, FiClock, FiHeart,
+  FiUploadCloud, FiUser, FiLogOut, FiMusic, FiX
 } from "react-icons/fi";
-import "../styles/Sidebar.css";
+
+const itemBase =
+  "flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[0.95rem] font-medium transition";
+const itemIdle = "bg-transparent text-white/60 hover:bg-white/5 hover:text-white";
+const itemActive = "bg-lime-300 text-black font-semibold shadow-[0_4px_15px_rgba(200,245,96,0.3)]";
 
 const Sidebar = ({ isOpen, onClose, onLogout }) => {
+  const navClass = ({ isActive }) => `${itemBase} ${isActive ? itemActive : itemIdle}`;
+
   return (
     <aside
       id="home-sidebar"
-      className={`home__sidebar ${isOpen ? "is-open" : ""}`}
-      aria-label="Menu Samping"
-      aria-hidden={!isOpen}
+      aria-label="Sidebar"
+      className={`fixed right-0 top-0 z-[600] flex h-screen w-[260px] flex-col overflow-y-auto border-l border-white/10 bg-[#0d0d0f] px-5 pb-5 shadow-[-10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-[110%]"}`}
     >
+      <div className="shrink-0 flex items-center justify-between pb-3 pt-5 px-1">
+        <div className="text-base font-black tracking-[0.25em] font-sans text-lime-300 uppercase antialiased">
+          PEARTONE
+        </div>
+        <button
+          type="button"
+          aria-label="Close Sidebar"
+          onClick={onClose}
+          className="flex items-center justify-center h-8 w-8 rounded-lg border border-white/5 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all active:scale-95 cursor-pointer"
+        >
+          <FiX size={18} />
+        </button>
+      </div>
 
-      <nav className="home__sidebar-nav" aria-label="Navigasi Utama">
-
-        {/* ── Discover ── */}
-        <p className="home__sidebar-group-title">Discover</p>
-        <ul className="home__sidebar-list" role="list">
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/"
-              end
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiHome className="home__sidebar-icon" aria-hidden="true" />
-              <span>Home</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/tracks"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiMusic className="home__sidebar-icon" aria-hidden="true" />
-              <span>All Tracks</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/charts"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiTrendingUp className="home__sidebar-icon" aria-hidden="true" />
-              <span>Top Charts</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/artists"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiMic className="home__sidebar-icon" aria-hidden="true" />
-              <span>Artists</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/albums"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiDisc className="home__sidebar-icon" aria-hidden="true" />
-              <span>Albums</span>
-            </NavLink>
-          </li>
+      <nav className="flex flex-col" aria-label="Navigasi Utama">
+        <p className="px-3 pb-1.5 pt-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Discover</p>
+        <ul className="m-1 flex list-none flex-col gap-2.5 p-0">
+          <li><NavLink to="/" end onClick={onClose} className={navClass}><FiHome className="shrink-0 text-[1.2rem]" /><span>Home</span></NavLink></li>
+          <li><NavLink to="/tracks" onClick={onClose} className={navClass}><FiMusic className="shrink-0 text-[1.2rem]" /><span>All Tracks</span></NavLink></li>
+          <li><NavLink to="/charts" onClick={onClose} className={navClass}><FiTrendingUp className="shrink-0 text-[1.2rem]" /><span>Top Charts</span></NavLink></li>
+          <li><NavLink to="/artists" onClick={onClose} className={navClass}><FiMic className="shrink-0 text-[1.2rem]" /><span>Artists</span></NavLink></li>
+          <li><NavLink to="/albums" onClick={onClose} className={navClass}><FiDisc className="shrink-0 text-[1.2rem]" /><span>Albums</span></NavLink></li>
         </ul>
 
-        {/* ── Library ── */}
-        <p className="home__sidebar-group-title">Library</p>
-        <ul className="home__sidebar-list" role="list">
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/playlists"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiList className="home__sidebar-icon" aria-hidden="true" />
-              <span>Playlists</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/liked"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiHeart className="home__sidebar-icon" aria-hidden="true" />
-              <span>Liked Songs</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/history"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiClock className="home__sidebar-icon" aria-hidden="true" />
-              <span>History</span>
-            </NavLink>
-          </li>
+        <p className="mt-3 border-t border-white/10 px-3 pb-1.5 pt-4 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Library</p>
+        <ul className="m-1 flex list-none flex-col gap-0.5 p-0">
+          <li><NavLink to="/playlists" onClick={onClose} className={navClass}><FiList className="shrink-0 text-[1.2rem]" /><span>Playlists</span></NavLink></li>
+          <li><NavLink to="/liked" onClick={onClose} className={navClass}><FiHeart className="shrink-0 text-[1.2rem]" /><span>Liked Songs</span></NavLink></li>
+          <li><NavLink to="/history" onClick={onClose} className={navClass}><FiClock className="shrink-0 text-[1.2rem]" /><span>History</span></NavLink></li>
         </ul>
 
-        {/* ── Account ── */}
-        <p className="home__sidebar-group-title">Account</p>
-        <ul className="home__sidebar-list" role="list">
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/admin"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiUploadCloud className="home__sidebar-icon" aria-hidden="true" />
-              <span>Admin Upload</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
-            <NavLink
-              to="/profile"
-              onClick={onClose}
-              className={({ isActive }) =>
-                `home__sidebar-link${isActive ? " is-active" : ""}`
-              }
-            >
-              <FiUser className="home__sidebar-icon" aria-hidden="true" />
-              <span>Profile</span>
-            </NavLink>
-          </li>
-          <li className="home__sidebar-item">
+        <p className="mt-3 border-t border-white/10 px-3 pb-1.5 pt-4 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-white/30">Account</p>
+        <ul className="m-1 flex list-none flex-col gap-0.5 p-0">
+          <li><NavLink to="/admin" onClick={onClose} className={navClass}><FiUploadCloud className="shrink-0 text-[1.2rem]" /><span>Admin Upload</span></NavLink></li>
+          <li><NavLink to="/profile" onClick={onClose} className={navClass}><FiUser className="shrink-0 text-[1.2rem]" /><span>Profile</span></NavLink></li>
+          <li>
             <button
               type="button"
-              className="home__sidebar-link"
+              className={`${itemBase} ${itemIdle}`}
               onClick={() => {
                 onClose?.();
                 onLogout?.();
               }}
             >
-              <FiLogOut className="home__sidebar-icon" aria-hidden="true" />
+              <FiLogOut className="shrink-0 text-[1.2rem]" />
               <span>Logout</span>
             </button>
           </li>
         </ul>
-
       </nav>
     </aside>
   );

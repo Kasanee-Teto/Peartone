@@ -1,136 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FiSearch, FiPlay, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import Sidebar from "../components/Sidebar";
 import SelectPlaylistModal from "../components/SelectPlaylistModal";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
-import "../styles/TracksPage.css";
 import { authApi } from "../api/auth.js";
+import { useNavigate } from "react-router-dom";
+import SidebarSetup from "../components/SidebarSetup.jsx";
+import TrackRow from "../components/TrackRow.jsx";
 
-const API_URL = "http://localhost:3000";
 const LIMIT = 20;
 
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
-
-function formatDuration(sec) {
-  if (!sec || sec <= 0) return "0:00";
-  const m = Math.floor(Number(sec) / 60);
-  const s = String(Math.round(Number(sec)) % 60).padStart(2, "0");
-  return `${m}:${s}`;
-}
-
-function getArtistName(track) {
-  if (Array.isArray(track?.Artists) && track.Artists.length > 0) {
-    return track.Artists.map((a) => a?.name).filter(Boolean).join(", ");
-  }
-  return track?.artist || track?.Artist?.name || "Unknown Artist";
-}
-
-const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => {
-  const artist = getArtistName(track);
-  const album = track?.Album?.title || track?.album || "—";
-  const duration = formatDuration(track?.duration);
-  const isLiked = likedIds.has(String(track.id || ""));
-
-  const handlePlay = () => {
-    const playable = normalizePlayableTrack({
-      ...track,
-      trackId: track.id,
-      title: track.title,
-      artist: getArtistName(track), 
-      coverUrl: track.coverUrl || track.Album?.coverUrl || track.Album?.imageUrl || "",
-    });
-
-    emitPlayTrack(playable);
-  };
-
-  const formatCoverPath = (path) => {
-    if (!path) return null;
-    return path.replace(/ /g, '_');
-  };
-
-  const safeUrl = track.coverUrl 
-    ? `${API_URL}${encodeURI(formatCoverPath(track.coverUrl))}` 
-    : null;
-
-  return (
-    <li className="tr-row" role="row">
-      <div className="tr-row__index" role="cell">
-        <span className="tr-row__num">{index + 1}</span>
-        <button
-          type="button"
-          className="tr-row__play"
-          onClick={handlePlay}
-          aria-label={`Play ${track.title}`}
-        >
-          <FiPlay fill="currentColor" size={13} />
-        </button>
-      </div>
-
-      <div className="tr-row__info" role="cell">
-        <div
-        className="tr-row__cover"
-        style={{ 
-          backgroundImage: track.coverUrl ? `url("${safeUrl}")` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundColor: track.coverUrl ? 'transparent' : 'var(--bg-card-alt)'
-        }}
-        aria-hidden="true"
-      >
-        {!track.coverUrl && <span>♪</span>}
-      </div>
-        <div className="tr-row__text">
-          <span className="tr-row__title" title={track.title}>{track.title}</span>
-          <span className="tr-row__artist" title={artist}>{artist}</span>
-        </div>
-      </div>
-
-      <div className="tr-row__album" role="cell" title={album}>{album}</div>
-
-      <div className="tr-row__genre" role="cell">
-        {track.genre && track.genre !== "unknown" && (
-          <span className="tr-row__genre-tag">{track.genre}</span>
-        )}
-      </div>
-
-      <div className="tr-row__duration" role="cell">{duration}</div>
-
-      <div className="tr-row__actions" role="cell">
-        <button
-          type="button"
-          className={`tr-row__like ${isLiked ? "is-liked" : ""}`}
-          onClick={() => onLikeToggle(track)}
-          aria-label={isLiked ? "Unlike" : "Like"}
-          title={isLiked ? "Unlike" : "Like"}
-        >
-          ♥
-        </button>
-        <button
-          type="button"
-          className="tr-row__add"
-          onClick={() => onAddToPlaylist(track)}
-          aria-label="Tambah ke playlist"
-          title="Tambah ke playlist"
-        >
-          <FiPlus size={14} />
-        </button>
-      </div>
-    </li>
-  );
-};
-
 const TracksPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -140,9 +22,18 @@ const TracksPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [likedIds, setLikedIds] = useState(new Set());
-  const [playlistTarget, setPlaylistTarget] = useState(null); // track to add
+  const [playlistTarget, setPlaylistTarget] = useState(null);
 
-  // Debounce search
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      setIsSidebarOpen(false);
+      navigate("/login"); 
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
@@ -151,7 +42,6 @@ const TracksPage = () => {
     return () => clearTimeout(t);
   }, [search]);
 
-  // Fetch tracks
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -174,7 +64,7 @@ const TracksPage = () => {
         setMeta(m);
       })
       .catch(() => {
-        if (!cancelled) setError("Gagal memuat tracks");
+        if (!cancelled) setError("Failed to load tracks");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -183,7 +73,6 @@ const TracksPage = () => {
     return () => { cancelled = true; };
   }, [page, debouncedSearch]);
 
-  // Fetch liked track IDs
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -191,7 +80,8 @@ const TracksPage = () => {
       .list()
       .then((payload) => {
         const items = Array.isArray(payload) ? payload : payload?.data || [];
-        setLikedIds(new Set(items.map((t) => String(t.id || t.trackId || t.Track?.id || ""))));
+        const normalizedIds = items.map((t) =>  String(t.trackId || t.Track?.id || t.id || "").trim());
+        setLikedIds(new Set(normalizedIds));
       })
       .catch(() => {});
   }, []);
@@ -234,96 +124,69 @@ const TracksPage = () => {
   const totalTracks = meta.total || 0;
 
   return (
-    <main className="tracks-page" aria-label="All Tracks">
-      <div className="tracks-page__blob" aria-hidden="true" />
+    <main className="min-h-screen bg-[#0d0d0f] text-white relative overflow-x-hidden" aria-label="All Tracks">
 
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-      />
+      <SidebarSetup handleLogout={handleLogout} />
 
-      <button
-        className={`home__sidebar-overlay${isSidebarOpen ? " is-open" : ""}`}
-        type="button"
-        aria-label="Tutup menu samping"
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <button
-        className="home__sidebar-toggle"
-        type="button"
-        aria-label="Buka menu samping"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
-
-      <div className="tracks-page__inner">
-        <header className="tracks-header">
+      <div className="relative z-10 max-w-[1100px] mx-auto p-[48px_24px_120px]">
+        <header className="flex items-start justify-between gap-4 border-b border-white/6 pb-7 mb-6">
           <div>
-            <p className="tracks-header__eyebrow">Koleksi Musik</p>
-            <h1 className="tracks-header__title">All Tracks</h1>
-            <p className="tracks-header__desc">
-              {totalTracks > 0 ? `${totalTracks} lagu tersedia` : "Semua lagu tersedia untuk diputar."}
+            <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">Music Collection</p>
+            <h1 className="m-0 text-[52px] font-black leading-none tracking-[-0.03em] max-sm:text-[40px]">All Tracks</h1>
+            <p className="m-0 mt-2.5 text-xs text-white/45">
+              {totalTracks > 0 ? `${totalTracks} tracks available` : "All tracks available for audio playing."}
             </p>
           </div>
-          <span className="tracks-header__badge">Library</span>
         </header>
 
-        {/* Search */}
-        <div className="tracks-search" role="search">
-          <FiSearch className="tracks-search__icon" aria-hidden="true" />
+        <div className="relative flex items-center gap-2.5 p-[12px_16px] rounded-[14px] border border-white/10 bg-white/4 mb-5 transition-colors focus-within:border-[#c8f560]/35 focus-within:bg-white/5" role="search">
+          <FiSearch className="text-white/40 flex-shrink-0 text-base" />
           <input
             type="search"
-            className="tracks-search__input"
-            placeholder="Cari judul, artis, genre, atau album…"
+            className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/35"
+            placeholder="Search for title, artist, and album…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Cari lagu"
+            aria-label="Search track"
           />
           {search && (
             <button
               type="button"
-              className="tracks-search__clear"
+              className="bg-transparent border-none text-white/40 cursor-pointer text-xs p-1 rounded transition-colors hover:text-white"
               onClick={() => setSearch("")}
-              aria-label="Hapus pencarian"
+              aria-label="Delete Search Result"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* Track list */}
-        <section className="tracks-table" aria-label="Daftar lagu">
-          {/* Table header */}
-          <div className="tracks-table__head" role="row" aria-label="Header tabel">
+        <section className="rounded-[14px] bg-white/3 border border-white/7 overflow-hidden" aria-label="Daftar lagu">
+          <div className="grid grid-cols-[52px_3fr_2fr_1fr_72px_80px] gap-3 items-center p-[10px_14px] text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/35 bg-black/20 border-b border-white/6 max-[900px]:grid-cols-[44px_3fr_1.5fr_72px_64px] max-sm:grid-cols-[36px_1fr_56px_56px]" role="row" aria-label="Header tabel">
             <div role="columnheader">#</div>
-            <div role="columnheader">Judul</div>
-            <div role="columnheader">Album</div>
-            <div role="columnheader">Genre</div>
-            <div role="columnheader">Durasi</div>
-            <div role="columnheader">Aksi</div>
+            <div role="columnheader">Title</div>
+            <div className="max-sm:hidden" role="columnheader">Album</div>
+            <div className="max-[900px]:hidden max-sm:hidden" role="columnheader">Genre</div>
+            <div className="text-right max-[900px]:pr-0" role="columnheader">Duration</div>
+            <div className="text-right" role="columnheader">Action</div>
           </div>
 
           {loading ? (
-            <div className="tracks-table__loading" aria-live="polite">
+            <div className="p-3 flex flex-col gap-2" aria-live="polite">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="tracks-skeleton" aria-hidden="true" />
+                <div key={i} className="h-[54px] rounded-[10px] animate-shimmer"  />
               ))}
             </div>
           ) : error ? (
-            <div className="tracks-error" role="alert">⚠️ {error}</div>
+            <div className="p-[32px_20px] text-center text-sm text-[#ff9d9d]" role="alert">⚠️ {error}</div>
           ) : tracks.length === 0 ? (
-            <div className="tracks-empty" role="status">
+            <div className="p-[32px_20px] text-center text-sm text-white/45" role="status">
               {debouncedSearch
-                ? `Tidak ada lagu untuk pencarian "${debouncedSearch}"`
-                : "Belum ada lagu tersedia."}
+                ? `No Track on result "${debouncedSearch}"`
+                : "No available track."}
             </div>
           ) : (
-            <ul className="tracks-table__rows" role="rowgroup">
+            <ul className="list-none p-1 m-0" role="rowgroup">
               {tracks.map((track, i) => (
                 <TrackRow
                   key={track.id}
@@ -338,20 +201,19 @@ const TracksPage = () => {
           )}
         </section>
 
-        {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <nav className="tracks-pagination" aria-label="Navigasi halaman">
+          <nav className="flex items-center justify-center gap-1.5 mt-7 flex-wrap" aria-label="Navigate page">
             <button
               type="button"
-              className="tracks-pagination__btn"
+              className="flex items-center justify-center w-9 h-9 rounded-md border border-white/10 bg-white/4 text-white/60 cursor-pointer transition-all hover:not-disabled:bg-white/8 hover:not-disabled:text-white hover:not-disabled:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              aria-label="Halaman sebelumnya"
+              aria-label="Previous page"
             >
               <FiChevronLeft />
             </button>
 
-            <div className="tracks-pagination__pages">
+            <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                 let pageNum;
                 if (totalPages <= 7) {
@@ -367,9 +229,9 @@ const TracksPage = () => {
                   <button
                     key={pageNum}
                     type="button"
-                    className={`tracks-pagination__page ${pageNum === page ? "is-active" : ""}`}
+                    className={`min-width min-w-[36px] h-9 p-[0_6px] rounded-md border border-transparent bg-transparent text-white/50 text-xs cursor-pointer transition-colors hover:bg-white/6 hover:text-white ${pageNum === page ? "!bg-[#c8f560] !text-[#0d0d0f] font-bold" : ""}`}
                     onClick={() => setPage(pageNum)}
-                    aria-label={`Halaman ${pageNum}`}
+                    aria-label={`Page ${pageNum}`}
                     aria-current={pageNum === page ? "page" : undefined}
                   >
                     {pageNum}
@@ -380,22 +242,21 @@ const TracksPage = () => {
 
             <button
               type="button"
-              className="tracks-pagination__btn"
+              className="flex items-center justify-center w-9 h-9 rounded-md border border-white/10 bg-white/4 text-white/60 cursor-pointer transition-all hover:not-disabled:bg-white/8 hover:not-disabled:text-white hover:not-disabled:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              aria-label="Halaman berikutnya"
+              aria-label="Next Page"
             >
               <FiChevronRight />
             </button>
 
-            <span className="tracks-pagination__info">
-              Hal {page} dari {totalPages}
+            <span className="ml-2 text-xs text-white/35">
+              Page {page} from {totalPages}
             </span>
           </nav>
         )}
       </div>
 
-      {/* Playlist picker modal */}
       {playlistTarget && (
         <SelectPlaylistModal
           track={playlistTarget}

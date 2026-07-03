@@ -1,138 +1,9 @@
-import { useState, useCallback } from "react";
-import { FiPlay, FiMusic, FiLoader } from "react-icons/fi";
-import Sidebar from "../components/Sidebar";
-import "../styles/AlbumsPage.css";
+import { useState } from "react";
 import { useFetch } from "../hooks/useFetch";
-import { albumsApi } from "../api/album.js";
-import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
-import { authApi } from "../api/auth";
+import { handleLogout } from "../api/client.js";
+import SidebarSetup from "../components/SidebarSetup.jsx";
+import AlbumCard from "../components/AlbumsCard.jsx";
 
-const STORAGE_BASE = import.meta.env.VITE_API_BASE_URL
-  ? import.meta.env.VITE_API_BASE_URL.replace("/api", "")
-  : "http://localhost:3000";
-
-function buildCoverUrl(coverUrl) {
-  if (!coverUrl) return null;
-  if (coverUrl.startsWith("http")) return coverUrl;
-  return `${STORAGE_BASE}${coverUrl}`;
-}
-
-const handleLogout = async () => {
-  try {
-    await authApi.logout();
-    setIsSidebarOpen(false);
-    navigate("/login"); 
-  } catch (err) {
-    console.error("Logout failed", err);
-  }
-};
-
-/* ─── Album Card ─────────────────────────────────────────── */
-const AlbumCard = ({ album }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-
-  const coverUrl  = buildCoverUrl(album.coverUrl);
-  const year      = album.releaseDate ? new Date(album.releaseDate).getFullYear() : "";
-  const trackCount = (album.Tracks && album.Tracks.length > 0) ? album.Tracks.length : (album.trackNumbers || 0);
-
-  const handlePlay = useCallback(async () => {
-    if (loading) return;
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await albumsApi.getById(album.id);
-    
-      const albumDetail = response?.data?.data || response?.data || response;
-     
-      const tracks = albumDetail?.Tracks || albumDetail?.tracks || [];
-
-      if (!tracks.length) {
-        setError("This album doesn't have any tracks.");
-        return;
-      }
-
-      const normalized = tracks.map((t) =>
-        normalizePlayableTrack({
-          ...t,
-          artist: t.Artists?.[0]?.name || album.Artist?.name || "Unknown Artist",
-          album: albumDetail.title,
-        })
-      );
-
-      window.dispatchEvent(new Event("pt:clear-queue"));
-
-      emitPlayTrack(normalized[0]);
-
-      for (let i = 1; i < normalized.length; i++) {
-        const track = normalized[i];
-        setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent("pt:add-to-queue", { detail: track })
-          );
-        }, i * 20);
-      }
-    } catch (err) {
-      console.error("AlbumCard play error:", err);
-      setError("Failed to load tracks.");
-    } finally {
-      setLoading(false);
-    }
-  }, [album, loading]);
-
-  return (
-    <article className="album-card">
-      <div className="album-card__cover">
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt={album.title}
-            className="album-card__cover-img"
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
-        ) : (
-          <div className="album-card__cover-placeholder">
-            <FiMusic size={26} />
-          </div>
-        )}
-        <div className="album-card__scrim" />
-
-        {/* Tombol Play */}
-        <button
-          type="button"
-          aria-label={`Play ${album.title}`}
-          className={`album-card__play${loading ? " album-card__play--loading" : ""}`}
-          onClick={handlePlay}
-          disabled={loading}
-        >
-          {loading
-            ? <FiLoader size={18} className="album-card__play-spinner" />
-            : <FiPlay size={18} fill="currentColor" />
-          }
-        </button>
-      </div>
-
-      <div className="album-card__info">
-        <div className="album-card__text">
-          <h3 className="album-card__title" title={album.title}>{album.title}</h3>
-          <p className="album-card__artist">{album.Artist?.name || "Unknown"}</p>
-        </div>
-        <div className="album-card__meta">
-          {year && <span>{year}</span>}
-          {year && <span className="album-card__meta-dot" />}
-          <span>{trackCount} tracks</span>
-        </div>
-
-        {error && (
-          <p className="album-card__error">{error}</p>
-        )}
-      </div>
-    </article>
-  );
-};
-
-/* ─── Albums Page ────────────────────────────────────────── */
 const AlbumsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: albumsResp, loading, error } = useFetch("/albums");
@@ -142,62 +13,51 @@ const AlbumsPage = () => {
     : albumsResp?.data || [];
 
   return (
-    <main className="albums-page">
-      <div className="albums-page__blob" aria-hidden="true" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
 
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onLogout={handleLogout}
-      />
+    <SidebarSetup handleLogout={handleLogout} />
 
-      <button
-        className={`home__sidebar-overlay${isSidebarOpen ? " is-open" : ""}`}
-        type="button"
-        aria-label="Tutup menu samping"
-        onClick={() => setIsSidebarOpen(false)}
-      />
+      <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24">
 
-      <button
-        className="home__sidebar-toggle"
-        type="button"
-        aria-label="Buka menu samping"
-        aria-controls="home-sidebar"
-        aria-expanded={isSidebarOpen}
-        onClick={() => setIsSidebarOpen(true)}
-      >
-        ≡
-      </button>
-
-      <div className="albums-page__inner">
-        <header className="albums-header">
+        <header className="flex items-start justify-between gap-4 border-b border-white/5 pb-7 mb-8">
           <div>
-            <p className="albums-header__eyebrow">Koleksi Musik</p>
-            <h1 className="albums-header__title">Albums</h1>
-            <p className="albums-header__desc">
+            <p className="m-0 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/30">
+              Music Collection
+            </p>
+            <h1 className="m-0 text-5xl sm:text-[56px] font-black line-height-1 tracking-tight">
+              Albums
+            </h1>
+            <p className="mt-3 max-w-[340px] text-xs sm:text-sm text-white/40 leading-relaxed">
               Best Album Collections to fill your mood!
             </p>
           </div>
-          <span className="albums-header__badge">Fresh</span>
+          <span className="hidden lg:inline-block shrink-0 mt-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#c8f560] bg-[#c8f560]/10 border border-[#c8f560]/20">
+            Fresh
+          </span>
         </header>
 
-        <div className="albums-section-row">
-          <h2 className="albums-section-row__title">Latest Albums</h2>
-          <button type="button" className="albums-section-row__see-all">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="m-0 text-lg font-bold tracking-tight">
+            Latest Albums
+          </h2>
+          <button 
+            type="button" 
+            className="bg-transparent border-none cursor-pointer text-xs font-semibold uppercase tracking-wider text-white/35 transition-colors duration-150 hover:text-white"
+          >
             See All
           </button>
         </div>
 
         {loading ? (
-          <div className="albums-page__loading">Load Albums…</div>
+          <div className="py-12 text-center text-sm text-white/40">Load Albums…</div>
         ) : error ? (
-          <div className="albums-page__error">Failed to load albums: {error}</div>
+          <div className="py-12 text-center text-sm text-red-300">Failed to load albums: {error}</div>
         ) : albums.length === 0 ? (
-          <div className="albums-page__empty">No album.</div>
+          <div className="py-12 text-center text-sm text-white/40">No album.</div>
         ) : (
-          <ul className="albums-grid">
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 list-none p-0 m-0">
             {albums.map((album) => (
-              <li key={album.id}>
+              <li key={album.id} className="h-full flex flex-col">
                 <AlbumCard album={album} />
               </li>
             ))}

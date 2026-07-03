@@ -2,14 +2,14 @@ import path from "path";
 import db from "../models/index.js";
 import ApiError from "../utils/apiError.js";
 import BaseService from "./base.service.js";
+import getAudioDuration from "../utils/getAudioDuration.js";
 
 const { Track, TrackArtist, Artist, Album } = db;
 
 class AdminTrackService extends BaseService {
   async create({ userId, body, files }) {
-    const { title, duration, albumId, artistIds } = body || {};
+    const { title, albumId, artistIds, genre } = body || {};
     if (!title) throw new ApiError(400, "Title is required!");
-    if (!duration) throw new ApiError(400, "Duration is required!");
 
     let parsedArtistIds = [];
     if (artistIds) {
@@ -42,12 +42,21 @@ class AdminTrackService extends BaseService {
     const audioUrl = `/${audioPath}`;
     const coverUrl = coverFile ? `/${path.posix.join("storage", "covers", coverFile.filename)}` : null;
 
+    let duration = 0;
+    try {
+      duration = await getAudioDuration(audioFile.path);
+    } catch (err) {
+      console.error("Failed to read audio duration using ffprobe:", err);
+      throw new ApiError(500, "Could not process audio file duration.");
+    }
+
     const track = await db.sequelize.transaction(async (t) => {
       const created = await Track.create(
         {
           albumId: albumId || null,
           title,
-          duration: Number(duration),
+          genre,
+          duration: duration,
           audioUrl,
           audioPath,
           mimeType: audioFile.mimetype || "audio/mpeg",

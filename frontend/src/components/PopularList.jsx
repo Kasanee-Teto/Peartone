@@ -3,11 +3,11 @@ import MusicCard from "./MusicCard";
 const PopularList = ({ popular = [], loading, error }) => {
   if (loading) {
     return (
-      <section className="popular" aria-label="Popular Now">
-        <h2 className="section-title">Popular Now</h2>
-        <div className="skeleton-grid" aria-busy="true" aria-live="polite">
+      <section aria-label="Popular Now">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Popular Now</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5" aria-busy="true" aria-live="polite">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="skeleton-card skeleton-card--grid" aria-hidden="true" />
+            <div key={i} className="h-[380px] bg-white/5 rounded-xl animate-pulse" aria-hidden="true" />
           ))}
         </div>
       </section>
@@ -16,11 +16,10 @@ const PopularList = ({ popular = [], loading, error }) => {
 
   if (error) {
     return (
-      <section className="popular" aria-label="Popular Now">
-        <h2 className="section-title">Popular Now</h2>
-        <div className="error-state" role="alert">
-          <span className="error-state__icon" aria-hidden="true">⚠️</span>
-          <p className="error-state__message">Gagal memuat lagu populer: {error}</p>
+      <section aria-label="Popular Now">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Popular Now</h2>
+        <div className="mt-4 text-red-400" role="alert">
+          ⚠️ Failed to load popular track: {error}
         </div>
       </section>
     );
@@ -28,25 +27,28 @@ const PopularList = ({ popular = [], loading, error }) => {
 
   if (popular.length === 0) {
     return (
-      <section className="popular" aria-label="Popular Now">
-        <h2 className="section-title">Popular Now</h2>
-        <p className="empty-state">Belum ada lagu populer tersedia.</p>
+      <section aria-label="Popular Now">
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Popular Now</h2>
+        <p className="text-white/50 mt-4">No Popular Music Available.</p>
       </section>
     );
   }
 
   return (
-    <section className="popular" aria-label="Popular Now">
-      <div className="section-header">
-        <h2 className="section-title">Popular Now</h2>
-        <a href="/tracks" className="section-link" aria-label="Lihat semua lagu populer">
-          Lihat Semua →
+    <section aria-label="Popular Now">
+      <div className="flex justify-between items-center mb-6 w-full">
+        <h2 className="text-2xl font-bold text-white tracking-tight">Popular Now</h2>
+        <a href="/tracks" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all popular tracks">
+          See All →
         </a>
       </div>
 
-      <div className="popular-grid" role="list" aria-label="Daftar lagu populer">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 w-full" role="list" aria-label="Daftar lagu populer">
         {popular.map((track, index) => (
-          <div key={track?.id ?? index} role="listitem">
+          <div key={track?.id ?? index} className="relative group w-full flex flex-col">
+            <div className="absolute top-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 border border-white/10 text-xs font-bold text-white backdrop-blur-md shadow-md">
+              #{index + 1}
+            </div>
             <MusicCard track={track} variant="popular" />
           </div>
         ))}
