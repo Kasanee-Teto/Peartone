@@ -8,7 +8,7 @@ import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 
-const API_URL = "http://localhost:3000";
+const API_URL = meta.env.VITE_API_URL || "http://localhost:3000";
 const LIMIT = 20;
 
 function formatDuration(sec) {
