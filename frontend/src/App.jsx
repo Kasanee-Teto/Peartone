@@ -24,6 +24,7 @@ import RegisterPage from './pages/RegisterPage.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
 import TracksPage from './pages/TracksPage.jsx'
 import LoginSuccessPage from "./pages/LoginSuccessPage.jsx"
+import ArtistDetailPage from './pages/ArtistDetailPage.jsx'
 
 function PlaylistRoute() {
   const navigate = useNavigate()
@@ -72,6 +73,7 @@ function AppLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/charts" element={<TopChartsPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
+          <Route path="/artists/:id" element={<ArtistDetailPage />} />
           <Route path="/albums" element={<AlbumsPage />} />
           <Route path="/liked" element={<LikedSongsPage />} />
           <Route path="/history" element={<HistoryPage />} />

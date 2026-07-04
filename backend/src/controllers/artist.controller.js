@@ -11,3 +11,8 @@ export const listArtists = asyncHandler(async (req, res) => {
   const result = await artistService.list({ q, page, limit });
   res.status(200).json(result);
 });
+
+export const getArtistDetail = asyncHandler(async (req, res) => {
+  const result = await artistService.getDetail(req.params);
+  res.status(200).json(result);
+});

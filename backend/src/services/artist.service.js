@@ -3,7 +3,7 @@ import BaseService from "./base.service.js";
 import ApiError from "../utils/apiError.js";
 import { Op } from "sequelize";
 
-const { Artist } = db;
+const { Artist, Track, Album } = db;
 
 class ArtistService extends BaseService {
   async createArtist(data, file) {
@@ -51,6 +51,31 @@ class ArtistService extends BaseService {
         totalPages: Math.ceil(count / limitNum)
       }
     };
+  }
+
+  async getDetail(params) {
+    const { id } = params;
+    const artist = await Artist.findByPk(id, {
+      include: [
+        {
+          model: Track,
+          as: "Tracks",
+          through: { attributes: ['role', 'artistOrder'] },
+          attributes: ["id", "title", "duration", "listeners"],
+        }, 
+        {
+          model: Album,
+          as: "Albums",
+          attributes: ["id", "title", "coverUrl", "releaseDate", "trackNumbers"]
+        }
+      ]
+    });
+
+    if (!artist) {
+      throw new ApiError(404, "Artist not found");
+    }
+
+    return this.success(artist, "Artist found");
   }
 }
 

@@ -2,7 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import authService from "../services/auth.service.js";
 
-const FRONTEND_URL = process.env.FRONTEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://peartone.vercel.app";
 
 export const handleGoogleCallback = async (req, res) => {
   try {

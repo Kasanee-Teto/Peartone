@@ -4,6 +4,7 @@ import { useFetch } from "../hooks/useFetch.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import { handleLogout,buildCoverUrl } from "../api/client.js";
 import { useNavigate } from "react-router-dom";
+import ArtistDetailPage from "./ArtistDetailPage.jsx";
 
 const ArtistsPage = () => {
   const navigate = useNavigate();
@@ -42,12 +43,6 @@ const ArtistsPage = () => {
           <h2 className="m-0 text-lg font-bold tracking-tight">
             Featured Artists
           </h2>
-          <button 
-            type="button" 
-            className="bg-transparent border-none cursor-pointer text-xs font-semibold uppercase tracking-wider text-white/35 transition-colors duration-150 hover:text-white"
-          >
-            See All
-          </button>
         </div>
 
         {!loading && !error && spotlightArtist ? (
@@ -68,13 +63,14 @@ const ArtistsPage = () => {
                 </p>
                 <h3 className="m-0 text-3xl font-black tracking-tight">{spotlightArtist.name}</h3>
                 <p className="mt-2 max-w-[56ch] text-white/70 text-xs sm:text-sm leading-relaxed">
-                  {spotlightArtist.bio || "Featured artist pilihan backend hari ini."}
+                  {spotlightArtist.bio || "Featured artist based on today."}
                 </p>
               </div>
 
               <button 
                 type="button" 
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 border border-[#c8f560]/25 rounded-full bg-[#c8f560]/10 text-[#c8f560] font-bold cursor-pointer transition-all duration-160 ease-out hover:-translate-y-0.5 hover:bg-[#c8f560]/15 w-full md:w-auto"
+                onClick={() => navigate(`/artists/${spotlightArtist.id}`)}
               >
                 Explore <FiArrowRight />
               </button>
@@ -112,7 +108,7 @@ const ArtistsPage = () => {
                     </h3>
                   
                     <p className="mt-1 text-[11px] text-white/40 line-clamp-1">
-                      {artist.bio || "Featured artist dari backend"}
+                      {artist.bio || "Featured artist"}
                     </p>
                   </div>
 

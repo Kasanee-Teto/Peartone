@@ -34,6 +34,10 @@ export default (sequelize, DataTypes) => {
       foreignKey: "artistId",
       otherKey: "trackId"
     });
+    Artist.hasMany(models.Album, {
+      foreignKey: "artistId",
+      as: "Albums" 
+    });
   };
 
   return Artist;
