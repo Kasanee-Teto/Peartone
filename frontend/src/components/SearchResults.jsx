@@ -2,6 +2,7 @@ import { FiMusic, FiPlay } from "react-icons/fi";
 import { emitPlayTrack } from "../utils/playerBus.js";
 import { formatDuration } from "../utils/format.js";
 import { normalizeTrack } from "../utils/playerBus.js";
+import { buildCoverUrl } from "../api/client.js";
 
 const SearchResults = ({ results, loading, error, query }) => {
   if (loading) {
@@ -66,7 +67,7 @@ const SearchResults = ({ results, loading, error, query }) => {
             >
               <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7c6af733] text-[#a89ef7]">
                 {track.cover ? (
-                  <img src={track.cover} alt={track.title} className="h-full w-full object-cover" />
+                  <img src={buildCoverUrl(track.cover)} alt={track.title} className="h-full w-full object-cover" />
                 ) : (
                   <FiMusic size={16} />
                 )}
