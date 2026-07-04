@@ -24,7 +24,7 @@ export const buildCoverUrl = (coverUrl) => {
 };
 
 export const getCoverUrl = (track) => {
-  if (track?.cover_url) return track.cover_url;
+  if (track?.cover_url) return buildCoverUrl(track.cover_url);
 
   return (
     track?.cover ||

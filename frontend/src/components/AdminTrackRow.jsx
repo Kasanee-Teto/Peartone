@@ -1,4 +1,5 @@
 import { FiTrash2, FiAlertTriangle } from "react-icons/fi";
+import { buildCoverUrl } from "../api/client.js";
 
 const AdminTrackRow = ({ track, artistNames, isPendingDelete, confirmDelete, deleting, setConfirmDeleteId, duration}) => {
     return (
@@ -14,7 +15,7 @@ const AdminTrackRow = ({ track, artistNames, isPendingDelete, confirmDelete, del
         >
             {track.coverUrl ? (
             <img
-                src={track.coverUrl}
+                src={buildCoverUrl(track.coverUrl)}
                 alt={track.title}
                 className="w-[52px] h-[52px] rounded-lg object-cover shrink-0"
             />

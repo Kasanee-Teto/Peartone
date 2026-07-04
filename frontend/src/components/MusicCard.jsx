@@ -1,5 +1,5 @@
 import { emitPlayTrack, normalizePlayableTrack, isValidTrackId } from "../utils/playerBus.js";
-import { getCoverUrl } from "../api/client.js";
+import { getCoverUrl, buildCoverUrl } from "../api/client.js";
 import { formatDuration } from "../utils/format.js";
 import { getArtistName } from "../utils/playerBus.js";
 
@@ -9,7 +9,7 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
   const album = track?.Album?.title || track?.album || "";
   const genre = track?.genre || "";
   const duration = formatDuration(track?.duration);
-  const coverUrl = getCoverUrl(track);
+  const coverUrl = buildCoverUrl(getCoverUrl(track));
   const playableTrack = normalizePlayableTrack({
     ...track,
     trackId: track?.trackId || track?.id,

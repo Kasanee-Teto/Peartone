@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { FiSearch, FiX, FiPlus, FiTrash2 } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
 import { playlistsApi } from "../api/playlists.js";
+import { buildCoverUrl } from "../api/client.js";
 
 const AddTrackModal = ({ playlistId, onClose, onTrackChanged }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +133,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackChanged }) => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
                     <img
-                      src={track.coverUrl || track.Album?.imageUrl || "/placeholder-album.png"}
+                      src={buildCoverUrl(track.coverUrl || track.Album?.imageUrl) || "/placeholder-album.png"}
                       alt={track.title}
                       className="h-12 w-12 shrink-0 rounded-lg object-cover"
                     />

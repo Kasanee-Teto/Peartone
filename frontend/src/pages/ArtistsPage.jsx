@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FiArrowRight, FiStar } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
 import SidebarSetup from "../components/SidebarSetup";
-import { handleLogout } from "../api/client.js";
+import { handleLogout,buildCoverUrl } from "../api/client.js";
 
 const ArtistsPage = () => {
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ const ArtistsPage = () => {
 
               <div className="w-24 h-24 rounded-3xl overflow-hidden bg-white/5 grid place-items-center text-white text-3xl font-black tracking-tighter">
                 {spotlightArtist.imageUrl ? (
-                  <img src={spotlightArtist.imageUrl} alt={spotlightArtist.name} className="w-full h-full object-cover" />
+                  <img src={buildCoverUrl(spotlightArtist.imageUrl)} alt={spotlightArtist.name} className="w-full h-full object-cover" />
                 ) : (
                   <span>{(spotlightArtist.name || "").slice(0, 2).toUpperCase()}</span>
                 )}
@@ -95,9 +95,9 @@ const ArtistsPage = () => {
                   <div 
                     className="relative w-full h-22 overflow-hidden"
                     style={{ 
-                      background: artist.imageUrl 
-                        ? `url(${artist.imageUrl}) center/cover no-repeat` 
-                        : "linear-gradient(135deg, #7c6af7 0%, #c8f560 100%)" 
+                        background: artist.imageUrl
+                          ? `url(${buildCoverUrl(artist.imageUrl)}) center/cover no-repeat`
+                          : "linear-gradient(135deg, #7c6af7 0%, #c8f560 100%)"
                     }}
                   >
                     <div 
