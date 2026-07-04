@@ -13,7 +13,7 @@ export const handleGoogleCallback = async (req, res) => {
     console.log("Service Result:", result);
     const token = result.token || result.data?.token;
     
-    return res.redirect(`${FRONTEND_URL}/login-success?token=${token}`);
+    return res.redirect(`${FRONTEND_URL}/?token=${token}`);
   } catch (err) {
     console.log("Error in handleGoogleCallback:", err);
     return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);

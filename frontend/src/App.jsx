@@ -23,7 +23,6 @@ import AdminUploadPage from './pages/AdminUploadPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import MusicPlayer from './components/MusicPlayer.jsx'
 import TracksPage from './pages/TracksPage.jsx'
-import LoginSuccessPage from "./pages/LoginSuccessPage.jsx"
 import ArtistDetailPage from './pages/ArtistDetailPage.jsx'
 
 function PlaylistRoute() {
@@ -67,7 +66,6 @@ function AppLayout() {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage setIsAuthed={setIsAuthed} />} />
         <Route path="/register" element={<RegisterPage setIsAuthed={setIsAuthed} />} />
-        <Route path="/login-success" element={<LoginSuccessPage />} />
         {/* Protected routes */}
         <Route element={<ProtectedRoute isAuthed={isAuthed} />}>
           <Route path="/" element={<HomePage />} />
