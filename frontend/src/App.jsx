@@ -44,9 +44,26 @@ function ProtectedRoute({ isAuthed }) {
 
 function AppLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
   const showPlayer = !HIDE_PLAYER_ON.includes(location.pathname)
 
-  const [isAuthed, setIsAuthed] = useState(() => !!localStorage.getItem('token'))
+  const [isAuthed, setIsAuthed] = useState(() => {
+    const hasLocalToken = !!localStorage.getItem('token')
+    const hasUrlToken = new URLSearchParams(window.location.search).has('token')
+    return hasLocalToken || hasUrlToken
+  })
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search)
+    const tokenFromUrl = urlParams.get('token')
+
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl)
+      setIsAuthed(true)
+    
+      navigate('/', { replace: true })
+    }
+  }, [location, navigate])
 
   useEffect(() => {
     const syncAuth = () => setIsAuthed(!!localStorage.getItem('token'))
