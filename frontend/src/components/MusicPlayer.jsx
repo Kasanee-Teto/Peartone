@@ -157,6 +157,7 @@ const MusicPlayer = () => {
     } catch { return []; }
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [playbackHistory, setPlaybackHistory] = useState([]);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [playerError, setPlayerError] = useState("");
@@ -186,6 +187,7 @@ const MusicPlayer = () => {
       if (!track.streamUrl) { setPlayerError("Track not available for streaming."); return; }
       setQueue((q) => [track, ...q.filter((item) => item.id !== track.id)]);
       setCurrentIndex(0);
+      setPlaybackHistory([0]);
       setProgress(0);
       setCurrentTime(0);
       setPlayerError("");
@@ -232,7 +234,7 @@ const MusicPlayer = () => {
   // Listen for "clear the whole queue" events.
   useEffect(() => {
     const handler = () => {
-      setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0);
+      setQueue([]); setCurrentIndex(0); setPlaybackHistory([]); setIsPlaying(false); setProgress(0);
     };
     window.addEventListener("pt:clear-queue", handler);
     return () => window.removeEventListener("pt:clear-queue", handler);
@@ -350,17 +352,21 @@ const MusicPlayer = () => {
           trackId: String(trackId).trim()
         });
       }
-      if (isRepeat) { audio.currentTime = 0; audio.play().catch((err) => { if (err.name !== "AbortError") setIsPlaying(false) }); return; }
-      if (queue.length === 0) return setIsPlaying(false);
-      if (isShuffle && queue.length > 1) {
-        setCurrentIndex(Math.floor(Math.random() * queue.length));
-        setIsPlaying(true); return;
+      if (isRepeat) { 
+        audio.currentTime = 0;
+        audio.play().catch((err) => { if (err.name !== "AbortError") setIsPlaying(false); });
+        return;
       }
-      setCurrentIndex((curr) => {
-        const next = curr + 1;
-        const nextIndex = next >= queue.length ? 0 : next;
-        setIsPlaying(true); return nextIndex;
-      });
+      if (queue.length === 0) return setIsPlaying(false);
+      let nextIndex = currentIndex + 1;
+      if (isShuffle) {
+        nextIndex = Math.floor(Math.random() * queue.length);
+      } else if (nextIndex >= queue.length) {
+        nextIndex = 0;
+      }
+      
+      setPlaybackHistory(prev => [...prev, nextIndex]);
+      setCurrentIndex(nextIndex);
     };
 
     const handleRemoved = (e) => {
@@ -382,6 +388,12 @@ const MusicPlayer = () => {
           if (idx === curr) return Math.min(curr, copy.length - 1);
           return curr;
         });
+
+        setPlaybackHistory((hist) =>
+          hist
+            .filter((h) => h !== idx)
+            .map((h) => (h > idx ? h - 1 : h))
+        );
 
         if (copy.length === 0) setIsPlaying(false);
         return copy;
@@ -405,7 +417,7 @@ const MusicPlayer = () => {
       audio.removeEventListener("error", handleError);
       window.removeEventListener("pt:remove-from-queue", handleRemoved);
     };
-  }, [duration, isRepeat, isShuffle, queue.length]);
+  }, [duration, isRepeat, isShuffle, queue.length, currentTrack]);
 
   /** Append a track to the end of the queue and open the queue panel. */
   function addToQueue(track) {
@@ -428,6 +440,11 @@ const MusicPlayer = () => {
         if (idx === cur) return Math.min(cur, copy.length - 1);
         return cur;
       });
+      setPlaybackHistory((hist) =>
+        hist
+          .filter((h) => h !== idx)
+          .map((h) => (h > idx ? h - 1 : h))
+      );
       if (copy.length === 0) setIsPlaying(false);
       return copy;
     });
@@ -436,6 +453,7 @@ const MusicPlayer = () => {
   /** Jump to and play a specific queue index. */
   function playTrack(idx) {
     if (idx < 0 || idx >= queue.length) return;
+    setPlaybackHistory(prev => [...prev, idx]);
     setCurrentIndex(idx); setIsPlaying(true); setIsCollapsed(false);
   }
 
@@ -445,20 +463,34 @@ const MusicPlayer = () => {
     let nextIndex;
     if (isShuffle && queue.length > 1) {
       nextIndex = Math.floor(Math.random() * queue.length);
+      if (nextIndex === currentIndex && queue.length > 2) {
+        nextIndex = (nextIndex + 1) % queue.length;
+      }
     } else {
       nextIndex = currentIndex + 1;
       if (nextIndex >= queue.length) {
         nextIndex = 0;
       }
     }
+    setPlaybackHistory(prev => [...prev, nextIndex]);
     setCurrentIndex(nextIndex);
     setProgress(0);
     setIsPlaying(true);
   }
 
-  /** Go back to the previous track (clamped at index 0). */
+  /** Clean History Backtracking Mechanics. */
   function playPrev() {
-    const prevIndex = Math.max(0, currentIndex - 1);
+    if (queue.length === 0) return;
+    let prevIndex;
+    if (playbackHistory.length > 1) {
+      const historyCopy = [...playbackHistory];
+      historyCopy.pop(); 
+      prevIndex = historyCopy[historyCopy.length - 1];
+      setPlaybackHistory(historyCopy);
+    } else {
+      prevIndex = currentIndex - 1;
+      if (prevIndex < 0) prevIndex = queue.length - 1; 
+    }
     setCurrentIndex(prevIndex);
     setProgress(0);
     setIsPlaying(true);
