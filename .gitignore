@@ -1,8 +1,0 @@
-backend/.env
-backend/config/config.json
-/backend/config
-backend/.env
-.env
-config.json
-client/node_modules
-node_modules/
