@@ -8,11 +8,8 @@ import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import TrackRow from "../components/TrackRow.jsx";
-<<<<<<< HEAD
 import { tracksApi } from "../api/tracks.js";
-=======
 import { socket } from "../api/socket.js";
->>>>>>> refactor
 
 const LIMIT = 20;
 
