@@ -1,0 +1,4 @@
+{
+  "title": "API Reference",
+  "pages": ["music", "playlist", "lyrics", "history", "like", "stream", "chart", "admin"]
+}

@@ -1,0 +1,90 @@
+---
+title: Admin (Track Management)
+description: Admin-only endpoints for uploading and managing tracks
+---
+
+## Overview
+
+Admin endpoints allow uploading new tracks (with audio + cover files), listing tracks uploaded by the admin, and deleting them. All endpoints require **authentication + admin role**.
+
+```
+Authorization: Bearer <token>
+```
+
+## Endpoints
+
+### GET `/admin/tracks`
+🔒👑 Lists all tracks uploaded by the current admin user, including album and artist info.
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Tracks fetched",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "string",
+      "Album": { "id": "uuid", "title": "string" },
+      "Artists": [{ "id": "uuid", "name": "string" }]
+    }
+  ]
+}
+```
+
+---
+
+### POST `/admin/tracks`
+🔒👑 Uploads a new track with its audio file (and optional cover image).
+
+**Request:** `multipart/form-data`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `title` | string | Yes | |
+| `albumId` | UUID | No | Must reference an existing album if provided |
+| `artistIds` | JSON array (string) | Yes | At least one artist ID, e.g. `["uuid1","uuid2"]` |
+| `genre` | string | No | |
+| `audio` file | file | Yes | Audio file (field name `audio`) |
+| `cover` file | file | No | Cover image file (field name `cover`) |
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Track uploaded",
+  "data": {
+    "id": "uuid",
+    "title": "string",
+    "audioUrl": "/storage/audio/<filename>",
+    "coverUrl": "/storage/covers/<filename>",
+    "duration": 210,
+    "isPublished": true
+  }
+}
+```
+
+**Errors:**
+- `400` — `title` missing, `artistIds` missing/invalid, or audio file missing
+- `404` — `albumId` provided but album not found, or some `artistIds` don't exist
+- `500` — Failed to read audio duration (server-side processing error)
+
+---
+
+### DELETE `/admin/tracks/:id`
+🔒👑 Deletes a track, but only if it was uploaded by the requesting admin.
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Track deleted", "data": null }
+```
+
+**Errors:**
+- `404` — Track not found, or not uploaded by this admin
+
+## Notes
+
+- 🔒👑 marks endpoints requiring authentication **and** admin role (`adminMiddleware`).
+- The first artist in `artistIds` is automatically assigned the `primary` role; the rest get `featured`.
+- Audio duration is calculated server-side via `ffprobe` at upload time.
+- File uploads are handled by a multer-based middleware (`uploadTrackFiles`) which saves files to `storage/audio` and `storage/covers` before the controller runs — this is an internal implementation detail and not part of the public API contract.

@@ -1,0 +1,202 @@
+---
+title: Music (Albums, Artists & Tracks)
+description: Endpoints for albums, artists, and tracks
+---
+
+## Overview
+
+The Music API covers the core catalog: **Albums**, **Artists**, and **Tracks**. Most endpoints are public (read-only), except artist creation which requires admin access.
+
+Pagination is supported on list endpoints via `page` and `limit` query params (default `10`, max `100`).
+
+## Albums
+
+### GET `/albums`
+Lists albums with pagination and optional search by title.
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` | string | — | Filter by title |
+| `page` | number | `1` | |
+| `limit` | number | `10` | Max `100` |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Albums fetched",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "string",
+      "coverUrl": "string",
+      "releaseDate": "2026-01-01",
+      "Artist": { "id": "uuid", "name": "string" }
+    }
+  ],
+  "meta": { "page": 1, "limit": 10, "total": 42, "totalPages": 5 }
+}
+```
+
+---
+
+### GET `/albums/search`
+Searches albums by title.
+
+**Query params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `q` | string | Search keyword |
+
+**Response:** `200 OK` — same shape as list, without `meta`.
+
+---
+
+### GET `/albums/:id`
+Retrieves a single album, including its full tracklist and each track's artists.
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Album fetched",
+  "data": {
+    "id": "uuid",
+    "title": "string",
+    "Artist": { "id": "uuid", "name": "string" },
+    "Tracks": [
+      {
+        "id": "uuid",
+        "title": "string",
+        "Artists": [{ "id": "uuid", "name": "string", "TrackArtist": { "artistOrder": 1, "role": "primary" } }]
+      }
+    ]
+  }
+}
+```
+
+**Errors:**
+- `404` — Album not found
+
+## Artists
+
+### GET `/artists`
+Lists artists with pagination and search (matches `name` or `bio`).
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` | string | — | Matches name or bio |
+| `page` | number | `1` | |
+| `limit` | number | `10` | Max `100` |
+
+**Response:** `200 OK` — same paginated shape as albums, with artist objects and `meta`.
+
+---
+
+### GET `/artists/:id`
+Retrieves an artist with their tracks and albums.
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Artist found",
+  "data": {
+    "id": "uuid",
+    "name": "string",
+    "Tracks": [{ "id": "uuid", "title": "string", "duration": 210, "listeners": 100 }],
+    "Albums": [{ "id": "uuid", "title": "string", "coverUrl": "string" }]
+  }
+}
+```
+
+**Errors:**
+- `404` — Artist not found
+
+---
+
+### POST `/artists`
+🔒👑 Creates a new artist. Requires authentication and admin role. Accepts an image upload for the artist's profile picture.
+
+**Request:** `multipart/form-data`
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `name` | string | Yes | |
+| `bio` | string | No | |
+| image file | file | No | Uploaded via `uploadArtistImage` middleware |
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Artist created",
+  "data": {
+    "id": "uuid",
+    "name": "string",
+    "bio": "string",
+    "imageUrl": "/storage/artists/<filename>"
+  }
+}
+```
+
+**Errors:**
+- `400` — `name` is missing
+
+## Tracks
+
+### GET `/tracks`
+Lists published tracks with pagination, ordered by listener count (descending). Only tracks with `isPublished: true` are returned.
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` | string | — | Matches track title, genre, artist name, or album title |
+| `page` | number | `1` | |
+| `limit` | number | `10` | Max `100` |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Tracks fetched",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "string",
+      "genre": "string",
+      "listeners": 100,
+      "Album": { "id": "uuid", "title": "string", "coverUrl": "string" },
+      "Artists": [{ "id": "uuid", "name": "string", "TrackArtist": { "artistOrder": 1, "role": "primary" } }]
+    }
+  ],
+  "meta": { "page": 1, "limit": 10, "total": 200, "totalPages": 20 }
+}
+```
+
+Note: `audioPath`, `uploadedBy`, `fileSize`, and `mimeType` are excluded from the response.
+
+---
+
+### GET `/tracks/search`
+Searches tracks by title, genre, artist name, or album title.
+
+**Query params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `q` | string | Search keyword |
+
+**Response:** `200 OK` — same shape as list, without `meta`.
+
+## Notes
+
+- 🔒👑 marks endpoints requiring authentication **and** admin role.
+- `TrackArtist` (the join table between tracks and artists) has no dedicated endpoints — it's always returned nested inside track/artist responses, carrying `artistOrder` and `role`.
+- Track and album search use case-insensitive matching (`iLike` on PostgreSQL, `like` elsewhere).

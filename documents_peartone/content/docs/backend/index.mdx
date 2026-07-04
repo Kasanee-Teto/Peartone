@@ -1,0 +1,103 @@
+---
+title: Backend Overview
+description: Architecture overview of the Peartone backend
+---
+
+## Introduction
+
+Peartone is a music streaming platform. The backend is built with **Node.js**, **Express**, and **Sequelize ORM** on top of **PostgreSQL**.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Framework | Express |
+| ORM | Sequelize |
+| Database | PostgreSQL |
+| Authentication | JWT + Google OAuth 2.0 (Passport.js) |
+
+## Project Structure
+
+```
+backend/
+├── config/          # Sequelize environment config
+├── migrations/       # Database migration files
+├── seeders/           # Initial/dummy data
+├── src/
+│   ├── controllers/   # Request handlers
+│   ├── middlewares/    # Express middlewares (e.g. auth)
+│   ├── models/          # Sequelize models
+│   ├── routes/           # API route definitions
+│   ├── services/          # Business logic layer
+│   ├── utils/               # Helper utilities (ApiError, asyncHandler, etc.)
+│   ├── app.js                # Express app setup
+│   └── server.js               # Entry point
+└── storage/                      # Uploaded files (audio, covers, etc.)
+```
+
+## Response Format
+
+All API responses follow a consistent shape:
+
+```json
+{
+  "success": true,
+  "message": "string",
+  "data": { }
+}
+```
+
+- `success` — boolean indicating whether the request succeeded
+- `message` — human-readable description of the result
+- `data` — the actual payload (object, array, or `null`)
+
+Error responses (via `ApiError`) follow a similar convention, typically:
+```json
+{
+  "success": false,
+  "message": "Error description"
+}
+```
+
+## Request Flow
+
+A typical request flows through the following layers:
+
+```
+Route → Middleware (auth) → Controller → Service → Model → Database
+```
+
+- **Routes** define the URL path and HTTP method, and attach middlewares.
+- **Middlewares** handle cross-cutting concerns like authentication (`authMiddleware`).
+- **Controllers** parse the request, call the appropriate service, and shape the response.
+- **Services** contain the core business logic.
+- **Models** represent database tables via Sequelize.
+
+## Core Features
+
+- **Authentication** — JWT-based login/register, plus Google OAuth. See [Authentication](/docs/backend/auth).
+- **Music Catalog** — Albums, artists, and tracks with many-to-many artist credits.
+- **Playlists** — User-created playlists with ordered tracks.
+- **Liked Tracks** — Users can favorite tracks.
+- **Listening History** — Tracks playback events per user.
+- **Lyrics** — Each track can have one associated lyrics entry.
+
+See [Database](/docs/backend/database) for the full schema and relationships, and [API Reference](/docs/backend/api) for endpoint details.
+
+## Error Handling
+
+The backend uses a centralized `ApiError` utility and `asyncHandler` wrapper to standardize error responses across controllers, avoiding repetitive try/catch blocks.
+
+## Environment Variables
+
+Key environment variables required to run the backend:
+
+| Variable | Purpose |
+|---|---|
+| `JWT_SECRET` | Secret key for signing JWTs |
+| `JWT_ISSUER` | JWT issuer claim |
+| `JWT_AUDIENCE` | JWT audience claim |
+| `FRONTEND_URL` | Frontend URL for OAuth redirects |
+
+See `.env.example` for the complete list.

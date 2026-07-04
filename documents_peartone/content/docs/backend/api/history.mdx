@@ -1,0 +1,102 @@
+---
+title: History
+description: Track listening history endpoints
+---
+
+## Overview
+
+The History API records and retrieves a user's track playback history. All endpoints require authentication.
+
+```
+Authorization: Bearer <token>
+```
+
+## Endpoints
+
+### GET `/history`
+Lists the authenticated user's playback history, ordered by most recent first. Each entry includes the associated track, album, and artist(s).
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `limit` | number | `50` | Max `200` |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "History fetched",
+  "data": [
+    {
+      "id": "1",
+      "userId": "uuid",
+      "trackId": "uuid",
+      "playedAt": "2026-07-04T10:00:00.000Z",
+      "msPlayed": 123000,
+      "Track": {
+        "id": "uuid",
+        "title": "string",
+        "Album": { "...": "..." },
+        "Artists": [{ "...": "...", "TrackArtist": { "artistOrder": 1, "role": "primary" } }]
+      }
+    }
+  ]
+}
+```
+
+---
+
+### POST `/history`
+Records a new playback event.
+
+**Request body:**
+```json
+{
+  "trackId": "uuid",
+  "msPlayed": 123000
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `trackId` | UUID | Yes | Track that was played |
+| `msPlayed` | number | No | Milliseconds played |
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "History saved",
+  "data": {
+    "id": "1",
+    "userId": "uuid",
+    "trackId": "uuid",
+    "playedAt": "2026-07-04T10:00:00.000Z",
+    "msPlayed": 123000
+  }
+}
+```
+
+**Errors:**
+- `400` — `trackId` missing
+
+---
+
+### DELETE `/history`
+Clears all history entries for the authenticated user.
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "History cleared",
+  "data": { "deleted": 12 }
+}
+```
+
+## Notes
+
+- `playedAt` is set automatically to the current timestamp when the entry is created.
+- History entries have no `updatedAt`/`createdAt` timestamps (model uses `timestamps: false`).
+- The `GET /history` response format (`success`/`message`/`data` wrapper) comes from a shared `BaseService.success()` helper used across services — the same shape is likely used by other API responses in this backend.

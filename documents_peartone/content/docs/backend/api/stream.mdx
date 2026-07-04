@@ -1,0 +1,52 @@
+---
+title: Streaming
+description: Audio streaming endpoint
+---
+
+## Overview
+
+Streams a track's audio file with HTTP Range support, allowing browsers and media players to seek within the audio (skip forward/backward) without downloading the entire file first.
+
+This endpoint does **not** require authentication.
+
+## Endpoints
+
+### GET `/stream/tracks/:id`
+Streams the audio file for a track.
+
+**Path params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `id` | UUID | Track ID |
+
+**Headers (optional):**
+
+| Header | Notes |
+|---|---|
+| `Range` | e.g. `bytes=0-1023` — requests a specific byte range for seeking/partial download |
+
+**Response (no `Range` header):** `200 OK` — streams the full file, with headers:
+```
+Content-Length: <file size>
+Content-Type: audio/mpeg
+Accept-Ranges: bytes
+```
+
+**Response (with `Range` header):** `206 Partial Content` — streams only the requested byte range, with headers:
+```
+Content-Range: bytes <start>-<end>/<total>
+Accept-Ranges: bytes
+Content-Length: <chunk size>
+Content-Type: audio/mpeg
+```
+
+**Errors:**
+- `404` — Track not found, track has no local audio file, or the file is missing on disk
+- `400` — Track has no local audio file to stream
+- `416` — Invalid or out-of-bounds `Range` header
+
+## Notes
+
+- The file is served directly from disk (via `track.audioPath`), not from a database blob.
+- `Content-Type` uses the track's stored `mimeType`, defaulting to `audio/mpeg`.
