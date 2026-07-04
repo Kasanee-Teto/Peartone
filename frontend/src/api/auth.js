@@ -24,14 +24,25 @@ export const authApi = {
     }),
 
   async loginAndStore(credentials) {
-    const res = await this.login(credentials);
-    const { token, user } = res.data;
+    try {
+      const res = await this.login(credentials);
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("pt_user", JSON.stringify(user));
-    window.dispatchEvent(new Event("auth-changed"));
+      if (!res || !res.data || !res.data.token) {
+        throw new Error(res?.data?.message || "Invalid credentials or missing token.")
+      }
 
-    return { token, user };
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("pt_user", JSON.stringify(user));
+      window.dispatchEvent(new Event("auth-changed"));
+      return { token, user };
+
+    } catch (err) {
+      console.log("Login flow failed:", err);
+      localStorage.removeItem("token");
+      localStorage.removeItem("pt_user");
+      throw err;
+    }
   },
 
   async logout() {
