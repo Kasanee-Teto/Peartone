@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { emitPlayTrack, normalizePlayableTrack, isValidTrackId } from "../utils/playerBus.js";
 import { getCoverUrl, buildCoverUrl } from "../api/client.js";
 import { formatDuration } from "../utils/format.js";
@@ -8,8 +9,8 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
   const artist = getArtistName(track);
   const album = track?.Album?.title || track?.album || "";
   const genre = track?.genre || "";
-  const duration = formatDuration(track?.duration);
-  const coverUrl = buildCoverUrl(getCoverUrl(track));
+  const duration = formatDuration(track);
+  const coverUrl = getCoverUrl(track);
   const playableTrack = normalizePlayableTrack({
     ...track,
     trackId: track?.trackId || track?.id,
@@ -21,7 +22,27 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
     coverUrl,
   });
 
-  const safePlayCount = Number(track?.listeners ?? track?.listeners ?? 0) || 0;
+  const [liveListeners, setLiveListeners] = useState(Number(track?.listeners || 0));
+  const targetTrackId = String(track?.trackId || track?.id || "").trim();
+
+  useEffect(() => {
+    setLiveListeners(Number(track?.listeners || 0));
+  }, [track?.listeners, targetTrackId]);
+
+  useEffect(() => {
+    if (!targetTrackId) return;
+    const handleListeners = (e) => {
+      const { trackId, newListeners } = e.detail;
+  
+      if (targetTrackId === String(trackId).trim()) {
+        setLiveListeners(Number(newListeners));
+      }
+    };
+    window.addEventListener("pt:listeners-updated", handleListeners);
+    return () => {
+      window.removeEventListener("pt:listeners-updated", handleListeners);
+    };
+  }, [targetTrackId]);
 
   const handlePlay = () => {
     if (!isValidTrackId(playableTrack.trackId)) {
@@ -148,9 +169,9 @@ const MusicCard = ({ track = {}, variant = "popular", rank, onPlay }) => {
 
         <div className="flex items-center justify-between mt-1">
           <span className="text-xs text-white/40">{duration}</span>
-          {variant === "popular" && safePlayCount > 0 && (
+          {variant === "popular" && liveListeners > 0 && (
             <span className="text-xs text-white/40">
-              {safePlayCount.toLocaleString("id-ID")} plays
+              {liveListeners.toLocaleString("id-ID")} plays
             </span>
           )}
         </div>

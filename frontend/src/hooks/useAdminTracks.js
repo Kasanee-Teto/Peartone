@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { API_BASE, authFetch } from "../api/client";
+import { API_BASE, authFetch } from "../api/client.js";
 
 const authFetchJson = async (url, options) => {
   const r = await authFetch(url, options);
@@ -17,6 +17,7 @@ export const useAdminTracks = () => {
         album: "",
         audioFile: null,
         coverFile: null,
+        lyrics: "",
     });
 
     const [refreshKey, setRefreshKey] = useState(0);
@@ -26,7 +27,7 @@ export const useAdminTracks = () => {
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
-    const { tracks, title, genre, selectedArtistIds, album, audioFile, coverFile } = formData;
+    const { tracks, title, genre, selectedArtistIds, album, audioFile, coverFile, lyrics } = formData;
 
     const canSubmit = useMemo(
         () => formData.title.trim() && formData.selectedArtistIds.length > 0 && formData.audioFile,
@@ -53,6 +54,7 @@ export const useAdminTracks = () => {
         album: "",
         audioFile: null,
         coverFile: null,
+        lyrics: "",
         }));
     };
 
@@ -75,6 +77,7 @@ export const useAdminTracks = () => {
         if (album) fd.append("albumId", album);
         fd.append("audio", audioFile);
         if (coverFile) fd.append("cover", coverFile);
+        if (lyrics) fd.append("lyrics", lyrics);
 
         try {
         const res = await authFetchJson(`${API_BASE}/admin/tracks`, { method: "POST", body: fd });
@@ -115,6 +118,7 @@ export const useAdminTracks = () => {
         album,
         audioFile,
         coverFile,
+        lyrics,
         uploading,
         uploadMsg,
         isSuccess,

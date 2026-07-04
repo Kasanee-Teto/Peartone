@@ -1,13 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
-import SidebarSetup from "../components/SidebarSetup";
-import { API_BASE, authFetch, handleLogout } from "../api/client";
-import { GENRES } from "../constants/genre";
-import CustomSelect from "../components/CustomSelect";
-import { useAdminTracks } from "../hooks/useAdminTracks";
-import { formatDuration } from "../utils/format";
-import AdminTrackRow from "../components/AdminTrackRow";
+import SidebarSetup from "../components/SidebarSetup.jsx";
+import { API_BASE, authFetch, handleLogout } from "../api/client.js";
+import { GENRES } from "../constants/genre.js";
+import CustomSelect from "../components/CustomSelect.jsx";
+import { useAdminTracks } from "../hooks/useAdminTracks.js";
+import { formatDuration } from "../utils/format.js";
+import AdminTrackRow from "../components/AdminTrackRow.jsx";
+import { socket } from "../api/socket.js";
+import { useEffect } from "react";
 
 const AdminUploadPage = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const AdminUploadPage = () => {
     album,
     audioFile,
     coverFile,
+    lyrics,
     uploading,
     uploadMsg,
     isSuccess,
@@ -38,6 +41,13 @@ const AdminUploadPage = () => {
 
   const audioName = audioFile?.name ?? "No File Chosen";
   const coverName = coverFile?.name ?? "No File Chosen";
+
+  useEffect(() => {
+    if (isSuccess && tracks.length > 0) {
+      const latestTrack = tracks[tracks.length - 1];
+      socket.emit("admin-uploaded-track", latestTrack);
+    }
+  }, [isSuccess, tracks]);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload">
@@ -185,6 +195,19 @@ const AdminUploadPage = () => {
                 <span className="text-white/70 text-[13px] truncate" title={coverName}>{coverName}</span>
               </label>
             </div>
+
+            <label className="flex flex-col gap-2 md:col-span-2">
+              <span className="text-[11px] font-[800] uppercase tracking-[0.14em] text-white/50">
+                Synced Lyrics (.lrc format — optional)
+              </span>
+              <textarea
+                rows={5}
+                className="w-full px-3 py-[10px] rounded-xl border border-white/10 bg-white/[0.04] outline-none text-white/90 text-[13px] placeholder:text-white/30 focus:border-white/20 focus:bg-white/[0.07] transition-all font-mono"
+                value={lyrics || ""}
+                onChange={(e) => setFormField("lyrics", e.target.value)}
+                placeholder="Example:&#10;[00:12.30]First line of the song&#10;[00:15.60]Second line of the song"
+              />
+            </label>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-[14px] mt-4">

@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import db from "./models/index.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import artistRoutes from "./routes/artist.routes.js";
@@ -12,11 +13,46 @@ import streamRoutes from "./routes/stream.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import albumRoutes from "./routes/album.routes.js";
 import chartRoutes from "./routes/chart.routes.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 const app = express();
+const httpServer = createServer(app);
+const { Track } = db;
 
 app.use(cors());
 app.use(express.json());
+
+const io = new Server(
+  httpServer,
+  {
+    cors: {
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  }
+);
+
+io.on("connection", (socket) => {
+  console.log(`Client connected: ${socket.id}`);
+  socket.on("track-finished", async (data) => {
+    const { trackId } = data;
+    if (!trackId) return;
+    try {
+      await Track.increment(
+        { listeners: 1 }, 
+        { where: { id: trackId } }
+      );
+      const updatedTrack = await Track.findByPk(trackId);
+      io.emit("listeners-updated", {
+        trackId: trackId, newListeners: updatedTrack.listeners
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+});
 
 app.use('/storage', express.static('storage'));
 
@@ -40,4 +76,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-export default app;
+export default httpServer;

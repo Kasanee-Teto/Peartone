@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiPlay, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import SelectPlaylistModal from "../components/SelectPlaylistModal";
+import SelectPlaylistModal from "../components/SelectPlaylistModal.jsx";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
@@ -8,7 +8,11 @@ import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import TrackRow from "../components/TrackRow.jsx";
+<<<<<<< HEAD
 import { tracksApi } from "../api/tracks.js";
+=======
+import { socket } from "../api/socket.js";
+>>>>>>> refactor
 
 const LIMIT = 20;
 
@@ -78,6 +82,14 @@ const TracksPage = () => {
         setLikedIds(new Set(normalizedIds));
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    socket.on("track-added", (newTrack) => {
+      setTracks((prev) => [newTrack, ...prev]);
+    });
+
+    return () => { socket.off("track-added"); };
   }, []);
 
   const handleLikeToggle = async (track) => {
