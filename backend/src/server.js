@@ -1,5 +1,5 @@
 import "dotenv/config";
-import app from "./app.js";
+import httpServer from "./app.js";
 import db from "./models/index.js";
 import Sequelize from "sequelize";
 
@@ -19,6 +19,6 @@ async function ensureUserBioColumn() {
 
 await ensureUserBioColumn();
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

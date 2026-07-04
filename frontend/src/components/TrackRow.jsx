@@ -2,7 +2,7 @@ import { FiPlay, FiPlus } from "react-icons/fi";
 import { formatDuration } from "../utils/format.js";
 import { ASSET_BASE } from "../api/client.js";
 import { getArtistName } from "../utils/playerBus.js";
-import { normalizePlayableTrack } from "../utils/playerBus.js";
+import { normalizePlayableTrack, emitPlayTrack } from "../utils/playerBus.js";
 
 const TrackRow = ({ track, index, likedIds, onLikeToggle, onAddToPlaylist }) => {
   const artist = getArtistName(track);

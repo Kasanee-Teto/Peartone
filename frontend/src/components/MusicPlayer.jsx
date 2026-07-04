@@ -4,13 +4,14 @@ import {
   FiShuffle, FiRepeat, FiHeart, FiVolume2,
   FiList, FiMic, FiPlus, FiChevronUp, FiChevronDown,
 } from "react-icons/fi";
-import LyricsPanel from "./LyricsPanel";
-import QueueList from "./QueueList";
+import LyricsPanel from "./LyricsPanel.jsx";
+import QueueList from "./QueueList.jsx";
 import { buildStreamUrl, isValidTrackId, normalizePlayableTrack, onPlayTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { historyApi } from "../api/history.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import { formatTime } from "../utils/format.js";
+import { socket } from "../api/socket.js";
 
 const PlayButton = ({ isPlaying, onToggle, size = "md" }) => {
   const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
@@ -243,6 +244,12 @@ const MusicPlayer = () => {
     };
 
     const handleEnded = () => {
+      const trackId = currentTrack?.trackId || currentTrack?.id;
+      if (trackId && socket) {
+        socket.emit("track-finished", {
+          trackId: String(trackId).trim()
+        });
+      }
       if (isRepeat) { audio.currentTime = 0; audio.play().catch((err) => { if (err.name !== "AbortError") setIsPlaying(false) }); return; }
       if (queue.length === 0) return setIsPlaying(false);
       if (isShuffle && queue.length > 1) {
