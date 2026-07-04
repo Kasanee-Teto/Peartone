@@ -11,7 +11,14 @@ import { likesApi } from "../api/likes.js";
 import { historyApi } from "../api/history.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import { formatTime } from "../utils/format.js";
+import { buildCoverUrl } from "../api/client.js";
 
+/**
+ * Small play/pause toggle button.
+ * @param {boolean} isPlaying - Whether the track is currently playing.
+ * @param {() => void} onToggle - Called when the button is pressed.
+ * @param {"sm"|"md"} [size="md"] - Visual size variant.
+ */
 const PlayButton = ({ isPlaying, onToggle, size = "md" }) => {
   const dim = size === "sm" ? "h-8 w-8" : "h-10 w-10";
   const iconSize = size === "sm" ? 14 : 16;
@@ -29,6 +36,13 @@ const PlayButton = ({ isPlaying, onToggle, size = "md" }) => {
   );
 };
 
+/**
+ * Seekable progress bar showing elapsed / total time.
+ * @param {number} currentTime - Current playback position in seconds.
+ * @param {number} duration - Total track duration in seconds.
+ * @param {number} progress - Playback progress as a 0-100 percentage.
+ * @param {(e: React.ChangeEvent<HTMLInputElement>) => void} onSeek - Fired while dragging the seek slider.
+ */
 const ProgressBar = ({ currentTime, duration, progress, onSeek }) => (
   <div className="flex w-full items-center gap-2">
     <span className="w-8 shrink-0 text-right text-[10px] font-mono text-white/40">
@@ -51,6 +65,63 @@ const ProgressBar = ({ currentTime, duration, progress, onSeek }) => (
   </div>
 );
 
+/**
+ * Cover artwork for the currently playing track.
+ *
+ * Renders the track's cover image when one is available and loads
+ * successfully. Falls back to a gradient "♪" placeholder when there is
+ * no cover URL, or when the image fails to load (404, CORS, etc).
+ *
+ * The failure state is tracked in local component state (not a global
+ * store) and is reset whenever the active track changes, so a broken
+ * image on track A doesn't "stick" and hide the artwork for track B.
+ *
+ * @param {object|null} track - The currently playing track (or null).
+ * @param {string} sizeClass - Tailwind size classes, e.g. "h-14 w-14".
+ * @param {string} textSizeClass - Tailwind text-size class for the fallback glyph.
+ */
+const TrackCoverArt = ({ track, sizeClass, textSizeClass }) => {
+  const [failed, setFailed] = useState(false);
+  const rawCover = track?.cover || track?.coverUrl || "";
+  const src = rawCover ? buildCoverUrl(rawCover) : "";
+
+  // Reset the failure flag whenever the track changes so a previous
+  // broken image doesn't suppress artwork for a new, valid track.
+  useEffect(() => {
+    setFailed(false);
+  }, [track?.id]);
+
+  const showImage = Boolean(src) && !failed;
+
+  return (
+    <div
+      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] ${textSizeClass} font-semibold shadow-md overflow-hidden`}
+    >
+      {showImage ? (
+        <img
+          src={src}
+          alt={track?.title || "Track cover"}
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        "♪"
+      )}
+    </div>
+  );
+};
+
+/**
+ * Global, persistent bottom music player.
+ *
+ * Responsibilities (candidates for extraction — see architecture notes
+ * at the bottom of this file):
+ *  - Owns the single <audio> element and its playback state
+ *  - Maintains the play queue (persisted to localStorage)
+ *  - Listens for cross-app events (play track, add/remove/set/clear queue)
+ *  - Tracks "liked" state and reports listening history for the current track
+ *  - Renders three responsive layouts (mobile / tablet / desktop)
+ */
 const MusicPlayer = () => {
   const audioRef = useRef(null);
   const lastHistoryTrackIdRef = useRef("");
@@ -80,15 +151,20 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
+  // Persist the queue across reloads.
   useEffect(() => {
     try { localStorage.setItem("pt_queue", JSON.stringify(queue)); } catch {}
   }, [queue]);
 
+  // Keep the <audio> element's volume in sync with the volume slider.
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) audio.volume = volume / 100;
   }, [volume]);
 
+  // Listen for "play this track now" events fired from anywhere in the app
+  // (track rows, cards, search results, etc). Replaces the current queue
+  // head with the requested track and starts playback immediately.
   useEffect(() => {
     return onPlayTrack((incomingTrack) => {
       const track = normalizePlayableTrack(incomingTrack);
@@ -106,27 +182,29 @@ const MusicPlayer = () => {
     });
   }, []);
 
+  // Listen for bulk "set queue" events (e.g. "play this whole album/playlist").
   useEffect(() => {
-  const handleSetQueue = (e) => {
-    const incomingTracks = Array.isArray(e.detail) ? e.detail : [e.detail];
-    const normalizedTracks = incomingTracks
-      .map(normalizePlayableTrack)
-      .filter((t) => t && isValidTrackId(t.trackId || t.id) && t.streamUrl);
+    const handleSetQueue = (e) => {
+      const incomingTracks = Array.isArray(e.detail) ? e.detail : [e.detail];
+      const normalizedTracks = incomingTracks
+        .map(normalizePlayableTrack)
+        .filter((t) => t && isValidTrackId(t.trackId || t.id) && t.streamUrl);
 
-    if (normalizedTracks.length === 0) return;
+      if (normalizedTracks.length === 0) return;
 
-    setQueue((currentQueue) => {
-      if (currentIndex === 0 && currentQueue.length <= 1) {
-        return [currentQueue[0], ...normalizedTracks].filter(Boolean);
-      }
-      return [...currentQueue, ...normalizedTracks];
-    });
-  };
+      setQueue((currentQueue) => {
+        if (currentIndex === 0 && currentQueue.length <= 1) {
+          return [currentQueue[0], ...normalizedTracks].filter(Boolean);
+        }
+        return [...currentQueue, ...normalizedTracks];
+      });
+    };
 
-  window.addEventListener("pt:set-queue", handleSetQueue);
-  return () => window.removeEventListener("pt:set-queue", handleSetQueue);
-}, [currentIndex]);
+    window.addEventListener("pt:set-queue", handleSetQueue);
+    return () => window.removeEventListener("pt:set-queue", handleSetQueue);
+  }, [currentIndex]);
 
+  // Listen for "append single track to queue" events.
   useEffect(() => {
     const handler = (e) => {
       const track = normalizePlayableTrack(e.detail);
@@ -137,13 +215,16 @@ const MusicPlayer = () => {
     return () => window.removeEventListener("pt:add-to-queue", handler);
   }, []);
 
+  // Listen for "clear the whole queue" events.
   useEffect(() => {
-    const handler = () => { 
-      setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0); };
+    const handler = () => {
+      setQueue([]); setCurrentIndex(0); setIsPlaying(false); setProgress(0);
+    };
     window.addEventListener("pt:clear-queue", handler);
     return () => window.removeEventListener("pt:clear-queue", handler);
   }, []);
 
+  // Load and (attempt to) auto-play whenever the active track changes.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -158,7 +239,7 @@ const MusicPlayer = () => {
     }
     setPlayerError(""); setProgress(0); setDuration(0);
     audio.src = source; audio.load();
-    
+
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((err) => {
@@ -166,13 +247,14 @@ const MusicPlayer = () => {
           setIsPlaying(false);
         }
       });
-    } 
+    }
   }, [currentTrack?.id]);
 
+  // React to explicit play/pause toggles (separate from track-change autoplay above).
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    
+
     let isCurrent = true;
     let timeoutId = null;
 
@@ -197,6 +279,7 @@ const MusicPlayer = () => {
     }
   }, [isPlaying]);
 
+  // Sync the "liked" heart icon whenever the current track changes.
   useEffect(() => {
     if (!currentTrack?.id) { setIsLiked(false); return; }
     let active = true;
@@ -211,6 +294,8 @@ const MusicPlayer = () => {
     return () => { active = false; };
   }, [currentTrack?.id, currentTrack?.trackId]);
 
+  // Report a listening-history entry after 15s of continuous playback,
+  // once per track, only for authenticated users.
   useEffect(() => {
     const token = localStorage.getItem("token");
     const trackId = String(currentTrack?.trackId || currentTrack?.id || "").trim();
@@ -224,6 +309,8 @@ const MusicPlayer = () => {
     return () => clearTimeout(timer);
   }, [isPlaying, currentTrack?.id, currentTrack?.trackId]);
 
+  // Wire up native <audio> element events (metadata, time updates, end-of-track,
+  // errors) plus the "remove from queue" cross-app event.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -261,7 +348,7 @@ const MusicPlayer = () => {
       if (!targetId) return;
 
       setQueue((curr) => {
-        const idx = curr.findIndex(track => 
+        const idx = curr.findIndex(track =>
           String(track.trackId || track.id || "").trim() === targetId
         );
 
@@ -274,16 +361,17 @@ const MusicPlayer = () => {
           if (idx < curr) return curr - 1;
           if (idx === curr) return Math.min(curr, copy.length - 1);
           return curr;
-        }); 
-        
+        });
+
         if (copy.length === 0) setIsPlaying(false);
         return copy;
       });
     };
 
-    const handleError = () => { setIsPlaying(false);    
-      
-    setPlayerError("Failed to load this track."); };
+    const handleError = () => {
+      setIsPlaying(false);
+      setPlayerError("Failed to load this track.");
+    };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
@@ -299,15 +387,17 @@ const MusicPlayer = () => {
     };
   }, [duration, isRepeat, isShuffle, queue.length]);
 
+  /** Append a track to the end of the queue and open the queue panel. */
   function addToQueue(track) {
     const item = normalizePlayableTrack(track);
-    if (!item.streamUrl) { 
-      setPlayerError("Track not available for streaming."); return; 
+    if (!item.streamUrl) {
+      setPlayerError("Track not available for streaming."); return;
     }
     setQueue((q) => [...q, item]);
     setShowQueue(true);
   }
 
+  /** Remove a track from the queue by index, adjusting currentIndex as needed. */
   function removeFromQueue(idx) {
     setQueue((q) => {
       const copy = q.slice();
@@ -323,11 +413,13 @@ const MusicPlayer = () => {
     });
   }
 
+  /** Jump to and play a specific queue index. */
   function playTrack(idx) {
     if (idx < 0 || idx >= queue.length) return;
     setCurrentIndex(idx); setIsPlaying(true); setIsCollapsed(false);
   }
 
+  /** Advance to the next track, respecting shuffle mode. */
   function playNext() {
     if (queue.length === 0) return;
     let nextIndex;
@@ -344,6 +436,7 @@ const MusicPlayer = () => {
     setIsPlaying(true);
   }
 
+  /** Go back to the previous track (clamped at index 0). */
   function playPrev() {
     const prevIndex = Math.max(0, currentIndex - 1);
     setCurrentIndex(prevIndex);
@@ -351,6 +444,7 @@ const MusicPlayer = () => {
     setIsPlaying(true);
   }
 
+  /** Seek handler for the progress slider (0-100 -> audio.currentTime). */
   function toggleProgress(e) {
     const next = Number(e.target.value);
     setProgress(next);
@@ -359,6 +453,7 @@ const MusicPlayer = () => {
     if (audio && total > 0) audio.currentTime = (next / 100) * total;
   }
 
+  /** Toggle play/pause; restarts from 0 if the track had already ended. */
   function togglePlay() {
     if (!currentTrack?.streamUrl) { setPlayerError("Track not available for streaming."); return; }
     if (!isPlaying && progress >= 99 && duration > 0) {
@@ -369,6 +464,7 @@ const MusicPlayer = () => {
     setIsPlaying((s) => !s);
   }
 
+  /** Toggle the liked state of the current track via the likes API. */
   async function toggleLike() {
     const trackId = currentTrack?.trackId || currentTrack?.id;
     if (!isValidTrackId(trackId)) { setPlayerError("Track not found."); return; }
@@ -386,9 +482,10 @@ const MusicPlayer = () => {
     <div className="fixed inset-x-0 bottom-0 z-[300] pointer-events-none">
       <audio ref={audioRef} preload="metadata" />
 
+      {/* Floating "reopen player" button shown when the player is collapsed */}
       <div className={`fixed right-4 bottom-4 z-[310] ${isCollapsed ? "block" : "hidden"}`}>
         <button
-          type="button" 
+          type="button"
           onClick={() => setIsCollapsed(false)}
           className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#1c1c1f] text-white/85 shadow-lg border border-white/5 hover:text-white hover:scale-105 active:scale-95 transition-all"
           aria-label="Show music player"
@@ -399,9 +496,10 @@ const MusicPlayer = () => {
 
       <div className={`pointer-events-auto w-full border-t border-white/5 bg-[#0a0a0cd6] backdrop-blur-2xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)] text-white ${isCollapsed ? "hidden" : ""}`}>
 
+        {/* ---------- Mobile layout (< sm) ---------- */}
         <div className="flex flex-col sm:hidden px-4 pt-3 pb-2 gap-2">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-base font-semibold shadow-md">♪</div>
+            <TrackCoverArt track={currentTrack} sizeClass="h-10 w-10" textSizeClass="text-base" />
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-white/95">{currentTrack?.title || "No track"}</p>
@@ -435,11 +533,12 @@ const MusicPlayer = () => {
           </div>
         </div>
 
+        {/* ---------- Tablet layout (sm - lg) ---------- */}
         <div className="hidden sm:flex lg:hidden flex-col px-5 pt-3 pb-2 gap-1.5">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-lg font-semibold shadow-md">♪</div>
-              
+              <TrackCoverArt track={currentTrack} sizeClass="h-11 w-11" textSizeClass="text-lg" />
+
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white/95 max-w-[180px]">{currentTrack?.title || "No track"}</p>
                 <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>
@@ -465,9 +564,10 @@ const MusicPlayer = () => {
           <ProgressBar currentTime={currentTime} duration={duration} progress={progress} onSeek={toggleProgress}/>
         </div>
 
+        {/* ---------- Desktop layout (lg+) ---------- */}
         <div className="hidden lg:grid lg:grid-cols-3 h-24 items-center px-8">
           <div className="flex items-center gap-4 min-w-0 justify-self-start">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] text-xl font-semibold shadow-md">♪</div>
+            <TrackCoverArt track={currentTrack} sizeClass="h-14 w-14" textSizeClass="text-xl" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white/95 max-w-[200px]">{currentTrack?.title || "No track played"}</p>
               <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>
