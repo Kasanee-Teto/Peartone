@@ -2,7 +2,7 @@ import { FiMusic, FiPlay } from "react-icons/fi";
 import { emitPlayTrack } from "../utils/playerBus.js";
 import { formatDuration } from "../utils/format.js";
 import { normalizeTrack } from "../utils/playerBus.js";
-import { buildCoverUrl } from "../api/client.js";
+import { getCoverUrl } from "../api/client.js";
 
 const SearchResults = ({ results, loading, error, query }) => {
   if (loading) {
@@ -55,6 +55,7 @@ const SearchResults = ({ results, loading, error, query }) => {
       <ul className="m-0 list-none p-0" role="list">
         {results.map((raw, index) => {
           const track = normalizeTrack(raw);
+          const coverUrl = getCoverUrl(track);
           return (
             <li
               key={track.id || index}
@@ -66,8 +67,8 @@ const SearchResults = ({ results, loading, error, query }) => {
               aria-label={`Play ${track.title} from ${track.artist}`}
             >
               <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7c6af733] text-[#a89ef7]">
-                {track.cover ? (
-                  <img src={buildCoverUrl(track.cover)} alt={track.title} className="h-full w-full object-cover" />
+                {coverUrl ? (
+                  <img src={coverUrl} alt={track.title} className="h-full w-full object-cover" />
                 ) : (
                   <FiMusic size={16} />
                 )}

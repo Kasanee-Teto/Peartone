@@ -1,7 +1,7 @@
 import { authApi } from "../api/auth.js";
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
-export const ASSET_BASE = API_BASE.replace(/\/api\/?$/, "");
+export const ASSET_BASE = import.meta.env.VITE_ASSET_BASE_URL || API_BASE.replace(/\/api\/?$/, "");
 
 export const authFetch = (url, options = {}) => {
   const token = localStorage.getItem("token");
