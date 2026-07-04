@@ -46,7 +46,9 @@ class TrackService extends BaseService {
     if (query) {
       where[Op.or] = [
         { title: { [likeOp]: `%${query}%` } },
-        { genre: { [likeOp]: `%${query}%` } }
+        { genre: { [likeOp]: `%${query}%` } }, 
+        { '$Artists.name$': { [likeOp]: `%${query}%` } },
+        { '$Album.title$': { [likeOp]: `%${query}%` } },
       ];
     }
 
@@ -57,6 +59,7 @@ class TrackService extends BaseService {
       order: this._orderConfig(),
       limit: limitNum,
       offset,
+      subQuery: false,
       distinct: true
     });
 
@@ -76,11 +79,14 @@ class TrackService extends BaseService {
         isPublished: true,
         [Op.or]: [
           { title: { [likeOp]: `%${query}%` } },
-          { genre: { [likeOp]: `%${query}%` } }
+          { genre: { [likeOp]: `%${query}%` } },
+          { '$Artists.name$': { [likeOp]: `%${query}%` } },
+          { '$Album.title$': { [likeOp]: `%${query}%` } },
         ]
       },
       include: this._include(),
       order: this._orderConfig(),
+      subQuery: false,
     });
 
     return this.success(tracks, "Search results");
