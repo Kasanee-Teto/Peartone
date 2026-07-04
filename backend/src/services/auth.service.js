@@ -8,6 +8,23 @@ import BaseService from "./base.service.js";
 const { User } = db;
 
 class AuthService extends BaseService {
+  async findOrCreateGoogleUser(googleProfile) {
+    const email = googleProfile.emails?.[0]?.value;
+    const username = googleProfile.displayName || googleProfile.username;
+    if (!email) {
+      throw new ApiError(400, "Google account does not provide an email address.");
+    }
+    let user = await User.findOne({ where: { email } });
+    if (!user) {
+      user = await User.create({ username, email, provider: 'google', role: 'user', passwordHash: null });
+    }
+    const token = this._signToken(user);
+    return {
+      token: token,
+      user: this._sanitizeUser(user)
+    };
+  }
+
   async getProfile(userId) {
     const user = await User.findByPk(userId);
     if (!user) {

@@ -2,6 +2,21 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import authService from "../services/auth.service.js";
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+export const handleGoogleCallback = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.redirect(`${FRONTEND_URL}/login?error=no_user_profile`);
+    }
+    const { token, user } = await authService.findOrCreateGoogleUser(req.user);
+    res.redirect(`${FRONTEND_URL}/login-success?token=${token}`);
+  } catch (err) {
+    console.log("Error in handleGoogleCallback:", err);
+    res.redirect(`${FRONTEND_URL}/login?error=auth_failed`);
+  }
+}
+
 export const getProfile = asyncHandler(async (req, res) => {
   const result = await authService.getProfile(req.user.id);
   res.status(200).json(result);

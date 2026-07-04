@@ -1,6 +1,13 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
+import passport from "passport";
 import cors from "cors";
 import db from "./models/index.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+await import("../config/passport.js");
 
 import authRoutes from "./routes/auth.routes.js";
 import artistRoutes from "./routes/artist.routes.js";
@@ -13,8 +20,6 @@ import streamRoutes from "./routes/stream.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import albumRoutes from "./routes/album.routes.js";
 import chartRoutes from "./routes/chart.routes.js";
-import { createServer } from "http";
-import { Server } from "socket.io";
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,6 +27,7 @@ const { Track } = db;
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 const io = new Server(
   httpServer,
