@@ -3,6 +3,7 @@ import { FiMusic, FiHeart, FiEdit2, FiMapPin, FiCalendar, FiX, FiUser, FiMail, F
 import { useFetch } from "../hooks/useFetch";
 import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
+import { authApi } from "../api/auth.js";
 
 const ProfilePage = () => {
   const [isSidebarOpen, setIsSidebarOpen]   = useState(false);
