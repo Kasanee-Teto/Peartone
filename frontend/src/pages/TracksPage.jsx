@@ -8,6 +8,7 @@ import { authApi } from "../api/auth.js";
 import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import TrackRow from "../components/TrackRow.jsx";
+import { tracksApi } from "../api/tracks.js";
 
 const LIMIT = 20;
 
@@ -43,35 +44,28 @@ const TracksPage = () => {
   }, [search]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError("");
+      let cancelled = false;
+      setLoading(true);
+      setError("");
 
-    const qs = new URLSearchParams({ page, limit: LIMIT });
-    if (debouncedSearch) qs.set("q", debouncedSearch);
+      tracksApi
+        .list({ page, limit: LIMIT, q: debouncedSearch || undefined })
+        .then((payload) => {
+          if (cancelled) return;
+          const rows = payload?.data || [];
+          const m = payload?.meta || { total: 0, totalPages: 1 };
+          setTracks(rows);
+          setMeta(m);
+        })
+        .catch(() => {
+          if (!cancelled) setError("Failed to load tracks");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
 
-    fetch(`/api/tracks?${qs}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-      },
-    })
-      .then((r) => r.json())
-      .then((payload) => {
-        if (cancelled) return;
-        const rows = payload?.data || [];
-        const m = payload?.meta || { total: 0, totalPages: 1 };
-        setTracks(rows);
-        setMeta(m);
-      })
-      .catch(() => {
-        if (!cancelled) setError("Failed to load tracks");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [page, debouncedSearch]);
+      return () => { cancelled = true; };
+    }, [page, debouncedSearch]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FiX } from "react-icons/fi";
 import { parseLRC } from "../utils/parseLRC";
+import { lyricsApi } from "../api/lyrics.js";
 
 function getLyricsText(payload) {
   if (!payload) return "";
@@ -29,9 +30,7 @@ const LyricsPanel = ({ trackId, artist, title, open, onClose, currentTime = 0 })
 
     const fetchLyrics = async () => {
       try {
-        const res = await fetch(`/api/lyrics/${encodeURIComponent(trackId)}`);
-        if (!res.ok) throw new Error("Not found");
-        const data = await res.json();
+        const data = await lyricsApi.getByTrackId(trackId);
         if (!active) return;
         setParsedLyrics(parseLRC(getLyricsText(data?.data || data)));
       } catch {

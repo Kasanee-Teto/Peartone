@@ -53,13 +53,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackChanged }) => {
 
     setAddingTrackId(trackId);
     try {
-      const res = await fetch(`/api/playlists/${playlistId}/tracks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ trackId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Failed to add track");
+      await playlistsApi.addTrack(playlistId, trackId);
       setPlaylistTracks((current) => [...current, trackId]);
       onTrackChanged?.();
     } catch (err) {
@@ -75,11 +69,7 @@ const AddTrackModal = ({ playlistId, onClose, onTrackChanged }) => {
 
     setRemovingTrackId(trackId);
     try {
-      const res = await fetch(`/api/playlists/${playlistId}/tracks/${trackId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to delete track");
+      await playlistsApi.removeTrack(playlistId, trackId);
       setPlaylistTracks((current) => current.filter((id) => id !== trackId));
       onTrackChanged?.();
     } catch (err) {
