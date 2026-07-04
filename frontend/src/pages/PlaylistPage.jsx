@@ -50,7 +50,10 @@ const PlaylistPage = () => {
 
   const createPlaylist = async (e) => {
     e.preventDefault();
-    if (!newPlaylistName.trim()) return;
+    if (!newPlaylistName.trim()) {
+      notify("Please enter a playlist name.", "info");
+      return;
+    }
     const token = localStorage.getItem("token");
     if (!token) { notify("Please login to your account.", "info"); return; }
     setIsSaving(true);
@@ -66,7 +69,7 @@ const PlaylistPage = () => {
       setIsSaving(false);
     }
   };
-
+  
   const handleTracksChanged = async () => {
     if (!selectedPlaylistId) return;
     try {
@@ -152,6 +155,7 @@ const PlaylistPage = () => {
             onChange={(e) => setNewPlaylistName(e.target.value)}
             placeholder="New Playlist Title..."
             aria-label="New Playlist Title"
+            required
           />
           <button
             className={`inline-flex items-center gap-1.75 px-5 py-[11px] rounded-[10px] border-none bg-[#c8f560] text-[#0d0d0f] text-[13px] font-bold cursor-pointer transition-all duration-150 whitespace-nowrap hover:bg-[#d4f770] hover:-translate-y-[1px] active:translate-y-0 ${
