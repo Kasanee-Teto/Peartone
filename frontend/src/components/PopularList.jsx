@@ -1,4 +1,5 @@
 import MusicCard from "./MusicCard.jsx";
+import { NavLink } from "react-router-dom";
 
 const PopularList = ({ popular = [], loading, error }) => {
   if (loading) {
@@ -37,11 +38,11 @@ const PopularList = ({ popular = [], loading, error }) => {
   return (
     <section aria-label="Popular Now">
       <div className="flex justify-between items-center mb-6 w-full">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Popular Now</h2>
-        <a href="/tracks" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all popular tracks">
-          See All →
-        </a>
-      </div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Popular Now</h2>
+          <NavLink to="/tracks" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all popular tracks">
+            See All →
+          </NavLink>
+        </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 w-full" role="list" aria-label="Daftar lagu populer">
         {popular.map((track, index) => (

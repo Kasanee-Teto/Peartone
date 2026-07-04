@@ -1,4 +1,5 @@
 import MusicCard from "./MusicCard.jsx";
+import { NavLink } from "react-router-dom";
 
 const ChartList = ({ charts = [], loading, error }) => {
   if (loading) {
@@ -38,9 +39,9 @@ const ChartList = ({ charts = [], loading, error }) => {
     <section aria-label="Top Charts">
       <div className="flex justify-between items-center mb-6 w-full">
         <h2 className="text-2xl font-bold text-white tracking-tight">Top Charts</h2>
-        <a href="/charts" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all charts">
+        <NavLink to="/charts" className="text-sm font-medium text-white/60 transition-colors hover:text-[#c8f560]" aria-label="See all charts">
           See All →
-        </a>
+        </NavLink>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
