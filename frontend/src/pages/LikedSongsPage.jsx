@@ -4,9 +4,9 @@ import { likesApi } from "../api/likes.js";
 import { emitLikesChanged, onLikesChanged } from "../utils/likeBus.js";
 import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { authApi } from "../api/auth.js";
-import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import { handleLogout } from "../api/client.js";
+import { useNavigate } from "react-router-dom";
 
 const LikedSongsPage = () => {
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ const LikedSongsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white overflow-x-hidden overflow-y-auto font-sans antialiased">
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <section className="relative border-b border-white/[0.06] bg-gradient-to-b from-[#0c3e2f] via-[#09221a] to-[#0d0d0f] px-6 lg:px-12 pt-20 pb-8">
         <div className="absolute inset-0 bg-[radial-gradient(800px_400px_at_80%_0%,rgba(200,245,96,0.12),transparent_70%)] pointer-events-none" />

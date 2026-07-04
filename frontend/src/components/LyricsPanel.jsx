@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { FiX } from "react-icons/fi";
-import { parseLRC } from "../utils/parseLRC";
+import { parseLRC } from "../utils/parseLRC.js";
 import { lyricsApi } from "../api/lyrics.js";
 
 function getLyricsText(payload) {

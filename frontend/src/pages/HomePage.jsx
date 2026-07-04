@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import ChartList from "../components/ChartList";
 import PopularList from "../components/PopularList";
 import PlaylistPage from "./PlaylistPage";
@@ -10,9 +9,11 @@ import { tracksApi } from "../api/tracks.js";
 import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import { normalizeTrack } from "../utils/playerBus.js";
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showplaylist, setShowplaylist] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -26,13 +27,13 @@ const HomePage = () => {
     data: chartsResp,
     loading: chartsLoading,
     error: chartsError,
-  } = useFetch("/tracks?page=1&limit=5");
+  } = useFetch("/tracks?page=1&limit=8");
 
   const {
     data: popularResp,
     loading: popularLoading,
     error: popularError,
-  } = useFetch("/tracks?page=1&limit=8");
+  } = useFetch("/tracks?page=1&limit=4");
 
   const chartsRaw = useMemo(() => {
     if (Array.isArray(chartsResp)) return chartsResp;
@@ -79,19 +80,19 @@ const HomePage = () => {
 
   return (
     <main 
-      className="w-full max-w-7xl mx-auto px-6 md:px-8 pb-20 flex flex-col gap-16 font-sans antialiased text-[#8a8a99]" 
+      className="w-full min-h-screen bg-[#0d0d0f] text-[#8a8a99] relative overflow-x-hidden" 
       aria-label="Peartone Home Page"
     >
-      <div className="grid grid-columns-1 gap-8 items-start">
+      <div className="grid grid-cols-1 gap-8 items-start">
 
-        <SidebarSetup handleLogout={handleLogout} showPlaylist={() => {setShowplaylist(false)}} />
+        <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} showPlaylist={() => {setShowplaylist(false)}} />
 
         <div className="flex flex-col gap-16 md:gap-12">
 
           <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Peartone Banner">
 
-            <div className="absolute -top-10 -left-20 w-[500px] height-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
-            <div className="absolute top-0 -right-[100px] w-[350px] height-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
+            <div className="absolute -top-10 -left-20 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
+            <div className="absolute top-0 -right-[100px] w-[350px] h-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
 
             <div className="relative z-10 w-full max-w-[640px] flex flex-col justify-center items-center gap-6 mx-auto">
               <h1 className="font-display font-extrabold text-[clamp(1.8rem,6vw,4.5rem)] text-white text-center leading-[1.05] tracking-tight">

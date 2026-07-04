@@ -1,32 +1,41 @@
 import { useMemo, useState } from "react";
+import MusicCard from "../components/MusicCard.jsx";
+import { useFetch } from "../hooks/useFetch.js";
+import { handleLogout } from "../api/client.js";
+import { FiTrendingUp, FiMusic, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import SidebarSetup from "../components/SidebarSetup.jsx";
+import { normalizeTrack } from "../utils/playerBus.js";
 import { useNavigate } from "react-router-dom";
-import MusicCard from "../components/MusicCard";
-import { useFetch } from "../hooks/useFetch";
-import { handleLogout } from "../api/client";
-import { FiTrendingUp, FiMusic } from "react-icons/fi";
-import SidebarSetup from "../components/SidebarSetup";
-import { normalizeTrack } from "../utils/playerBus";
 
 const TopChartsPage = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { data: tracksResp, loading, error } = useFetch("/tracks?page=1&limit=20"); 
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 5;
+  const { data: tracksResp, loading, error } = useFetch(`/tracks?page=1&limit=20`); 
 
   const chartsRaw = useMemo(() => {
     let rawData = [];
     if (Array.isArray(tracksResp)) rawData = tracksResp;
     else if (Array.isArray(tracksResp?.data)) rawData = tracksResp.data;
-    return [...rawData].sort((a, b) => (b.listeners || 0) - (a.listeners || 0));
+    const normalized = rawData.map(normalizeTrack);
+    return [...normalized].sort((a, b) => (b.listeners || 0) - (a.listeners || 0));
   }, [tracksResp]);
 
-  const charts = useMemo(() => chartsRaw.map(normalizeTrack), [chartsRaw]);
+  const currentPageCharts = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return chartsRaw.slice(startIndex, endIndex);
+  }, [chartsRaw, page, itemsPerPage]);
+
+  const isLastPage = page * itemsPerPage >= chartsRaw.length;
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white overflow-x-hidden pb-24 font-sans">
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="mx-auto max-w-7xl px-6 pt-24 md:px-12 lg:pt-28">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:h-[calc(100vh-160px)] lg:items-stretch">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:h-full lg:items-stretch">
 
           <div className="flex flex-col justify-center lg:pr-8 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#c8f560]/10 text-[#c8f560] text-xs font-semibold tracking-wider uppercase mb-4 mx-auto lg:mx-0 w-fit">
@@ -49,9 +58,6 @@ const TopChartsPage = () => {
                   Trending Tracks
                 </h2>
               </div>
-              <span className="text-xs font-medium text-[#c8f560] bg-[#c8f560]/10 px-2.5 py-0.5 rounded-full">
-                {charts.length} Hits Found
-              </span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 scrollbar-thin scrollbar-thumb-white/10 overscroll-contain">
@@ -64,25 +70,50 @@ const TopChartsPage = () => {
                 <div className="text-center py-24 border border-red-500/10 rounded-xl bg-red-500/5 p-6">
                   <p className="text-sm text-red-400 font-medium">Failed to load Charts: {error}</p>
                 </div>
-              ) : charts.length === 0 ? (
+              ) : currentPageCharts.length === 0 ? (
                 <div className="text-center py-24 text-white/40 text-sm font-medium">
                   No charts available at the moment.
                 </div>
               ) : (
                 <ol className="space-y-3" aria-label="Daftar top charts">
-                  {charts.map((track, index) => (
+                  {currentPageCharts.map((track, index) => (
                     <li 
                       key={track.id || index} 
                       className="min-w-0 overflow-hidden rounded-xl transition-all duration-200 hover:bg-white/[0.02] hover:translate-x-1"
                     >
-                      <MusicCard track={track} variant="top_chart" rank={index + 1} />
+                      <MusicCard track={track} variant="top_chart" rank={(page - 1) * itemsPerPage + (index + 1)} />
                     </li>
                   ))}
                 </ol>
               )}
             </div>
-          </div>
 
+            <div className="flex items-center justify-between border-t border-white/5 bg-white/[0.01] px-6 py-4 mt-auto">
+              <button
+                type="button"
+                onClick={() => setPage((old) => Math.max(old - 1, 1))}
+                disabled={page === 1 || loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/60 bg-white/5 rounded-lg border border-white/5 transition hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <FiChevronLeft size={14} />
+                Previous
+              </button>
+
+              <span className="text-xs font-mono text-white/40">
+                Page {page}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setPage((old) => old + 1)}
+                disabled={isLastPage || loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/60 bg-white/5 rounded-lg border border-white/5 transition hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                Next
+                <FiChevronRight size={14} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>

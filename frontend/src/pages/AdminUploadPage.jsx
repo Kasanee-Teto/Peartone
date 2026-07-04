@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { FiUploadCloud } from "react-icons/fi";
 import { useFetch } from "../hooks/useFetch";
 import SidebarSetup from "../components/SidebarSetup.jsx";
@@ -9,10 +8,10 @@ import { useAdminTracks } from "../hooks/useAdminTracks.js";
 import { formatDuration } from "../utils/format.js";
 import AdminTrackRow from "../components/AdminTrackRow.jsx";
 import { socket } from "../api/socket.js";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminUploadPage = () => {
-  const navigate = useNavigate();
   const {
     tracks,
     title,
@@ -33,11 +32,12 @@ const AdminUploadPage = () => {
     onSubmit,
     confirmDelete,
   } = useAdminTracks();
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: artistsResp } = useFetch("/artists");
   const { data: albumsResp } = useFetch("/albums");
   const artists = Array.isArray(artistsResp) ? artistsResp : artistsResp?.data || [];
   const albums = Array.isArray(albumsResp) ? albumsResp : albumsResp?.data || [];
+  const navigate = useNavigate();
 
   const audioName = audioFile?.name ?? "No File Chosen";
   const coverName = coverFile?.name ?? "No File Chosen";
@@ -52,7 +52,7 @@ const AdminUploadPage = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="Admin Upload">
 
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 pt-12 pb-24">
 

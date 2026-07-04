@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiTrash2, FiX, FiAlertTriangle } from "react-icons/fi";
-import { useFetch } from "../hooks/useFetch";
-import { useNavigate } from "react-router-dom";
+import { useFetch } from "../hooks/useFetch.js";
 import { historyApi } from "../api/history.js";
 import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
+import { useNavigate } from "react-router-dom";
 
 const HistoryPage = () => {
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ const HistoryPage = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white" aria-label="History">
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24">
         

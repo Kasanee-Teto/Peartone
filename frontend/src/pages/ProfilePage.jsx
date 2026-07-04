@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { FiMusic, FiHeart, FiEdit2, FiMapPin, FiCalendar, FiX, FiUser, FiMail, FiFileText } from "react-icons/fi";
-import { useFetch } from "../hooks/useFetch";
+import { useFetch } from "../hooks/useFetch.js";
 import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import { authApi } from "../api/auth.js";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen]   = useState(false);
   const [isEditing, setIsEditing]           = useState(false);
   const [isSaving, setIsSaving]             = useState(false);
@@ -98,7 +100,7 @@ const ProfilePage = () => {
 
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-[#ffffff] relative overflow-x-hidden">
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-[960px] mx-auto padding px-6 pt-12 pb-20">
 

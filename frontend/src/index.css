@@ -25,6 +25,15 @@
       background-position: 200% 50%;
     }
   }
+
+	@keyframes spin {
+		from {
+				transform: rotate(0deg);
+		}
+		to {
+				transform: rotate(360deg);
+		}
+	}
 }
 
 .bg-brand-main {
@@ -88,6 +97,14 @@ input[type="search"]::-webkit-search-results-decoration {
 
 .scrollbar-custom::-webkit-scrollbar-button {
     display: none;
+}
+
+.animate-spin-disk {
+	animation: spin 20s linear infinite;
+}
+
+.animation-paused {
+	animation-play-state: paused;
 }
 
 @media (min-width: 1280px) {

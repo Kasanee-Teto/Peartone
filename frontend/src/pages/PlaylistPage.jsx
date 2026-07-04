@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import PlaylistCard from "../components/PlaylistCard";
-import AddTrackModal from "../components/AddTrackModal";
-import { useFetch } from "../hooks/useFetch";
+import PlaylistCard from "../components/PlaylistCard.jsx";
+import AddTrackModal from "../components/AddTrackModal.jsx";
+import { useFetch } from "../hooks/useFetch.js";
 import { playlistsApi } from "../api/playlists.js";
 import { FiPlus, FiSearch, FiMusic } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import { buildCoverUrl, handleLogout } from "../api/client.js";
+import { useNavigate } from "react-router-dom";
 
 const PlaylistPage = () => {
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ const PlaylistPage = () => {
   
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24 max-md:pt-[72px]">
 

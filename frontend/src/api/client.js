@@ -37,12 +37,12 @@ export const getCoverUrl = (track) => {
   );
 };
 
-export const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
+export const handleLogout = async ( setIsSidebarOpen, navigate ) => {
+  try {
+    await authApi.logout();
+    if (setIsSidebarOpen) setIsSidebarOpen(false);
+    if (navigate) navigate("/login");
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};

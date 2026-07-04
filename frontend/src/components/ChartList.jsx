@@ -1,4 +1,4 @@
-import MusicCard from "./MusicCard";
+import MusicCard from "./MusicCard.jsx";
 
 const ChartList = ({ charts = [], loading, error }) => {
   if (loading) {

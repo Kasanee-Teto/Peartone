@@ -80,8 +80,9 @@ const ProgressBar = ({ currentTime, duration, progress, onSeek }) => (
  * @param {object|null} track - The currently playing track (or null).
  * @param {string} sizeClass - Tailwind size classes, e.g. "h-14 w-14".
  * @param {string} textSizeClass - Tailwind text-size class for the fallback glyph.
+ * @param {boolean} isPlaying - Current playback state to toggle disk spin rotation.
  */
-const TrackCoverArt = ({ track, sizeClass, textSizeClass }) => {
+const TrackCoverArt = ({ track, sizeClass, textSizeClass, isPlaying }) => {
   const [failed, setFailed] = useState(false);
   const rawCover = track?.cover || track?.coverUrl || "";
   const src = rawCover ? buildCoverUrl(rawCover) : "";
@@ -96,18 +97,30 @@ const TrackCoverArt = ({ track, sizeClass, textSizeClass }) => {
 
   return (
     <div
-      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7c6af7] to-[#c8f560] ${textSizeClass} font-semibold shadow-md overflow-hidden`}
+      className={`relative flex ${sizeClass} shrink-0 items-center justify-center rounded-full bg-[#121214] border border-white/10 shadow-xl overflow-hidden group`}
     >
-      {showImage ? (
-        <img
-          src={src}
-          alt={track?.title || "Track cover"}
-          className="h-full w-full object-cover"
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        "♪"
-      )}
+      <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:6px_6px] z-10" />
+      <div className="absolute inset-[15%] rounded-full border border-dashed border-white/10 pointer-events-none z-10" />
+      <div
+        className={`absolute inset-[12%] rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#7c6af7] to-[#c8f560] ${textSizeClass} font-semibold ${
+          isPlaying ? "animate-spin-disk" : "animate-spin-disk animation-paused"
+        }`}
+        style={{ transformOrigin: "center" }}
+      >
+        {showImage ? (
+          <img
+            src={src}
+            alt={track?.title || "Track cover"}
+            className="w-full h-full object-cover rounded-full"
+            onError={() => setFailed(true)}
+          />
+        ) : (
+          <span className="text-white/80">♪</span>
+        )}
+      </div>
+      <div className="absolute h-[16%] w-[16%] rounded-full bg-[#0d0d0f] border border-white/20 shadow-inner flex items-center justify-center z-20">
+        <div className="h-[35%] w-[35%] rounded-full bg-black" />
+      </div>
     </div>
   );
 };
@@ -506,7 +519,7 @@ const MusicPlayer = () => {
         {/* ---------- Mobile layout (< sm) ---------- */}
         <div className="flex flex-col sm:hidden px-4 pt-3 pb-2 gap-2">
           <div className="flex items-center gap-3">
-            <TrackCoverArt track={currentTrack} sizeClass="h-10 w-10" textSizeClass="text-base" />
+            <TrackCoverArt track={currentTrack} sizeClass="h-10 w-10" textSizeClass="text-base" isPlaying={isPlaying} />
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-white/95">{currentTrack?.title || "No track"}</p>
@@ -544,7 +557,7 @@ const MusicPlayer = () => {
         <div className="hidden sm:flex lg:hidden flex-col px-5 pt-3 pb-2 gap-1.5">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <TrackCoverArt track={currentTrack} sizeClass="h-11 w-11" textSizeClass="text-lg" />
+              <TrackCoverArt track={currentTrack} sizeClass="h-11 w-11" textSizeClass="text-lg" isPlaying={isPlaying} />
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-white/95 max-w-[180px]">{currentTrack?.title || "No track"}</p>
@@ -574,7 +587,7 @@ const MusicPlayer = () => {
         {/* ---------- Desktop layout (lg+) ---------- */}
         <div className="hidden lg:grid lg:grid-cols-3 h-24 items-center px-8">
           <div className="flex items-center gap-4 min-w-0 justify-self-start">
-            <TrackCoverArt track={currentTrack} sizeClass="h-14 w-14" textSizeClass="text-xl" />
+            <TrackCoverArt track={currentTrack} sizeClass="h-14 w-14" textSizeClass="text-xl" isPlaying={isPlaying} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white/95 max-w-[200px]">{currentTrack?.title || "No track played"}</p>
               <p className="truncate text-xs text-white/50">{currentTrack?.artist || "Start listening"}</p>

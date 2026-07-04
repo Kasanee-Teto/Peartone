@@ -5,11 +5,12 @@ import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
 import { likesApi } from "../api/likes.js";
 import { emitLikesChanged } from "../utils/likeBus.js";
 import { authApi } from "../api/auth.js";
-import { useNavigate } from "react-router-dom";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import TrackRow from "../components/TrackRow.jsx";
 import { tracksApi } from "../api/tracks.js";
 import { socket } from "../api/socket.js";
+import { handleLogout } from "../api/client.js";
+import { useNavigate } from "react-router-dom";
 
 const LIMIT = 20;
 
@@ -25,16 +26,6 @@ const TracksPage = () => {
   const [error, setError] = useState("");
   const [likedIds, setLikedIds] = useState(new Set());
   const [playlistTarget, setPlaylistTarget] = useState(null);
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      setIsSidebarOpen(false);
-      navigate("/login"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -129,7 +120,7 @@ const TracksPage = () => {
   return (
     <main className="min-h-screen bg-[#0d0d0f] text-white relative overflow-x-hidden" aria-label="All Tracks">
 
-      <SidebarSetup handleLogout={handleLogout} />
+      <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-[1100px] mx-auto p-[48px_24px_120px]">
         <header className="flex items-start justify-between gap-4 border-b border-white/6 pb-7 mb-6">

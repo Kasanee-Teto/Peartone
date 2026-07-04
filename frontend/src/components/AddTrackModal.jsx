@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { FiSearch, FiX, FiPlus, FiTrash2 } from "react-icons/fi";
-import { useFetch } from "../hooks/useFetch";
+import { useFetch } from "../hooks/useFetch.js";
 import { playlistsApi } from "../api/playlists.js";
 import { buildCoverUrl } from "../api/client.js";
 

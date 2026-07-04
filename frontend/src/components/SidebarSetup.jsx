@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/Sidebar.jsx";
 
 const SidebarSetup = ({ handleLogout, showPlaylist }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);

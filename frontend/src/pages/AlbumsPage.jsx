@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useFetch } from "../hooks/useFetch";
+import { useFetch } from "../hooks/useFetch.js";
 import { handleLogout } from "../api/client.js";
 import SidebarSetup from "../components/SidebarSetup.jsx";
 import AlbumCard from "../components/AlbumsCard.jsx";
+import { useNavigate } from "react-router-dom";
 
 const AlbumsPage = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: albumsResp, loading, error } = useFetch("/albums");
 
@@ -15,7 +17,7 @@ const AlbumsPage = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#0d0d0f] text-white">
 
-    <SidebarSetup handleLogout={handleLogout} />
+    <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} />
 
       <div className="relative z-10 max-w-[1024px] mx-auto px-6 pt-12 pb-24">
 
