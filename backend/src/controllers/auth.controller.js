@@ -9,11 +9,14 @@ export const handleGoogleCallback = async (req, res) => {
     if (!req.user) {
       return res.redirect(`${FRONTEND_URL}/login?error=no_user_profile`);
     }
-    const { token, user } = await authService.findOrCreateGoogleUser(req.user);
-    res.redirect(`${FRONTEND_URL}/login-success?token=${token}`);
+    const result = await authService.findOrCreateGoogleUser(req.user);
+    console.log("Service Result:", result);
+    const token = result.token || result.data?.token;
+    
+    return res.redirect(`${FRONTEND_URL}/login-success?token=${token}`);
   } catch (err) {
     console.log("Error in handleGoogleCallback:", err);
-    res.redirect(`${FRONTEND_URL}/login?error=auth_failed`);
+    return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
   }
 }
 

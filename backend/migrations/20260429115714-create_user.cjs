@@ -22,7 +22,7 @@ module.exports = {
         },
         passwordHash: {
           type: Sequelize.STRING,
-          allowNull: false,
+          allowNull: true,
         },
         role: {
           type: Sequelize.ENUM("admin", "user"),

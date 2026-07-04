@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { emitPlayTrack, normalizePlayableTrack, isValidTrackId } from "../utils/playerBus.js";
-import { getCoverUrl, buildCoverUrl } from "../api/client.js";
+import { getCoverUrl } from "../api/client.js";
 import { formatDuration } from "../utils/format.js";
 import { getArtistName } from "../utils/playerBus.js";
 

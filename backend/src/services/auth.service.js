@@ -16,12 +16,12 @@ class AuthService extends BaseService {
     }
     let user = await User.findOne({ where: { email } });
     if (!user) {
-      user = await User.create({ username, email, provider: 'google', role: 'user', passwordHash: null });
+      user = await User.create({ username, email, provider: 'google', role: 'user', passwordHash: 'OAUTH_GOOGLE_ACCOUNT_NO_PASSWORD' });
     }
     const token = this._signToken(user);
     return {
-      token: token,
-      user: this._sanitizeUser(user)
+      token,
+      user: this._sanitizeUser(user),
     };
   }
 
