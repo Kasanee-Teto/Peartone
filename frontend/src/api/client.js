@@ -24,17 +24,17 @@ export const buildCoverUrl = (coverUrl) => {
 };
 
 export const getCoverUrl = (track) => {
-  if (track?.cover_url) return buildCoverUrl(track.cover_url);
-
-  return (
+  const raw =
+    track?.cover_url ||
     track?.cover ||
     track?.coverUrl ||
     track?.image ||
     track?.imageUrl ||
     track?.Album?.cover ||
     track?.Album?.coverUrl ||
-    ""
-  );
+    "";
+
+  return buildCoverUrl(raw);
 };
 
 export const handleLogout = async ( setIsSidebarOpen, navigate ) => {
