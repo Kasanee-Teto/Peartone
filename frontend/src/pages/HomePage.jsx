@@ -52,13 +52,13 @@ const HomePage = () => {
 
   const handleSearch = useCallback(async (q) => {
     setSearchQuery(q);
-    setSearchLoading(true);
+    if (searchResults.length === 0) {
+      setSearchLoading(true);
+    }
     setSearchError("");
-    setSearchResults([]);
 
     try {
       const res = await tracksApi.list({ q, page: 1, limit: 20 });
-
       const items = Array.isArray(res) ? res : res?.data || [];
       setSearchResults(items);
     } catch (err) {
@@ -66,13 +66,13 @@ const HomePage = () => {
     } finally {
       setSearchLoading(false);
     }
-  }, []);
+  }, [searchResults.length]);
 
   const handleClearSearch = useCallback(() => {
-    setSearchQuery("");
-    setSearchResults([]);
-    setSearchError("");
-  }, []);
+    searchQuery && setSearchQuery("");
+    searchResults.length && setSearchResults([]);
+    searchError && setSearchError("");
+  }, [searchQuery, searchResults, searchError]);
 
   if (showplaylist) {
     return <PlaylistPage onBack={() => setShowplaylist(false)} />;
@@ -80,72 +80,85 @@ const HomePage = () => {
 
   return (
     <main 
-      className="w-full min-h-screen bg-[#0d0d0f] text-[#8a8a99] relative overflow-x-hidden" 
+      className="w-full min-h-screen bg-[#0d0d0f] text-[#8a8a99] relative overflow-hidden flex" 
       aria-label="Peartone Home Page"
     >
-      <div className="grid grid-cols-1 gap-8 items-start">
+      <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,106,247,0.15)_0%,transparent_70%)] pointer-events-none z-0 mix-blend-screen -translate-x-1/4 -translate-y-1/4" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(200,245,96,0.08)_0%,transparent_70%)] pointer-events-none z-0 mix-blend-screen translate-x-1/4 -translate-y-1/4" />
 
-        <SidebarSetup handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} showPlaylist={() => {setShowplaylist(false)}} />
+      <SidebarSetup 
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        handleLogout={() => handleLogout(setIsSidebarOpen, navigate)} 
+        showPlaylist={() => {setShowplaylist(false)}} 
+      />
 
-        <div className="flex flex-col gap-16 md:gap-12">
+      <div className="flex-1 w-full min-w-0 relative z-10 flex flex-col h-screen overflow-y-auto scrollbar-hidden">
+        <header className="w-full px-6 py-4 flex items-center justify-between md:hidden border-b border-white/5 bg-[#0d0d0f]/80 backdrop-blur-md sticky top-0 z-50">
+          <span className="font-display font-extrabold text-white text-xl tracking-tight">Peartone</span>
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2.5 text-white bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
+        </header>
 
-          <section className="relative pt-12 pb-9 md:pt-20 md:pb-14 overflow-hidden" aria-label="Peartone Banner">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex flex-col gap-12">
+          
+          <section className="w-full flex flex-col items-center justify-center text-center pt-4 md:pt-10 gap-6" aria-label="Peartone Banner">
+            <h1 className="font-display font-extrabold text-[clamp(2.2rem,6vw,4rem)] text-white leading-[1.1] tracking-tight">
+              Find your
+              <br />
+              <span className="text-[#c8f560] inline-block relative mt-1 pb-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-gradient-to-r after:from-[#c8f560] after:to-[#7c6af7] after:rounded-full">
+                Favorites!
+              </span>
+            </h1>
+            
+            <p className="text-sm md:text-base text-[#8a8a99] font-light max-w-md px-4">
+              Listen to your music till your weekend COMES!
+            </p>
 
-            <div className="absolute -top-10 -left-20 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(124,106,247,0.18)_0%,transparent_70%)] pointer-events-none animate-[heroPulse_6s_ease-in-out_infinite]" />
-            <div className="absolute top-0 -right-[100px] w-[350px] h-[350px] bg-[radial-gradient(circle,rgba(200,245,96,0.1)_0%,transparent_70%)] pointer-events-none" />
-
-            <div className="relative z-10 w-full max-w-[640px] flex flex-col justify-center items-center gap-6 mx-auto">
-              <h1 className="font-display font-extrabold text-[clamp(1.8rem,6vw,4.5rem)] text-white text-center leading-[1.05] tracking-tight">
-                Find your
-                <br />
-                <span className="text-[#c8f560] inline-block relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-[3px] after:bg-gradient-to-r after:from-[#c8f560] after:to-[#7c6af7] after:rounded-[2px]">
-                  Favorites!
-                </span>
-              </h1>
-              <p className="text-sm md:text-[1.05rem] text-[#8a8a99] font-light w-full text-center max-w-2xl px-4">
-                Listen to your musics till your weekend COMES!
-              </p>
-
-              <div className="w-full max-w-xl mx-auto flex flex-col items-center">
-                <SearchBar
-                  onSearch={handleSearch}
-                  onClear={handleClearSearch}
-                />
-
-                {!isSearching && (
-                    <button
-                      className="mt-8 inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-150 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(200,245,96,0.3)] active:translate-y-0"
-                      aria-label="Start Listening"
-                      onClick={() => setShowplaylist(true)}
-                    >
-                      Start Listening
-                    </button>
-                )}
-
-                {isSearching && (
-                  <div className="w-full mt-1.5">
-                    <SearchResults
-                      results={searchResults}
-                      loading={searchLoading}
-                      error={searchError}
-                      query={searchQuery}
-                    />
-                  </div>
-                )}
-              </div>
+            <div className="w-full max-w-xl mx-auto flex flex-col items-center mt-2 px-2 gap-6">
+              <SearchBar
+                onSearch={handleSearch}
+                onClear={handleClearSearch}
+              />
 
               {!isSearching && (
-                <div className="w-full mt-12 flex flex-col gap-12">
-                  <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
-                  <PopularList
-                    popular={popular}
-                    loading={popularLoading}
-                    error={popularError}
-                  />
-                </div>
+                <button
+                  className="inline-flex items-center gap-2 bg-[#c8f560] text-[#0d0d0f] font-display font-bold text-sm sm:text-[0.95rem] px-8 py-3.5 border-none rounded-full cursor-pointer tracking-wide transition-all duration-200 ease-in-out hover:bg-[#a8d840] hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(200,245,96,0.25)] active:translate-y-0"
+                  aria-label="Start Listening"
+                  onClick={() => setShowplaylist(true)}
+                >
+                  Start Listening
+                </button>
               )}
-            </div>
+            </div >
           </section>
+
+          {isSearching && (
+            <div className="w-full max-w-5xl mx-auto mt-2">
+              <SearchResults
+                results={searchResults}
+                loading={searchLoading}
+                error={searchError}
+                query={searchQuery}
+              />
+            </div>
+          )}
+          
+          {!isSearching && (
+            <div className="w-full flex flex-col gap-14 mt-4">
+              <ChartList charts={charts} loading={chartsLoading} error={chartsError} />
+              <PopularList
+                popular={popular}
+                loading={popularLoading}
+                error={popularError}
+              />
+            </div>
+          )}
         </div>
       </div>
     </main>
