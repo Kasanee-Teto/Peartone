@@ -1,0 +1,110 @@
+---
+title: Realtime & Events
+description: WebSocket connection and internal event bus utilities
+---
+
+## Overview
+
+The frontend uses two different communication patterns that are easy to confuse, since both are called from similar places:
+
+1. **`socket.js`** — a real **WebSocket connection** (Socket.IO) to the backend server, used for live data pushed from the server (e.g. listener counts).
+2. **`playerBus.js`** / **`likeBus.js`** — an internal **client-side event bus** using native `window` `CustomEvent`s, used for components to talk to each other without prop-drilling or global state. No network involved.
+
+## `socket.js` — WebSocket Connection
+
+Establishes a single Socket.IO connection to the backend, shared across the whole app.
+
+```js
+export const socket = io(SOCKET_URL, {
+  transports: ["polling", "websocket"],
+  autoConnect: true,
+});
+```
+
+- **Connection URL:** `ASSET_BASE` (the backend origin, same host used for cover images — derived from `VITE_API_BASE_URL` minus the `/api` suffix)
+- **Transports:** Tries `polling` first, upgrades to `websocket` if available
+- **Auto-connects** on import — no manual `.connect()` call needed
+
+### Incoming: `listeners-updated`
+When the server emits `listeners-updated` (e.g. when a track's play count changes), this module re-broadcasts it as a `window` event:
+
+```js
+window.dispatchEvent(new CustomEvent("pt:listeners-updated", { detail: data }));
+```
+
+Components like `MusicCard` listen for `pt:listeners-updated` to update a track's listener count live, without polling the API.
+
+### Outgoing: `track-finished`
+`MusicPlayer` emits this event to the server when a track finishes playing:
+
+```js
+socket.emit("track-finished", { trackId: String(trackId).trim() });
+```
+
+This is presumably how the backend increments a track's `listeners` count (the exact server-side handler isn't part of the documented Express routes — it lives in the Socket.IO server setup, likely in `server.js`).
+
+## `playerBus.js` — Player Event Bus & Helpers
+
+A collection of helpers for normalizing track data and dispatching "play this track" events across the app, so any component (search results, cards, rows) can trigger playback without holding player state itself.
+
+### Track Normalization
+
+| Function | Purpose |
+|---|---|
+| `normalizeTrack(t)` | Normalizes a raw backend track into a display-friendly shape (`id`, `title`, `artist`, `album`, `cover`, `duration`), joining multiple `Artists` into a comma-separated string |
+| `normalizePlayableTrack(track)` | Like `normalizeTrack`, but also resolves `trackId` and builds a ready-to-play `streamUrl` |
+| `getArtistName(track)` | Extracts a display-ready artist name from either an `Artists` array or a flat `artist`/`Artist.name` field |
+| `isValidTrackId(trackId)` | Checks that a track ID is a non-empty string |
+| `buildStreamUrl(track)` | Builds the full streaming URL: `{API_ORIGIN}/api/stream/tracks/{trackId}` (matches the backend's [Streaming](/docs/backend/api/stream) endpoint), or returns `track.streamUrl` if already set |
+
+### Play Event
+
+**`emitPlayTrack(track)`** — dispatches a `pt:play-track` window event with the track as payload. Call this from any component to start playback immediately.
+
+```js
+import { emitPlayTrack, normalizePlayableTrack } from "../utils/playerBus.js";
+
+emitPlayTrack(normalizePlayableTrack(track));
+```
+
+**`onPlayTrack(handler)`** — subscribes to `pt:play-track` events. Only `MusicPlayer` listens to this, since it owns the actual `<audio>` element. Returns an unsubscribe function.
+
+```js
+useEffect(() => {
+  return onPlayTrack((track) => { /* start playing track */ });
+}, []);
+```
+
+## `likeBus.js` — Like Event Bus
+
+A minimal event bus notifying the app that the liked-tracks list has changed (e.g. after liking/unliking a track), so pages like `LikedSongsPage` can re-fetch without polling.
+
+**`emitLikesChanged()`** — dispatches a `pt:likes-changed` window event. Called after any like/unlike action (e.g. in `MusicPlayer.toggleLike()`).
+
+**`onLikesChanged(handler)`** — subscribes to the event, returns an unsubscribe function.
+
+```js
+useEffect(() => {
+  return onLikesChanged(() => refetchLikedTracks());
+}, []);
+```
+
+## Event Reference
+
+A full list of custom `window` events used across the frontend:
+
+| Event | Emitted by | Listened by | Purpose |
+|---|---|---|---|
+| `pt:play-track` | Any component (via `emitPlayTrack`) | `MusicPlayer` | Play a track immediately |
+| `pt:set-queue` | `AlbumCard`, `PlaylistCard` | `MusicPlayer` | Replace/append queue with multiple tracks |
+| `pt:add-to-queue` | `PlaylistCard`, others | `MusicPlayer` | Append a single track to the queue |
+| `pt:clear-queue` | `AlbumCard`, `PlaylistCard` | `MusicPlayer` | Empty the queue |
+| `pt:remove-from-queue` | (queue UI) | `MusicPlayer` | Remove a specific track from the queue |
+| `pt:likes-changed` | `MusicPlayer` (via `likeBus`) | Pages showing liked tracks | Refresh liked-tracks data |
+| `pt:listeners-updated` | `socket.js` (from server) | `MusicCard` | Live-update a track's listener count |
+| `auth-changed` | `authApi` (login/logout) | `AppLayout`, `Sidebar` | Sync auth state across the app |
+| `storage` | Browser (native) | `AppLayout` | Sync auth state across browser tabs |
+
+## Notes
+
+- All of `playerBus.js`, `likeBus.js`, and the custom events dispatched directly via `window.dispatchEvent` (e.g. `pt:set-queue`) follow the same pattern, but only some are wrapped in named helper functions (`emitPlayTrack`, `emitLikesChanged`) while others are dispatched inline where needed. Worth keeping this in mind if extending the event system — wrapping all events in bus helpers (like `playerBus.js` does) would make them easier to discover and type-check.

@@ -1,7 +1,77 @@
 ---
-title: Frontend
-description: Dokumentasi frontend project Peartone
+title: Frontend Overview
+description: Architecture overview of the Peartone frontend
 ---
 
-## Overview
-Halaman ini menjelaskan struktur dan komponen frontend.
+## Introduction
+
+The Peartone frontend is a **React 19 + Vite** single-page application that consumes the [Peartone backend API](/docs/backend). It provides a Spotify-like experience: browsing music, managing playlists, liking tracks, viewing listening history, and (for admins) uploading new tracks.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Build tool | Vite |
+| Routing | React Router v7 |
+| Styling | Tailwind CSS v4 |
+| Realtime | Socket.IO client |
+| Icons | react-icons |
+
+## Project Structure
+
+```
+frontend/
+├── public/
+├── src/
+│   ├── api/          # Backend communication (http wrapper + per-resource modules)
+│   ├── assets/        # Static assets (images, fonts, etc)
+│   ├── components/     # Reusable UI components
+│   ├── constants/        # Shared constant values (e.g. genre list)
+│   ├── hooks/              # Custom React hooks
+│   ├── pages/                # Route-level page components
+│   ├── utils/                  # Formatting, parsing, and event bus utilities
+│   ├── App.jsx                  # Routing setup
+│   └── main.jsx                   # App entry point
+├── .env.example
+├── vite.config.js
+└── package.json
+```
+
+## Request Flow
+
+```
+Page/Component → API module (e.g. tracksApi) → http.js → Backend API
+```
+
+- **Pages** compose components and call API modules to fetch/mutate data (often via the `useFetch` hook).
+- **API modules** (`src/api/*.js`) each wrap one backend resource, built on `http()`/`httpRaw()`.
+- **`http.js`** is the shared fetch wrapper handling auth headers, JSON parsing, and error normalization.
+
+See [API Client](/docs/frontend/api-client) for details.
+
+## Core Features
+
+- **Authentication** — Login, registration, and Google OAuth, with session persisted in `localStorage`. See [API Client → auth.js](/docs/frontend/api-client).
+- **Music Player** — A persistent, global player that survives page navigation, supporting queueing, shuffle, repeat, and synced lyrics. See [Components → MusicPlayer](/docs/frontend/components).
+- **Realtime Updates** — Live listener counts pushed via WebSocket. See [Realtime & Events](/docs/frontend/realtime).
+- **Playlists & Likes** — Create/manage playlists, like tracks, with UI kept in sync via a custom event bus rather than a global state library.
+- **Admin Upload** — Authenticated admins can upload new tracks with audio + cover files. See [Hooks & Utilities → useAdminTracks](/docs/frontend/hooks-utils).
+
+## State Management Approach
+
+Rather than a dedicated state library (Redux, Zustand, etc), the frontend relies on:
+
+- **`localStorage`** for persisting auth session (`token`, `pt_user`) and the play queue (`pt_queue`)
+- **Custom `window` events** (a lightweight pub/sub "event bus") for cross-component communication — e.g. `pt:play-track`, `pt:likes-changed`, `auth-changed`
+- **Local component state** (`useState`) for everything else
+
+This keeps most components decoupled without needing a context provider tree. See [Realtime & Events](/docs/frontend/realtime) for the full list of events used.
+
+## Pages
+
+The app has 13 routes, split into public (login/register) and protected (everything else) groups. See [Routing](/docs/frontend/routing) for the full route map and auth guard details.
+
+## Getting Started
+
+See [Setup & Installation](/docs/frontend/setup) for how to install dependencies, configure environment variables, and run the dev server.

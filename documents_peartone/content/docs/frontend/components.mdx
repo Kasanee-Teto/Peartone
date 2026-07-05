@@ -1,7 +1,120 @@
 ---
 title: Components
-description: Daftar komponen frontend
+description: Reusable UI components used across the frontend
 ---
 
 ## Overview
-Isi dokumentasi komponen di sini.
+
+Components are organized by function: the persistent music player, content cards, search, modals, and layout utilities. Most components communicate with each other through a lightweight **event bus pattern** (custom `window` events) rather than global state — see [Realtime & Events](/docs/frontend/realtime) for details.
+
+## Player Components
+
+### `MusicPlayer`
+The global, persistent player fixed to the bottom of the screen. Renders across all pages except `/login` and `/register`. Owns the single `<audio>` element and the play queue.
+
+**Responsibilities:**
+- Playback control (play/pause/seek/volume/shuffle/repeat)
+- Queue management, persisted to `localStorage` (`pt_queue`)
+- Listening history reporting (after 15s of continuous play)
+- Liked-state syncing for the current track
+- Responsive layout: separate mobile / tablet / desktop UI
+
+**Listens for these window events:**
+
+| Event | Purpose |
+|---|---|
+| `pt:play-track` (via `onPlayTrack` bus) | Play a track immediately, replacing the queue head |
+| `pt:set-queue` | Bulk-append tracks (e.g. play an entire album/playlist) |
+| `pt:add-to-queue` | Append a single track to the end of the queue |
+| `pt:clear-queue` | Empty the queue and stop playback |
+| `pt:remove-from-queue` | Remove a specific track from the queue by ID |
+
+Emits `track-finished` via the shared `socket` connection when a track ends (see [Realtime](/docs/frontend/realtime)).
+
+### `LyricsPanel`
+Floating panel showing synced lyrics for the currently playing track. Fetches lyrics via `lyricsApi.getByTrackId`, parses LRC-format timestamps via `parseLRC`, and auto-scrolls/highlights the active line based on `currentTime`.
+
+**Props:** `trackId`, `artist`, `title`, `open`, `onClose`, `currentTime`
+
+### `QueueList`
+Floating panel listing the current play queue. Highlights the currently playing item, and allows jumping to or removing any queued track.
+
+**Props:** `queue`, `currentIndex`, `onPlay(index)`, `onRemove(index)`, `onClear()`
+
+## Card & List Components
+
+### `MusicCard`
+Displays a single track as a card (`popular` variant, grid layout) or as a row (`top_chart` variant, list layout with rank number). Handles play-on-click via the player event bus, and listens for live listener-count updates via `pt:listeners-updated`.
+
+**Props:** `track`, `variant` (`"popular"` | `"top_chart"`), `rank`, `onPlay`
+
+### `AlbumCard`
+Album cover card with a hover play button. On play, fetches the full album (with tracks) via `albumsApi.getById`, then clears the queue and plays all tracks in order.
+
+**Props:** `album`
+
+### `PlaylistCard`
+Playlist cover card with play, add-track, and delete actions. Delete uses an inline confirmation overlay (`isPendingDelete`) rather than a separate modal. On play, fetches the playlist's tracks and queues them with a staggered `pt:add-to-queue` dispatch.
+
+**Props:** `playlist`, `onAddTrack`, `isPendingDelete`, `deleting`, `deleteError`, `onRequestDelete`, `onCancelDelete`, `onConfirmDelete`
+
+### `TrackRow`
+A single row in a track list/table (used e.g. in `TracksPage`), showing rank, cover, title/artist, album, genre, duration, like button, and add-to-playlist button.
+
+**Props:** `track`, `index`, `likedIds` (a `Set` of liked track IDs), `onLikeToggle`, `onAddToPlaylist`
+
+### `PopularList` / `ChartList`
+Grid sections used on the home/charts pages, wrapping a list of `MusicCard` components with loading/error/empty states and a "See All" link. `PopularList` links to `/tracks`; `ChartList` links to `/charts`.
+
+**Props (both):** `popular`/`charts` (array), `loading`, `error`
+
+## Search Components
+
+### `Searchbar`
+Debounced (400ms) search input. Calls `onSearch(query)` after the user stops typing, or `onClear()` when the input is emptied.
+
+**Props:** `onSearch`, `onClear`
+
+### `SearchResults`
+Displays search results as a list, with loading skeletons, error state, and empty state. Clicking a result plays it immediately via the player event bus.
+
+**Props:** `results`, `loading`, `error`, `query`
+
+## Modals
+
+### `AddTrackModal`
+Modal for browsing all tracks and adding/removing them from a specific playlist. Fetches all tracks via `useFetch("/tracks?limit=100")`, filters client-side by search query, and tracks which tracks are already in the playlist to toggle between add/remove.
+
+**Props:** `playlistId`, `onClose`, `onTrackChanged`
+
+### `SelectPlaylistModal`
+Modal for adding a specific track to one of the user's playlists. Lists all of the user's playlists (`playlistsApi.listMine`) and marks each as added once the track has been added to it.
+
+**Props:** `track`, `onClose`
+
+### `AdminTrackRow`
+Row component used in the admin track management UI, showing track info with an inline delete-confirmation flow (same "pending delete" pattern as `PlaylistCard`).
+
+**Props:** `track`, `artistNames`, `isPendingDelete`, `confirmDelete`, `deleting`, `setConfirmDeleteId`, `duration`
+
+## Layout Components
+
+### `Sidebar`
+The main navigation drawer, sliding in from the right. Organized into three sections: **Discover** (Home, All Tracks, Top Charts, Artists, Albums), **Library** (Playlists, Liked Songs, History), and **Account** (Admin Upload, Profile, Logout).
+
+**Props:** `isOpen`, `onClose`, `onLogout`
+
+### `SidebarSetup`
+Wraps `Sidebar` with the open/close state and the floating hamburger button (`≡`) used to toggle it, plus a dimmed backdrop overlay when open. This is the component pages actually render, rather than `Sidebar` directly.
+
+**Props:** `handleLogout`, `showPlaylist` (optional callback, e.g. to open a playlist view before closing the sidebar)
+
+### `CustomSelect`
+A styled dropdown/select component (used e.g. for picking an album when uploading a track), since native `<select>` styling is limited. Supports a "no selection" option ("Without album").
+
+**Props:** `value`, `onChange`, `options` (array of `{ id, title }`), `placeholder`
+
+## Notes
+
+- Several components (`MusicPlayer`, `AlbumCard`, `PlaylistCard`, `SearchResults`, `MusicCard`, `TrackRow`) share a common play mechanism: normalizing track data via `playerBus.js` helpers (`normalizePlayableTrack`, `normalizeTrack`) and emitting a play event, rather than managing playback state locally.
+- `PlaylistCard` and `AdminTrackRow` both use the same **inline confirm-delete** UX pattern instead of a separate confirmation modal — worth keeping consistent if adding delete actions elsewhere.

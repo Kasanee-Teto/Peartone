@@ -1,0 +1,70 @@
+---
+title: Setup & Installation
+description: How to install and run the frontend locally
+---
+
+## Overview
+
+The frontend is a **React 19 + Vite** single-page application, styled with **Tailwind CSS v4**, using **React Router v7** for routing and **Socket.IO client** for realtime updates.
+
+## Requirements
+
+- Node.js (compatible with Vite 8 and React 19)
+- The backend running locally (or a reachable API URL) — see the backend's [Setup](/docs/backend) docs
+
+## Environment Variables
+
+Create a `.env` file (or copy `.env.example`) in the frontend root:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base URL of the backend API | `http://localhost:3000/api` |
+
+> Note: `ASSET_BASE` (used for cover images and the Socket.IO connection) is derived automatically from `VITE_API_BASE_URL` by stripping the trailing `/api` — no separate variable needed unless you want to override it with `VITE_ASSET_BASE_URL`.
+
+## Installation
+
+```bash
+npm install
+```
+
+## Running the Dev Server
+
+Start just the frontend:
+```bash
+npm run dev
+```
+
+Start **both frontend and backend together** (requires the backend project to be a sibling folder, e.g. `../backend`):
+```bash
+npm run dev:all
+```
+
+By default Vite runs on its own port (check the terminal output for the exact URL, e.g. `http://localhost:5173`).
+
+## Other Scripts
+
+| Script | Command | Purpose |
+|---|---|---|
+| `npm run build` | `vite build` | Builds a production bundle |
+| `npm run preview` | `vite preview` | Serves the production build locally to test it |
+| `npm run lint` | `eslint .` | Runs ESLint across the project |
+
+## Key Dependencies
+
+| Package | Purpose |
+|---|---|
+| `react`, `react-dom` | Core UI framework (v19) |
+| `react-router-dom` | Client-side routing (v7) — see [Routing](/docs/frontend/routing) |
+| `react-icons` | Icon set used throughout components |
+| `socket.io-client` | Realtime connection to the backend — see [Realtime](/docs/frontend/realtime) |
+| `tailwindcss` + `@tailwindcss/vite` | Styling (v4, using the Vite plugin rather than a PostCSS config file) |
+| `concurrently` | Runs frontend + backend dev servers together via `dev:all` |
+
+## Notes
+
+- `dev:all` assumes a specific folder layout — the backend project must be located at `../backend` relative to the frontend folder. Adjust the script if your project structure differs.

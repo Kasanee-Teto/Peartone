@@ -1,4 +1,4 @@
 {
   "title": "Frontend",
-  "pages": ["index", "components", "routing"]
+  "pages": ["index", "setup", "routing", "api-client", "components", "hooks-utils", "realtime"]
 }

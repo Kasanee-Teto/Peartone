@@ -1,0 +1,109 @@
+---
+title: Hooks & Utilities
+description: Custom hooks and shared utility functions
+---
+
+## Overview
+
+The frontend has two custom hooks for data-fetching patterns, and a set of small utility functions for formatting and parsing.
+
+## Hooks
+
+### `useFetch(path, options, immediate, config)`
+A generic data-fetching hook built on top of `http()`/`httpRaw()`. Fetches automatically on mount (unless disabled), and exposes an `execute()` function for manual re-fetching (e.g. after user actions).
+
+**Parameters:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `path` | string | — | API path, e.g. `/tracks?limit=100` |
+| `options` | object | `{}` | Passed through to `http()`/`httpRaw()` (method, body, headers, etc) |
+| `immediate` | boolean | `true` | Whether to fetch automatically on mount |
+| `config.raw` | boolean | `false` | If `true`, uses `httpRaw()` (full response incl. `success`/`message`) instead of `http()` (unwrapped `data`) |
+
+**Returns:** `{ data, error, loading, execute }`
+
+**Example usage:**
+```js
+import { useFetch } from "../hooks/useFetch.js";
+
+const { data: tracksResp, loading, error } = useFetch("/tracks?limit=100");
+const tracks = Array.isArray(tracksResp) ? tracksResp : tracksResp?.data || [];
+```
+
+**Manual re-fetch example:**
+```js
+const { data, execute } = useFetch("/playlists", {}, false); // don't fetch on mount
+// later:
+await execute({ method: "POST", body: JSON.stringify({ name: "New Playlist" }) });
+```
+
+### `useAdminTracks()`
+Encapsulates all state and logic for the admin track upload page (`AdminUploadPage`) — form state, file uploads, and track deletion. Uses `authFetch` directly (not `http()`), since it needs to send `FormData` for file uploads.
+
+**Returns:**
+
+| Field | Type | Notes |
+|---|---|---|
+| `tracks` | array | Tracks uploaded by the current admin |
+| `title`, `genre`, `selectedArtistIds`, `album`, `audioFile`, `coverFile`, `lyrics` | form fields | Current form state |
+| `uploading` | boolean | True while the upload request is in flight |
+| `uploadMsg` | string | Success/error message to display |
+| `isSuccess` | boolean | Whether `uploadMsg` represents success |
+| `confirmDeleteId` | string \| null | ID of the track pending delete confirmation |
+| `deleting` | boolean | True while a delete request is in flight |
+| `canSubmit` | boolean | `true` once `title`, at least one artist, and an audio file are set |
+| `setFormField(field, value)` | function | Updates a single form field |
+| `setConfirmDeleteId(id)` | function | Opens/closes the delete confirmation for a track |
+| `onSubmit(e)` | function | Submits the upload form |
+| `confirmDelete()` | function | Deletes the track in `confirmDeleteId` |
+
+**Example usage:**
+```jsx
+const {
+  tracks, title, genre, canSubmit, uploading, uploadMsg, isSuccess,
+  setFormField, onSubmit,
+} = useAdminTracks();
+
+<form onSubmit={onSubmit}>
+  <input value={title} onChange={(e) => setFormField("title", e.target.value)} />
+  <button type="submit" disabled={!canSubmit || uploading}>Upload</button>
+</form>
+```
+
+Uploads are sent as `multipart/form-data` matching the backend's [Admin API](/docs/backend/api/admin): `title`, `genre`, `artistIds` (JSON string), `albumId` (optional), `audio` (file), `cover` (optional file).
+
+## Utilities
+
+### `format.js`
+
+**`formatDuration(track)`**
+Formats a track's `duration` field (in seconds) as `m:ss`. Used in track lists/cards.
+
+```js
+formatDuration({ duration: 185 }) // "3:05"
+```
+
+**`formatTime(sec)`**
+Similar to `formatDuration`, but takes a raw number of seconds directly (rather than a track object). Used by the player's `ProgressBar` for elapsed/remaining time.
+
+```js
+formatTime(65) // "1:05"
+```
+
+> Note: `formatDuration` and `formatTime` do near-identical formatting but take different input shapes (track object vs raw number) — worth consolidating into one function if both are needed going forward.
+
+### `parseLRC.js`
+
+**`parseLRC(lrcText)`**
+Parses lyrics in **LRC format** (`[mm:ss.xx] lyric line`) into an array of `{ time, text }` objects, sorted by time. Used by `LyricsPanel` to sync lyrics highlighting with playback position.
+
+```js
+parseLRC("[00:12.50]Hello world\n[00:15.00]Second line")
+// [
+//   { time: 12.5, text: "Hello world" },
+//   { time: 15.0, text: "Second line" }
+// ]
+```
+
+Returns an empty array if the input is empty or contains no valid timestamps.

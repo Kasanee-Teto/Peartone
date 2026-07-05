@@ -1,7 +1,68 @@
 ---
 title: Routing
-description: Struktur routing frontend
+description: Page structure and routing configuration
 ---
 
 ## Overview
-Isi dokumentasi routing di sini.
+
+The frontend uses **React Router v6** (`react-router-dom`) with a `BrowserRouter` setup. Routes are split into **public** and **protected** groups, guarded by a custom `ProtectedRoute` wrapper based on the presence of a token in `localStorage`.
+
+## Route Map
+
+| Path | Page | Access |
+|---|---|---|
+| `/login` | `LoginPage` | Public |
+| `/register` | `RegisterPage` | Public |
+| `/login-success` | `LoginSuccessPage` | Public |
+| `/` | `HomePage` | Protected |
+| `/charts` | `TopChartsPage` | Protected |
+| `/artists` | `ArtistsPage` | Protected |
+| `/artists/:id` | `ArtistDetailPage` | Protected |
+| `/albums` | `AlbumsPage` | Protected |
+| `/liked` | `LikedSongsPage` | Protected |
+| `/history` | `HistoryPage` | Protected |
+| `/admin` | `AdminUploadPage` | Protected |
+| `/playlists` | `PlaylistPage` | Protected |
+| `/profile` | `ProfilePage` | Protected |
+| `/tracks` | `TracksPage` | Protected |
+| `*` (any other path) | Redirects to `/` (if authed) or `/login` (if not) | — |
+
+## Auth Guard — `ProtectedRoute`
+
+```jsx
+function ProtectedRoute({ isAuthed }) {
+  if (!isAuthed) return <Navigate to="/login" replace />
+  return <Outlet />
+}
+```
+
+All protected routes are nested under a single `<Route element={<ProtectedRoute isAuthed={isAuthed} />}>` wrapper. If `isAuthed` is `false`, the user is redirected to `/login` before the requested page ever renders.
+
+`isAuthed` state is derived from `localStorage.getItem('token')` and kept in sync via two event listeners:
+
+| Event | Fires when |
+|---|---|
+| `storage` | Token changes in another browser tab |
+| `auth-changed` | Custom event dispatched by `authApi.loginAndStore()` / `authApi.logout()` (see [API Client](/docs/frontend/api-client)) |
+
+This means logging in or out from `auth.js` automatically updates routing behavior across the app without a page reload.
+
+## Global Music Player
+
+`MusicPlayer` is rendered outside the `<Routes>` block, so it persists across page navigation (audio doesn't stop when switching pages). It's hidden only on specific paths:
+
+```js
+const HIDE_PLAYER_ON = ['/login', '/register']
+```
+
+## Routes with Navigation Wrappers
+
+Two pages use a small wrapper component to inject an `onBack` handler using `useNavigate`, instead of receiving it as a route param:
+
+- `PlaylistRoute` → wraps `PlaylistPage`, `onBack` navigates to `/`
+- `ProfileRoute` → wraps `ProfilePage`, `onBack` navigates to `/`
+
+## Notes
+
+- There's no separate admin-only route guard — `/admin` (`AdminUploadPage`) is protected the same as any other authenticated route (just requires login, not an admin role check on the frontend). The actual admin-role check happens server-side (see the backend's [Admin API](/docs/backend/api/admin)).
+- Unmatched routes (`*`) redirect based on auth state rather than showing a 404 page.

@@ -1,0 +1,229 @@
+---
+title: API Client
+description: How the frontend communicates with the backend
+---
+
+## Overview
+
+The frontend uses the native `fetch` API wrapped in two helper layers:
+
+- **`api/http.js`** — the primary HTTP wrapper used by all resource-specific API modules (`auth.js`, `tracks.js`, `playlists.js`, etc). Handles auth headers, JSON parsing, and error normalization.
+- **`api/client.js`** — a secondary layer with utilities for building asset/cover image URLs and handling logout, plus a raw `authFetch` helper.
+
+## Environment Variables
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base URL for all API requests | `/api` (in `http.js`) or `http://localhost:3000/api` (in `client.js`) |
+| `VITE_ASSET_BASE_URL` | Base URL for static assets (covers, images) | Derived from `VITE_API_BASE_URL` by stripping `/api` |
+
+> Note: `http.js` and `client.js` currently define slightly different default base URLs (`/api` vs `http://localhost:3000/api`). Worth aligning these to avoid confusion between dev and prod behavior.
+
+## `http.js` — Main API Wrapper
+
+### `http(path, options)`
+The primary function used across API modules. Automatically:
+1. Attaches `Authorization: Bearer <token>` from `localStorage`, unless `skipAuth: true` is passed
+2. Sets `Content-Type: application/json` automatically, unless the body is `FormData` (for file uploads)
+3. Parses the response body as JSON or text depending on `Content-Type`
+4. Throws an `Error` with the backend's `message` field if the response is not OK
+5. Unwraps the response, returning `payload.data` directly (matching the backend's `{ success, message, data }` shape)
+
+**Example usage:**
+```js
+import { http } from "../api/http.js";
+
+const tracks = await http("/tracks?page=1");
+```
+
+**Skipping auth (e.g. for login/register):**
+```js
+await http("/auth/login", {
+  method: "POST",
+  body: JSON.stringify({ username, password }),
+  skipAuth: true
+});
+```
+
+### `httpRaw(path, options)`
+Same as `http`, but returns the full response payload (including `success` and `message`), instead of just `data`. Useful when the caller needs the message, or pagination `meta`. Most API modules use `httpRaw` for this reason, since list endpoints return `meta` alongside `data`.
+
+## `client.js` — Asset URLs & Logout Helper
+
+### `buildCoverUrl(coverUrl)`
+Converts a relative cover path (e.g. `/storage/covers/x.jpg`) returned by the backend into a full URL using `ASSET_BASE`. Returns the URL unchanged if it's already a full `http` URL.
+
+### `getCoverUrl(track)`
+Tries multiple possible field names (`cover_url`, `cover`, `coverUrl`, `image`, `imageUrl`, or nested `Album.cover`/`Album.coverUrl`) to find a track's cover image, then resolves it via `buildCoverUrl`.
+
+**Example usage:**
+```js
+import { getCoverUrl } from "../api/client.js";
+
+<img src={getCoverUrl(track)} alt={track.title} />
+```
+
+### `handleLogout(setIsSidebarOpen, navigate)`
+Calls the backend logout endpoint, closes the sidebar (if a setter is provided), and redirects to `/login`.
+
+### `authFetch(url, options)`
+A lower-level fetch wrapper that attaches the auth token, used in places that need direct `fetch` access rather than going through `http()`.
+
+## API Modules
+
+Each file in `src/api/` wraps one backend resource, built on top of `http()`/`httpRaw()`:
+
+| Module | Backend resource |
+|---|---|
+| `auth.js` | `/auth/*` |
+| `album.js` | `/albums/*` |
+| `tracks.js` | `/tracks/*` |
+| `playlists.js` | `/playlists/*` |
+| `likes.js` | `/likes/*` |
+| `lyrics.js` | `/lyrics/*` |
+| `history.js` | `/history/*` |
+| `socket.js` | Real-time connection (see [Realtime](/docs/frontend/realtime)) |
+
+### `auth.js` — Authentication
+
+Wraps all `/auth/*` endpoints and manages the login session in `localStorage`.
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `register({ username, email, password })` | `POST /auth/register` | No auth required |
+| `login({ username, password })` | `POST /auth/login` | No auth required, returns raw response |
+| `getProfile()` | `GET /auth/me` | Requires auth |
+| `updateProfile({ username, email, location, bio })` | `PUT /auth/me` | Requires auth |
+| `loginAndStore(credentials)` | — | Wraps `login`, stores token + user, dispatches `auth-changed` |
+| `logout()` | `POST /auth/logout` | Clears local session regardless of request success |
+
+**`loginAndStore(credentials)`** is the recommended way to log a user in from a component:
+1. Calls `login()`
+2. Validates that a `token` was returned
+3. Stores `token` and `user` (as JSON) in `localStorage` under keys `token` and `pt_user`
+4. Dispatches a global `auth-changed` window event, so other parts of the app (e.g. Sidebar) can react
+5. On failure, clears any stale token/user and re-throws the error
+
+```js
+import { authApi } from "../api/auth.js";
+
+try {
+  const { user } = await authApi.loginAndStore({ username, password });
+  navigate("/home");
+} catch (err) {
+  setError(err.message);
+}
+```
+
+**`logout()`** calls the backend logout endpoint (if a token exists), then **always** clears `token` and `pt_user` and dispatches `auth-changed` — even if the backend request fails.
+
+**Listening for auth changes**, since login state lives in `localStorage` rather than React context:
+```js
+useEffect(() => {
+  const handler = () => setUser(JSON.parse(localStorage.getItem("pt_user")));
+  window.addEventListener("auth-changed", handler);
+  return () => window.removeEventListener("auth-changed", handler);
+}, []);
+```
+
+### `tracks.js` — Tracks
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `list({ q, page, limit })` | `GET /tracks` | All params optional; builds query string only for provided params |
+
+```js
+import { tracksApi } from "../api/tracks.js";
+
+const res = await tracksApi.list({ q: "midnight", page: 1, limit: 20 });
+const tracks = res.data;
+const meta = res.meta; // { page, limit, total, totalPages }
+```
+
+### `album.js` — Albums
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `list({ q, page, limit })` | `GET /albums` | Uses `http()` (unwrapped), unlike most other modules which use `httpRaw()` |
+| `getById(id)` | `GET /albums/:id` | Returns album with full tracklist |
+
+```js
+import { albumsApi } from "../api/album.js";
+
+const albums = await albumsApi.list({ page: 1 });
+const album = await albumsApi.getById(albumId);
+```
+
+> Note: `album.js` is the only module using `http()` instead of `httpRaw()`, so it returns unwrapped `data` directly rather than `{ success, message, data, meta }`. This is inconsistent with `tracks.js`/`playlists.js`/etc — worth aligning if pagination `meta` is ever needed for albums.
+
+### `playlists.js` — Playlists
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `listMine()` | `GET /playlists` | Current user's playlists |
+| `getMine(id)` | `GET /playlists/:id` | Single playlist with tracks |
+| `create(name)` | `POST /playlists` | ⚠️ See note below |
+| `delete(id)` | `DELETE /playlists/:id` | |
+| `addTrack(playlistId, trackId)` | `POST /playlists/:id/tracks` | |
+| `removeTrack(playlistId, trackId)` | `DELETE /playlists/:id/tracks/:trackId` | |
+
+```js
+import { playlistsApi } from "../api/playlists.js";
+
+const { data: playlists } = await playlistsApi.listMine();
+await playlistsApi.create("Road Trip Mix");
+await playlistsApi.addTrack(playlistId, trackId);
+```
+
+> Note: `create(name)` only sends `{ name }` in the request body. The backend's [Playlist API](/docs/backend/api/playlist) also accepts optional `description` and `isPublic` fields on creation — these currently can't be set from the frontend's `create()` function. Consider extending it to `create({ name, description, isPublic })` if that's needed.
+
+### `likes.js` — Liked Tracks
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `list({ q, page, limit })` | `GET /likes` | |
+| `like(trackId)` | `POST /likes/:trackId` | Idempotent |
+| `unlike(trackId)` | `DELETE /likes/:trackId` | |
+| `toggle(trackId)` | `POST /likes/:trackId/toggle` | Used by `MusicPlayer`'s heart button |
+
+```js
+import { likesApi } from "../api/likes.js";
+
+const res = await likesApi.toggle(trackId);
+const isLiked = res?.data?.liked;
+```
+
+### `lyrics.js` — Lyrics
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `getByTrackId(trackId)` | `GET /lyrics/:trackId` | Used by `LyricsPanel` |
+
+```js
+import { lyricsApi } from "../api/lyrics.js";
+
+const res = await lyricsApi.getByTrackId(trackId);
+```
+
+> Note: only the public read endpoint is wrapped here. The backend also has `PUT /lyrics/:trackId` for admins to create/update lyrics — not currently exposed in this module, presumably because there's no admin UI for managing lyrics yet.
+
+### `history.js` — Listening History
+
+| Function | Endpoint | Notes |
+|---|---|---|
+| `list({ limit })` | `GET /history` | |
+| `add({ trackId, msPlayed })` | `POST /history` | Called by `MusicPlayer` after 15s of playback |
+| `clear()` | `DELETE /history` | |
+
+```js
+import { historyApi } from "../api/history.js";
+
+await historyApi.add({ trackId, msPlayed: 15000 });
+const { data: history } = await historyApi.list({ limit: 50 });
+```
+
+## Notes
+
+- The token is read from `localStorage.getItem("token")` — set after a successful login (see the backend's [Authentication](/docs/backend/auth) docs for how the token is issued).
+- File uploads (e.g. admin track upload) should pass a `FormData` body to `http()`, which automatically skips setting `Content-Type` so the browser can set the correct multipart boundary.
+- Most modules use `httpRaw()` (full `{ success, message, data, meta }` response), except `album.js` which uses `http()` (unwrapped `data` only) — be mindful of this difference when consuming these modules.
