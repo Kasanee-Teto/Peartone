@@ -1,0 +1,197 @@
+---
+title: Database
+description: Database schema, models, and relationships for the Peartone backend
+---
+
+## Overview
+
+Peartone uses **PostgreSQL** with **Sequelize ORM**. Most primary keys use `UUID`, except `History` which uses an auto-incrementing `BIGINT`.
+
+Models are auto-loaded from `src/models/index.js`, which reads every `.js` file in the `models/` folder and registers their associations automatically.
+
+## Entity Relationship Overview
+
+```
+User ──< Playlist ──< PlaylistTrack >── Track
+User >──< Track (via LikedTrack)
+User ──< History >── Track
+
+Artist ──< Album ──< Track
+Artist >──< Track (via TrackArtist)
+
+Track ──1:1── Lyrics
+```
+
+## Models
+
+### User
+Stores account information and credentials.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `username` | STRING | Unique, required |
+| `email` | STRING | Unique, required |
+| `passwordHash` | STRING | Hashed password |
+| `role` | ENUM | `admin` \| `user`, default `user` |
+| `location` | STRING | Optional |
+| `bio` | TEXT | Optional |
+
+**Relations:**
+- `hasMany` → `Playlist`
+- `belongsToMany` → `Track` (through `LikedTrack`)
+
+---
+
+### Artist
+Represents a music artist.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `name` | STRING | Required |
+| `bio` | TEXT | Optional |
+| `imageUrl` | STRING | Optional |
+
+**Relations:**
+- `belongsToMany` → `Track` (through `TrackArtist`)
+- `hasMany` → `Album`
+
+---
+
+### Album
+Represents an album, owned by one artist.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `artistId` | UUID | Required, FK to `Artist` |
+| `title` | STRING | Required |
+| `description` | STRING | Optional, unique |
+| `coverUrl` | STRING | Optional |
+| `releaseDate` | DATEONLY | Optional |
+| `trackNumbers` | INTEGER | Default `1` |
+
+**Relations:**
+- `belongsTo` → `Artist`
+- `hasMany` → `Track`
+
+---
+
+### Track
+Core entity representing a song.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key, default `gen_random_uuid()` |
+| `title` | STRING | Required |
+| `genre` | STRING | Default `unknown` |
+| `duration` | INTEGER | Optional (seconds) |
+| `audioUrl` | STRING | Required |
+| `audioPath` | STRING | Required (storage path) |
+| `mimeType` | STRING | Default `audio/mpeg` |
+| `fileSize` | BIGINT | Default `0` |
+| `coverUrl` | STRING | Optional |
+| `albumId` | UUID | Optional, FK to `Album` |
+| `isPublished` | BOOLEAN | Default `true` |
+| `uploadedBy` | UUID | Optional |
+| `listeners` | INTEGER | Default `0` |
+
+**Relations:**
+- `belongsTo` → `Album`
+- `belongsToMany` → `Artist` (through `TrackArtist`)
+- `hasOne` → `Lyrics`
+- `belongsToMany` → `User` (through `LikedTrack`)
+- `belongsToMany` → `Playlist` (through `PlaylistTrack`)
+
+---
+
+### TrackArtist
+Join table between `Track` and `Artist`, supports multiple artists per track with roles.
+
+| Field | Type | Notes |
+|---|---|---|
+| `trackId` | UUID | Composite PK, FK to `Track` |
+| `artistId` | UUID | Composite PK, FK to `Artist` |
+| `artistOrder` | INTEGER | Default `1` (display order) |
+| `role` | ENUM | `primary` \| `featured` \| `producer` \| `writer` |
+
+---
+
+### Lyrics
+Stores lyrics text for a track (1-to-1).
+
+| Field | Type | Notes |
+|---|---|---|
+| `trackId` | UUID | Primary key, FK to `Track` |
+| `language` | STRING | Required |
+| `text` | TEXT | Required |
+
+---
+
+### Playlist
+A user-created collection of tracks.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `userId` | UUID | Required, FK to `User` |
+| `name` | STRING | Required |
+| `description` | STRING | Optional |
+| `trackNumbers` | INTEGER | Default `0` |
+| `isPublic` | BOOLEAN | Default `false` |
+
+**Relations:**
+- `belongsTo` → `User`
+- `hasMany` → `PlaylistTrack` (as `PlaylistTracks`)
+- `belongsToMany` → `Track` (through `PlaylistTrack`)
+
+---
+
+### PlaylistTrack
+Join table between `Playlist` and `Track`, tracks order and who added the song.
+
+| Field | Type | Notes |
+|---|---|---|
+| `playlistId` | UUID | Composite PK, FK to `Playlist` |
+| `trackId` | UUID | Composite PK, FK to `Track` |
+| `position` | INTEGER | Required (order in playlist) |
+| `addedBy` | UUID | Optional, maps to column `added_by` |
+| `addedAt` | DATE | Required, maps to column `added_at` |
+
+---
+
+### LikedTrack
+Join table for tracks liked/favorited by users.
+
+| Field | Type | Notes |
+|---|---|---|
+| `userId` | UUID | Composite PK |
+| `trackId` | UUID | Composite PK, FK to `Track` |
+
+---
+
+### History
+Tracks playback history per user. Uses `BIGINT` auto-increment ID and has no `timestamps`.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | BIGINT | Primary key, auto-increment |
+| `userId` | UUID | Optional |
+| `trackId` | UUID | Optional, FK to `Track` |
+| `playedAt` | DATE | Required |
+| `msPlayed` | INTEGER | Optional (milliseconds played) |
+
+## Migrations & Seeders
+
+Run migrations to sync the database schema:
+```bash
+npx sequelize-cli db:migrate
+```
+
+Run seeders to populate initial data:
+```bash
+npx sequelize-cli db:seed:all
+```
+
+Configuration is read from `config/config.json`, using the `NODE_ENV` environment variable to pick the active environment (`development`, `test`, `production`).

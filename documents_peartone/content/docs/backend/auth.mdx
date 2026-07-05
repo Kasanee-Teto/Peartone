@@ -1,0 +1,125 @@
+---
+title: Authentication
+description: How authentication and authorization works in the Peartone backend
+---
+
+## Overview
+
+The Peartone backend uses **JWT (JSON Web Token)** for authentication, with additional support for **Google OAuth 2.0** via Passport.js for social login.
+
+Every request to a protected endpoint must include the token in the header:
+
+```
+Authorization: Bearer <token>
+```
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `JWT_SECRET` | Secret key used to sign & verify tokens (required) |
+| `JWT_ISSUER` | Token issuer, default: `Peartone API` |
+| `JWT_AUDIENCE` | Token audience, default: `Peartone Client` |
+| `FRONTEND_URL` | Frontend URL used for redirect after OAuth, default: `https://peartone.vercel.app` |
+
+## Auth Middleware
+
+The `authMiddleware` verifies the JWT from the `Authorization` header, then attaches the user data to `req.user`:
+
+```js
+req.user = {
+  id: decoded.id,
+  email: decoded.email,
+  role: decoded.role
+};
+```
+
+If the token is missing, invalid, or expired, the request is rejected with a `401` status.
+
+## Endpoints
+
+### POST `/auth/register`
+Registers a new account.
+
+**Request body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response:** `201 Created`
+
+---
+
+### POST `/auth/login`
+Logs in using username & password.
+
+**Request body:**
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**Response:** `200 OK`
+
+---
+
+### GET `/auth/me`
+🔒 Retrieves the currently logged-in user's profile. Requires the `Authorization` header.
+
+**Response:** `200 OK`
+
+---
+
+### PUT `/auth/me`
+🔒 Updates the user's profile. Requires the `Authorization` header.
+
+**Request body:**
+```json
+{
+  "username": "string",
+  "email": "string",
+  "location": "string",
+  "bio": "string"
+}
+```
+
+**Response:** `200 OK`
+
+---
+
+### POST `/auth/logout`
+🔒 Logs the user out. Requires the `Authorization` header.
+
+**Response:** `200 OK`
+
+---
+
+### GET `/auth/google`
+Starts the Google OAuth login flow. Redirects to Google's consent screen.
+
+**Scope:** `profile`, `email`
+
+---
+
+### GET `/auth/google/callback`
+Callback triggered by Google after login. On success, the backend redirects to:
+
+```
+{FRONTEND_URL}/login-success?token=<jwt_token>
+```
+
+On failure, it redirects to:
+```
+{FRONTEND_URL}/login?error=oauth_failed
+```
+
+## Notes
+
+- Endpoints marked 🔒 above require login and must send the `Authorization: Bearer <token>` header.
+- The JWT expiry is configured in `auth.service.js` (not yet checked — can be added here once confirmed).

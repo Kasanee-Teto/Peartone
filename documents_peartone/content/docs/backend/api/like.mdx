@@ -1,0 +1,82 @@
+---
+title: Liked Tracks
+description: Endpoints for liking and unliking tracks
+---
+
+## Overview
+
+Users can like tracks and view their liked tracks list. All endpoints require authentication.
+
+## Endpoints
+
+### GET `/likes`
+Lists the authenticated user's liked tracks, with pagination and search by title/genre.
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` | string | — | Matches track title or genre |
+| `page` | number | `1` | |
+| `limit` | number | `10` | Max `100` |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Liked tracks fetched",
+  "data": [
+    { "id": "uuid", "title": "string", "likedAt": "2026-07-04T10:00:00.000Z", "Album": {"...": "..."}, "Artists": [{"...": "..."}] }
+  ],
+  "meta": { "page": 1, "limit": 10, "total": 5, "totalPages": 1 }
+}
+```
+
+---
+
+### POST `/likes/:trackId`
+Likes a track. Idempotent — liking an already-liked track still returns success.
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Track liked!", "data": null }
+```
+
+**Errors:**
+- `404` — Track not found
+
+---
+
+### DELETE `/likes/:trackId`
+Unlikes a track.
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Track unliked!", "data": null }
+```
+
+**Errors:**
+- `404` — Like not found (track wasn't liked)
+
+---
+
+### POST `/likes/:trackId/toggle`
+Toggles the like state — likes if not liked, unlikes if already liked.
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Liked", "data": { "liked": true } }
+```
+or
+```json
+{ "success": true, "message": "Unliked", "data": { "liked": false } }
+```
+
+**Errors:**
+- `401` — User not found (session invalid)
+- `404` — Track not found
+- `400` — Track cannot be liked right now (foreign key conflict)
+
+## Notes
+
+- `POST /likes/:trackId` and `POST /likes/:trackId/toggle` behave differently: the former is idempotent (always succeeds), the latter flips the current state.

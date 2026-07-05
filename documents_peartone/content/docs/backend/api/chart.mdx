@@ -1,0 +1,43 @@
+---
+title: Charts
+description: Top tracks / trending endpoint
+---
+
+## Overview
+
+Provides a ranked list of the most-listened-to published tracks, optionally filtered by genre. No authentication required.
+
+## Endpoints
+
+### GET `/chart/top`
+Returns the top tracks ordered by listener count (descending).
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `limit` | number | `10` | Max `100` |
+| `genre` | string | — | Filter by genre |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Top charts fetched",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "string",
+      "genre": "string",
+      "listeners": 1500,
+      "Album": { "...": "..." },
+      "Artists": [{ "...": "..." }]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Only tracks with `isPublished: true` are included.
+- Results are ordered by `listeners` descending — this is a simple popularity ranking, not a time-windowed chart (e.g. "top this week").

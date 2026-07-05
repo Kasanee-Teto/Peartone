@@ -1,0 +1,184 @@
+---
+title: Playlists
+description: Endpoints for creating and managing playlists
+---
+
+## Overview
+
+The Playlist API lets authenticated users create, view, update, and reorder their own playlists. All endpoints require authentication and only operate on playlists owned by the requesting user.
+
+```
+Authorization: Bearer <token>
+```
+
+## Endpoints
+
+### POST `/playlists`
+Creates a new playlist for the authenticated user.
+
+**Request body:**
+```json
+{
+  "name": "string",
+  "description": "string",
+  "isPublic": false
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `name` | string | Yes | |
+| `description` | string | No | |
+| `isPublic` | boolean | No | Default `false` |
+
+**Response:** `201 Created`
+```json
+{
+  "success": true,
+  "message": "Playlist created!",
+  "data": { "id": "uuid", "userId": "uuid", "name": "string", "isPublic": false }
+}
+```
+
+**Errors:**
+- `400` — `name` is missing
+- `404` — User not found
+
+---
+
+### GET `/playlists`
+Lists the authenticated user's playlists, with pagination and search by name/description. Each playlist includes a track count and a cover image (from its first track).
+
+**Query params:**
+
+| Param | Type | Default | Notes |
+|---|---|---|---|
+| `q` | string | — | Matches name or description |
+| `page` | number | `1` | |
+| `limit` | number | `10` | Max `100` |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Playlists fetched!",
+  "data": [
+    {
+      "id": "uuid",
+      "name": "string",
+      "description": "string",
+      "isPublic": false,
+      "trackCount": 5,
+      "coverUrl": "string"
+    }
+  ],
+  "meta": { "page": 1, "limit": 10, "total": 3, "totalPages": 1 }
+}
+```
+
+---
+
+### GET `/playlists/:id`
+Retrieves a single playlist owned by the user, including its full ordered tracklist with album and artist details.
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Playlist fetched!",
+  "data": {
+    "playlist": { "id": "uuid", "name": "string", "isPublic": false },
+    "tracks": [
+      {
+        "id": "uuid",
+        "title": "string",
+        "position": 1,
+        "addedAt": "2026-07-04T10:00:00.000Z",
+        "Album": { "...": "..." },
+        "Artists": [{ "...": "..." }]
+      }
+    ]
+  }
+}
+```
+
+**Errors:**
+- `404` — Playlist not found
+
+---
+
+### DELETE `/playlists/:id`
+Deletes a playlist owned by the user (and its track entries).
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Playlist deleted", "data": null }
+```
+
+**Errors:**
+- `404` — Playlist not found
+
+---
+
+### POST `/playlists/:id/tracks`
+Adds a track to the playlist, at the next available position (appended to the end).
+
+**Request body:**
+```json
+{ "trackId": "uuid" }
+```
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Track added to playlist",
+  "data": { "playlistId": "uuid", "trackId": "uuid", "position": 6 }
+}
+```
+
+**Errors:**
+- `404` — Playlist not found
+- `409` — Track already exists in this playlist
+
+---
+
+### DELETE `/playlists/:id/tracks/:trackId`
+Removes a track from the playlist.
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Track removed from playlist", "data": null }
+```
+
+**Errors:**
+- `404` — Playlist not found, or track not found in playlist
+
+---
+
+### PUT `/playlists/:id/reorder`
+Reorders tracks within the playlist by assigning new positions.
+
+**Request body:**
+```json
+{
+  "items": [
+    { "trackId": "uuid", "position": 1 },
+    { "trackId": "uuid", "position": 2 }
+  ]
+}
+```
+
+**Response:** `200 OK`
+```json
+{ "success": true, "message": "Playlist reordered", "data": null }
+```
+
+**Errors:**
+- `400` — `items` empty, duplicate positions, missing `trackId`/`position`, `trackId` not in playlist, or `position <= 0`
+- `404` — Playlist not found
+
+## Notes
+
+- All playlist operations are scoped to the authenticated user — one user cannot view, modify, or reorder another user's playlist (enforced by checking `userId` on every lookup).
+- Reordering is done inside a database transaction: positions are first bumped to a temporary high range, then updated to their final values, to avoid unique constraint conflicts during the swap.

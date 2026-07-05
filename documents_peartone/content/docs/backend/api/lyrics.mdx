@@ -1,0 +1,84 @@
+---
+title: Lyrics
+description: Track lyrics endpoints
+---
+
+## Overview
+
+The Lyrics API allows fetching and managing lyrics for a track. Each track has at most one lyrics entry (1-to-1 relationship).
+
+- Reading lyrics is **public** (no authentication required).
+- Creating/updating lyrics requires **authentication + admin role**.
+
+## Endpoints
+
+### GET `/lyrics/:trackId`
+Retrieves the lyrics for a given track. Public endpoint, no authentication required.
+
+**Path params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `trackId` | UUID | ID of the track |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Lyrics fetched!",
+  "data": {
+    "trackId": "uuid",
+    "language": "English",
+    "text": "string"
+  }
+}
+```
+
+**Errors:**
+- `404` — Lyrics not found for the given `trackId`
+
+---
+
+### PUT `/lyrics/:trackId`
+🔒👑 Creates or updates lyrics for a track (upsert). Requires authentication **and admin role**.
+
+**Path params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `trackId` | UUID | ID of the track |
+
+**Request body:**
+```json
+{
+  "language": "English",
+  "text": "string"
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `language` | STRING | No | Default `"English"` |
+| `text` | STRING | Yes | Lyrics content |
+
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Lyrics saved!",
+  "data": {
+    "trackId": "uuid",
+    "language": "English",
+    "text": "string"
+  }
+}
+```
+
+**Errors:**
+- `400` — `text` is missing
+- `404` — Track not found
+
+## Notes
+
+- 🔒👑 marks endpoints that require both a valid JWT **and** admin role (via `adminMiddleware`).
+- `upsert` means calling this endpoint again for the same `trackId` will overwrite the existing lyrics rather than creating a duplicate.
