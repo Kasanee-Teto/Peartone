@@ -29,6 +29,21 @@ app.use(cors());
 app.use(express.json());
 app.use(passport.initialize());
 
+// Middleware Request Logging Minimal (DevSecOps requirement)
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`[HTTP] ${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms - IP: ${req.ip}`);
+  });
+  next();
+});
+
+// Healthcheck endpoint for Docker / Podman
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "healthy", uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
+
 const io = new Server(
   httpServer,
   {

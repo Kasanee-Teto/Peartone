@@ -1,0 +1,107 @@
+name: peartone-stack
+
+services:
+  # ============================================================================
+  # DATABASE SERVICE (PostgreSQL)
+  # ============================================================================
+  db:
+    image: postgres:17.4-alpine
+    container_name: peartone-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-peartone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-peartone_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-peartone_db}
+    volumes:
+      - pg_data:/var/lib/postgresql/data:Z
+    networks:
+      - peartone-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-peartone_user} -d ${POSTGRES_DB:-peartone_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # Port sengaja TIDAK dipublikasikan ke host demi keamanan (least privilege)
+
+  # ============================================================================
+  # MIGRATION SERVICE (One-off execution)
+  # ============================================================================
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+      target: migrator
+    container_name: peartone-migrator
+    environment:
+      NODE_ENV: development
+      DATABASE_DEV_URL: postgres://${POSTGRES_USER:-peartone_user}:${POSTGRES_PASSWORD:-peartone_password_change_me}@db:5432/${POSTGRES_DB:-peartone_db}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - peartone-net
+    volumes:
+      - storage_data:/app/storage:Z
+    # Menjalankan migrasi lalu exit dengan code 0
+    command: ["db:migrate"]
+
+  # ============================================================================
+  # BACKEND SERVICE (Express 5 + Socket.IO)
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Containerfile
+      target: runtime
+    container_name: peartone-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_DEV_URL: postgres://${POSTGRES_USER:-peartone_user}:${POSTGRES_PASSWORD:-peartone_password_change_me}@db:5432/${POSTGRES_DB:-peartone_db}
+      JWT_SECRET: ${JWT_SECRET:-dummy_jwt_secret_min_32_characters_long_for_security}
+      JWT_ISSUER: ${JWT_ISSUER:-Peartone API}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-Peartone Client}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-dummy_google_id_for_startup}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-dummy_google_secret}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - storage_data:/app/storage:Z
+    networks:
+      - peartone-net
+    # Port 3000 dipublikasikan agar Jessica bisa menguji direct endpoint via curl
+    ports:
+      - "3000:3000"
+
+  # ============================================================================
+  # FRONTEND SERVICE (Vite Static + Nginx Unprivileged)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+      target: runtime
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: peartone-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    networks:
+      - peartone-net
+
+networks:
+  peartone-net:
+    driver: bridge
+
+volumes:
+  pg_data:
+  storage_data:

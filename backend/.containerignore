@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (wajib diunduh via npm ci di dalam image)
+node_modules
+npm-debug.log*
+
+# Secret & Environment files (DILARANG KERAS masuk ke build context)
+.env
+.env.*
+!.env.example
+
+# Local Persistent Storage (audio, image, covers ukuran besar - diisi via volume)
+storage/
+storage/*
+
+# Development tools & IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker / Podman metadata
+Dockerfile
+Containerfile
+.dockerignore
+.containerignore
+compose*.yaml
+compose*.yml
+
+# Dokumentasi & Laporan kelompok
+documents_peartone/
+*.md
+*.pdf
+
+# Logs & temporary files
+logs
+*.log
+tmp

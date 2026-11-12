@@ -3,10 +3,14 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 console.log("--> Passport Config Loading. Client ID Present:", !!process.env.GOOGLE_CLIENT_ID);
 
+const clientID = process.env.GOOGLE_CLIENT_ID || "dummy-google-client-id-for-startup";
+const clientSecret = process.env.GOOGLE_CLIENT_SECRET || "dummy-google-client-secret";
+const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
+
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,      
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET, 
-    callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`,
+    clientID: clientID,      
+    clientSecret: clientSecret, 
+    callbackURL: `${backendUrl}/api/auth/google/callback`,
     proxy: true,
   },
   async (accessToken, refreshToken, profile, done) => {
