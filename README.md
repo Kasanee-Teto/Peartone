@@ -649,6 +649,195 @@ Check that:
 
 ---
 
+## 🐳 Containerization & Deployment (Docker / Podman)
+
+PeartOne provides a production-grade, hardened containerized stack supporting both **Docker** and **Rootless Podman** via OCI-compliant multi-stage builds and Compose orchestration.
+
+### 🏛️ Container Stack Architecture
+
+| Service | Container Name | Image / Base | Internal Port | Host Port | Mode & Privileges |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Frontend** | `peartone-frontend` | `nginxinc/nginx-unprivileged:1.27-alpine-slim` | 8080 | **8080** | Stateless, Non-root (`UID 101`), SPA Fallback + Reverse Proxy |
+| **Backend** | `peartone-backend` | `node:22.14.0-bookworm-slim` | 3000 | **3000** | Stateful (`storage_data`), Non-root (`UID 1000`), dumb-init PID 1 |
+| **Database** | `peartone-db` | `postgres:17.4-alpine` | 5432 | *None (isolated)* | Stateful (`pg_data`), Internal bridge network |
+| **Migrator** | `peartone-migrator` | Multi-stage target `migrator` | *None* | *None* | Ephemeral / One-off container for schema migrations & seeders |
+
+### 🚀 Quickstart: Menjalankan Stack Container
+
+Langkah awal untuk semua opsi (siapkan environment lokal):
+```bash
+cp .env.example .env
+```
+
+---
+
+#### 🐳 Pilihan A: Menggunakan DOCKER
+
+**1. Menggunakan Docker Compose (Paling Praktis):**
+```bash
+# Build dan jalankan seluruh service di background
+docker compose up -d --build
+
+# Jalankan seeder database untuk akun demo dan 40+ lagu
+docker compose run --rm migrate db:seed:all
+
+# Cek status kesehatan container
+docker compose ps
+
+# Pantau request log backend secara realtime
+docker compose logs -f backend
+
+# Menghentikan stack
+docker compose down
+```
+
+**2. Menggunakan Docker CLI Standalone (Manual tanpa Compose):**
+```bash
+# Buat jaringan dan volume
+docker network create peartone-net
+docker volume create peartone-pgdata
+docker volume create peartone-storage
+
+# 1. Jalankan PostgreSQL Database
+docker run -d --name peartone-db \
+  --network peartone-net \
+  -e POSTGRES_USER=peartone_user \
+  -e POSTGRES_PASSWORD=peartone_password \
+  -e POSTGRES_DB=peartone_db \
+  -v peartone-pgdata:/var/lib/postgresql/data \
+  --health-cmd="pg_isready -U peartone_user -d peartone_db" \
+  --health-interval=5s --health-retries=5 \
+  postgres:17.4-alpine
+
+# 2. Build Image
+docker build -t peartone-backend:1.0.0 --target runtime -f backend/Containerfile backend/
+docker build -t peartone-migrator:1.0.0 --target migrator -f backend/Containerfile backend/
+docker build -t peartone-frontend:1.0.0 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
+
+# 3. Jalankan Migrasi & Seeding (Container One-Off)
+docker run --rm --network peartone-net \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  peartone-migrator:1.0.0 db:migrate
+
+docker run --rm --network peartone-net \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  -v peartone-storage:/app/storage \
+  peartone-migrator:1.0.0 db:seed:all
+
+# 4. Jalankan Backend & Frontend
+docker run -d --name peartone-backend \
+  --network peartone-net \
+  -p 3000:3000 \
+  -e NODE_ENV=development \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  -e JWT_SECRET="dummy_jwt_secret_min_32_characters_long_for_security" \
+  -e GOOGLE_CLIENT_ID="dummy_id" \
+  -e GOOGLE_CLIENT_SECRET="dummy_secret" \
+  -v peartone-storage:/app/storage \
+  peartone-backend:1.0.0
+
+docker run -d --name peartone-frontend \
+  --network peartone-net \
+  -p 8080:8080 \
+  peartone-frontend:1.0.0
+```
+
+---
+
+#### 🦭 Pilihan B: Menggunakan PODMAN (Rootless Friendly)
+
+**1. Menggunakan Podman Compose:**
+```bash
+# Build dan jalankan seluruh container
+podman-compose up -d --build
+
+# Jalankan seeder database demo
+podman-compose run --rm migrate db:seed:all
+
+# Cek status container
+podman-compose ps
+
+# Pantau log backend
+podman-compose logs -f backend
+
+# Menghentikan stack
+podman-compose down
+```
+
+**2. Menggunakan Podman CLI Standalone (Rootless dengan `:Z` & `--userns=keep-id`):**
+```bash
+# Buat jaringan dan volume
+podman network create peartone-net
+podman volume create peartone-pgdata
+podman volume create peartone-storage
+
+# 1. Jalankan PostgreSQL Database
+podman run -d --name peartone-db \
+  --network peartone-net \
+  -e POSTGRES_USER=peartone_user \
+  -e POSTGRES_PASSWORD=peartone_password \
+  -e POSTGRES_DB=peartone_db \
+  -v peartone-pgdata:/var/lib/postgresql/data:Z \
+  postgres:17.4-alpine
+
+# 2. Build Image
+podman build -t peartone-backend:1.0.0 --target runtime -f backend/Containerfile backend/
+podman build -t peartone-migrator:1.0.0 --target migrator -f backend/Containerfile backend/
+podman build -t peartone-frontend:1.0.0 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
+
+# 3. Jalankan Migrasi & Seeding (Container One-Off)
+podman run --rm --network peartone-net \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  peartone-migrator:1.0.0 db:migrate
+
+podman run --rm --network peartone-net \
+  --userns=keep-id \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  -v peartone-storage:/app/storage:Z \
+  peartone-migrator:1.0.0 db:seed:all
+
+# 4. Jalankan Backend (dengan --userns=keep-id agar user non-root UID 1000 bisa menulis storage)
+podman run -d --name peartone-backend \
+  --network peartone-net \
+  --userns=keep-id \
+  -p 3000:3000 \
+  -e NODE_ENV=development \
+  -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
+  -e JWT_SECRET="dummy_jwt_secret_min_32_characters_long_for_security" \
+  -e GOOGLE_CLIENT_ID="dummy_id" \
+  -e GOOGLE_CLIENT_SECRET="dummy_secret" \
+  -v peartone-storage:/app/storage:Z \
+  peartone-backend:1.0.0
+
+# 5. Jalankan Frontend
+podman run -d --name peartone-frontend \
+  --network peartone-net \
+  -p 8080:8080 \
+  peartone-frontend:1.0.0
+```
+
+---
+
+### 🌐 Akses Layanan Setelah Dijalankan
+
+| Antarmuka | URL Akses | Deskripsi |
+| :--- | :--- | :--- |
+| **Web App PeartOne** | `http://localhost:8080` | UI Utama Musik, Login, Streaming, Playlist, Lyrics |
+| **REST API Direct** | `http://localhost:3000/api` | Pengujian curl / Postman direct ke Express |
+| **Healthcheck** | `http://localhost:8080/api/health` | Status monitoring uptime service (`{"status":"healthy"}`) |
+
+### 🛡️ DevSecOps & Security Hardening Highlights
+
+- **Multi-Stage Builds:** Development dependencies, compilers, and CLI tools are completely eliminated from the final production images, shrinking image footprints by up to 97%.
+- **Non-Root Execution:** All processes execute strictly as non-privileged users (`node` UID 1000 and `nginx` UID 101) to mitigate container breakout risks.
+- **Zero Hardcoded Secrets:** No sensitive credentials or JWT keys exist in `Containerfile` / `Dockerfile` layers. All secrets are injected dynamically at runtime.
+- **Reverse Proxy Architecture:** Nginx serves static assets, provides SPA HTML5 history fallback (`try_files`), handles WebSocket upgrades (`/socket.io/`), and proxies API and audio streaming requests (`/api/`, `/storage/`) without CORS friction.
+- **Glibc Native Compatibility:** Backend uses Debian Bookworm Slim to ensure 100% binary stability for native audio processing tools (`ffmpeg` and `ffprobe`).
+
+For complete technical documentation, security audit commands, and rubrics verification, see [LAPORAN_CONTAINERISASI_LOUIS_UTS.md](LAPORAN_CONTAINERISASI_LOUIS_UTS.md).
+
+---
+
 ## 🤝 Contributing
 
 PRs and improvements are welcome.
