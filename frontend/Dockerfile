@@ -35,9 +35,9 @@ LABEL org.opencontainers.image.title="Peartone Frontend" \
 # Hardening OS Alpine: naikkan sementara ke root untuk menjalankan apk upgrade
 # guna menambal CVE pada libcrypto3/libssl3/musl/nginx, lalu kembali ke UID 101
 USER root
-RUN apk update && \
-    apk upgrade --no-cache && \
-    rm -rf /var/cache/apk/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Salin konfigurasi Nginx & hasil build statis dengan kepemilikan nginx (UID 101)
 COPY --chown=101:101 nginx.conf /etc/nginx/conf.d/default.conf
@@ -49,7 +49,7 @@ USER 101
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://127.0.0.1:8080/ || exit 1
+  CMD curl -fsS --max-time 2 -o /dev/null http://127.0.0.1:8080/ || exit 1
 
 STOPSIGNAL SIGQUIT
 
