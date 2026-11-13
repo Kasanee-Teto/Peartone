@@ -1,14 +1,33 @@
+# Version control
 .git
 .gitignore
+
+# Dependencies & build output
 node_modules
 dist
+coverage
+npm-debug.log*
+*.log
+
+# Secret & Environment files (DILARANG masuk ke build context)
 .env
 .env.*
 !.env.example
+
+# IDE & OS artifacts
 .vscode
 .idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Container & documentation files
 Dockerfile
 Containerfile
 .dockerignore
 .containerignore
+compose*.yaml
+compose*.yml
 *.md
+*.pdf
