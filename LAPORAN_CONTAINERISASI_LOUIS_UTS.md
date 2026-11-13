@@ -248,26 +248,35 @@ Pengukuran dilakukan secara langsung menggunakan `docker system df -v` dan Docke
 
 ## 9. PANDUAN SERAH TERIMA (HANDOFF CHECKLIST) KE GILBERT & JESSICA
 
-### A. Checklist untuk Gilbert (Registry, Tagging, Push & Pull — Kriteria 4)
+### A. Checklist untuk Gilbert (Registry, Tagging, Push & Pull — Kriteria 4 + Otomasi GHCR)
+- **Otomasi CI/CD GitHub Actions (`.github/workflows/build-images.yml`):**
+  Proyek kini dilengkapi pipeline GitHub Actions yang secara otomatis mem-build menggunakan Docker Buildx (dengan layer cache `type=gha,mode=max`) dan mem-push ketiga image ke **GitHub Container Registry (`ghcr.io`)** setiap ada push ke branch `main`:
+  - `ghcr.io/kasanee-teto/peartone-backend:1.0.1` (dan `:latest`)
+  - `ghcr.io/kasanee-teto/peartone-migrator:1.0.1` (dan `:latest`)
+  - `ghcr.io/kasanee-teto/peartone-frontend:1.0.1` (dan `:latest`)
 - **Tag Versi Terbaru:** Gunakan versi **`1.0.1`** (hasil audit dan hardening).
 - **Daftar Image Lokal yang Siap Di-tag & Di-push:**
   - `peartone-backend:1.0.1` (Image ID: `560e6d7c87ab`, Size: `653.34 MB`)
   - `peartone-migrator:1.0.1` (Image ID: `b7bd9540ef8d`, Size: `669.25 MB`)
   - `peartone-frontend:1.0.1` (Image ID: `b11a1479b6f7`, Size: `35.24 MB`)
-- **Urutan Perintah Eksekusi:**
+- **Urutan Perintah Eksekusi (GHCR & Docker Hub):**
   ```bash
-  # 1. Tagging ke Docker Hub / GHCR:
+  # Opsi 1 — Pull langsung dari GitHub Container Registry (GHCR hasil GitHub Actions):
+  docker pull ghcr.io/kasanee-teto/peartone-backend:1.0.1
+  docker pull ghcr.io/kasanee-teto/peartone-migrator:1.0.1
+  docker pull ghcr.io/kasanee-teto/peartone-frontend:1.0.1
+
+  # Opsi 2 — Tagging & Push Manual ke Docker Hub / GHCR:
   docker tag peartone-backend:1.0.1 docker.io/<username>/peartone-backend:1.0.1
   docker tag peartone-migrator:1.0.1 docker.io/<username>/peartone-migrator:1.0.1
   docker tag peartone-frontend:1.0.1 docker.io/<username>/peartone-frontend:1.0.1
 
-  # 2. Push ke Registry:
   docker login
   docker push docker.io/<username>/peartone-backend:1.0.1
   docker push docker.io/<username>/peartone-migrator:1.0.1
   docker push docker.io/<username>/peartone-frontend:1.0.1
 
-  # 3. Verifikasi Pull & Ambil Digest (@sha256) untuk Bukti Kriteria 4:
+  # Verifikasi Pull & Ambil Digest (@sha256) untuk Bukti Kriteria 4:
   docker pull docker.io/<username>/peartone-backend:1.0.1
   docker inspect --format='{{index .RepoDigests 0}}' docker.io/<username>/peartone-backend:1.0.1
   ```

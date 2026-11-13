@@ -214,6 +214,9 @@ Frontend player event
 
 ```txt
 Peartone/
+├── .github/
+│   └── workflows/
+│       └── build-images.yml
 ├── backend/
 │   ├── config/
 │   │   └── config.json
@@ -227,7 +230,11 @@ Peartone/
 │   │   ├── models/
 │   │   └── routes/
 │   ├── storage/
+│   ├── .containerignore
+│   ├── .dockerignore
 │   ├── .env.example
+│   ├── Containerfile
+│   ├── Dockerfile
 │   └── package.json
 ├── frontend/
 │   ├── src/
@@ -236,8 +243,15 @@ Peartone/
 │   │   ├── hooks/
 │   │   ├── pages/
 │   │   └── styles/
+│   ├── .containerignore
+│   ├── .dockerignore
 │   ├── .env.example
+│   ├── Containerfile
+│   ├── Dockerfile
+│   ├── nginx.conf
 │   └── package.json
+├── compose.yaml
+├── LAPORAN_CONTAINERISASI_LOUIS_UTS.md
 └── README.md
 ```
 
@@ -649,18 +663,28 @@ Check that:
 
 ---
 
-## 🐳 Containerization & Deployment (Docker / Podman)
+## 🐳 Containerization & Deployment (Docker / Podman — Hardened `v1.0.1`)
 
-PeartOne provides a production-grade, hardened containerized stack supporting both **Docker** and **Rootless Podman** via OCI-compliant multi-stage builds and Compose orchestration.
+PeartOne provides a production-grade, hardened containerized stack (`v1.0.1`) supporting both **Docker** and **Rootless Podman** via OCI-compliant multi-stage builds, automated **GitHub Container Registry (GHCR)** CI/CD publishing ([`.github/workflows/build-images.yml`](.github/workflows/build-images.yml)), and hardened Compose orchestration.
 
-### 🏛️ Container Stack Architecture
+### 🏛️ Container Stack Architecture (`v1.0.1`)
 
-| Service | Container Name | Image / Base | Internal Port | Host Port | Mode & Privileges |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Frontend** | `peartone-frontend` | `nginxinc/nginx-unprivileged:1.27-alpine-slim` | 8080 | **8080** | Stateless, Non-root (`UID 101`), SPA Fallback + Reverse Proxy |
-| **Backend** | `peartone-backend` | `node:22.14.0-bookworm-slim` | 3000 | **3000** | Stateful (`storage_data`), Non-root (`UID 1000`), dumb-init PID 1 |
-| **Database** | `peartone-db` | `postgres:17.4-alpine` | 5432 | *None (isolated)* | Stateful (`pg_data`), Internal bridge network |
-| **Migrator** | `peartone-migrator` | Multi-stage target `migrator` | *None* | *None* | Ephemeral / One-off container for schema migrations & seeders |
+| Service | Container Name | Image Tag / Base | Internal Port | Host Port | Network | Mode & Security Hardening |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Frontend** | `peartone-frontend` | `peartone-frontend:1.0.1`<br>(`nginxinc/nginx-unprivileged:1.27-alpine-slim`) | 8080 | **8080** | `frontend-net` | Stateless (`35.24 MB`), Non-root (`UID 101`), `read_only: true`, `cap_drop: ALL`, `no-new-privileges`, SPA Fallback + Reverse Proxy |
+| **Backend** | `peartone-backend` | `peartone-backend:1.0.1`<br>(`node:22.14.0-bookworm-slim`) | 3000 | **3000** | `frontend-net`, `backend-net` | Stateful (`storage_data`, `653.34 MB`), Non-root (`UID 1000`), `read_only: true`, `cap_drop: ALL`, `no-new-privileges`, `dumb-init` PID 1, Native Node `fetch` Healthcheck |
+| **Migrator** | `peartone-migrator` | `peartone-migrator:1.0.1`<br>(Multi-stage target `migrator`) | *None* | *None* | `backend-net` | Ephemeral / One-off container (`Exited 0`, `669.25 MB`), Non-root (`UID 1000`), `read_only: true`, `cap_drop: ALL` |
+| **Database** | `peartone-db` | `postgres:17.4-alpine` | 5432 | *None (isolated)* | `backend-net` | Stateful (`pg_data`, `398.40 MB`), Internal `backend-net` only (unreachable from `frontend`), `no-new-privileges` |
+
+### 📦 Pre-Built Images on GitHub Container Registry (GHCR)
+
+Images are automatically built and pushed to GHCR on every push to `main` via [`.github/workflows/build-images.yml`](.github/workflows/build-images.yml):
+
+```bash
+docker pull ghcr.io/kasanee-teto/peartone-backend:1.0.1
+docker pull ghcr.io/kasanee-teto/peartone-migrator:1.0.1
+docker pull ghcr.io/kasanee-teto/peartone-frontend:1.0.1
+```
 
 ### 🚀 Quickstart: Menjalankan Stack Container
 
@@ -675,7 +699,7 @@ cp .env.example .env
 
 **1. Menggunakan Docker Compose (Paling Praktis):**
 ```bash
-# Build dan jalankan seluruh service di background
+# Build dan jalankan seluruh service (v1.0.1) di background
 docker compose up -d --build
 
 # Jalankan seeder database untuk akun demo dan 40+ lagu
@@ -693,14 +717,16 @@ docker compose down
 
 **2. Menggunakan Docker CLI Standalone (Manual tanpa Compose):**
 ```bash
-# Buat jaringan dan volume
-docker network create peartone-net
+# Buat jaringan terisolasi dan volume
+docker network create frontend-net
+docker network create backend-net
 docker volume create peartone-pgdata
 docker volume create peartone-storage
 
-# 1. Jalankan PostgreSQL Database
+# 1. Jalankan PostgreSQL Database (di backend-net)
 docker run -d --name peartone-db \
-  --network peartone-net \
+  --network backend-net \
+  --security-opt no-new-privileges:true \
   -e POSTGRES_USER=peartone_user \
   -e POSTGRES_PASSWORD=peartone_password \
   -e POSTGRES_DB=peartone_db \
@@ -709,24 +735,30 @@ docker run -d --name peartone-db \
   --health-interval=5s --health-retries=5 \
   postgres:17.4-alpine
 
-# 2. Build Image
-docker build -t peartone-backend:1.0.0 --target runtime -f backend/Containerfile backend/
-docker build -t peartone-migrator:1.0.0 --target migrator -f backend/Containerfile backend/
-docker build -t peartone-frontend:1.0.0 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
+# 2. Build Image (Versi 1.0.1)
+docker build -t peartone-backend:1.0.1 --target runtime -f backend/Containerfile backend/
+docker build -t peartone-migrator:1.0.1 --target migrator -f backend/Containerfile backend/
+docker build -t peartone-frontend:1.0.1 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
 
 # 3. Jalankan Migrasi & Seeding (Container One-Off)
-docker run --rm --network peartone-net \
+docker run --rm --network backend-net \
+  --read-only --tmpfs /tmp:size=64M,mode=1777 \
+  --cap-drop ALL --security-opt no-new-privileges:true \
   -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
-  peartone-migrator:1.0.0 db:migrate
+  peartone-migrator:1.0.1 db:migrate
 
-docker run --rm --network peartone-net \
+docker run --rm --network backend-net \
+  --read-only --tmpfs /tmp:size=64M,mode=1777 \
+  --cap-drop ALL --security-opt no-new-privileges:true \
   -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
   -v peartone-storage:/app/storage \
-  peartone-migrator:1.0.0 db:seed:all
+  peartone-migrator:1.0.1 db:seed:all
 
-# 4. Jalankan Backend & Frontend
+# 4. Jalankan Backend & Hubungkan ke frontend-net
 docker run -d --name peartone-backend \
-  --network peartone-net \
+  --network backend-net \
+  --read-only --tmpfs /tmp:size=64M,mode=1777 \
+  --cap-drop ALL --security-opt no-new-privileges:true \
   -p 3000:3000 \
   -e NODE_ENV=development \
   -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
@@ -734,12 +766,19 @@ docker run -d --name peartone-backend \
   -e GOOGLE_CLIENT_ID="dummy_id" \
   -e GOOGLE_CLIENT_SECRET="dummy_secret" \
   -v peartone-storage:/app/storage \
-  peartone-backend:1.0.0
+  peartone-backend:1.0.1
+docker network connect frontend-net peartone-backend
 
+# 5. Jalankan Frontend (di frontend-net)
 docker run -d --name peartone-frontend \
-  --network peartone-net \
+  --network frontend-net \
+  --read-only \
+  --tmpfs /tmp:size=32M,mode=1777 \
+  --tmpfs /var/cache/nginx:size=32M,uid=101,gid=101,mode=755 \
+  --tmpfs /var/run:size=16M,uid=101,gid=101,mode=755 \
+  --cap-drop ALL --security-opt no-new-privileges:true \
   -p 8080:8080 \
-  peartone-frontend:1.0.0
+  peartone-frontend:1.0.1
 ```
 
 ---
@@ -767,38 +806,39 @@ podman-compose down
 **2. Menggunakan Podman CLI Standalone (Rootless dengan `:Z` & `--userns=keep-id`):**
 ```bash
 # Buat jaringan dan volume
-podman network create peartone-net
+podman network create frontend-net
+podman network create backend-net
 podman volume create peartone-pgdata
 podman volume create peartone-storage
 
 # 1. Jalankan PostgreSQL Database
 podman run -d --name peartone-db \
-  --network peartone-net \
+  --network backend-net \
   -e POSTGRES_USER=peartone_user \
   -e POSTGRES_PASSWORD=peartone_password \
   -e POSTGRES_DB=peartone_db \
   -v peartone-pgdata:/var/lib/postgresql/data:Z \
   postgres:17.4-alpine
 
-# 2. Build Image
-podman build -t peartone-backend:1.0.0 --target runtime -f backend/Containerfile backend/
-podman build -t peartone-migrator:1.0.0 --target migrator -f backend/Containerfile backend/
-podman build -t peartone-frontend:1.0.0 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
+# 2. Build Image (Versi 1.0.1)
+podman build -t peartone-backend:1.0.1 --target runtime -f backend/Containerfile backend/
+podman build -t peartone-migrator:1.0.1 --target migrator -f backend/Containerfile backend/
+podman build -t peartone-frontend:1.0.1 --build-arg VITE_API_BASE_URL=/api -f frontend/Containerfile frontend/
 
 # 3. Jalankan Migrasi & Seeding (Container One-Off)
-podman run --rm --network peartone-net \
+podman run --rm --network backend-net \
   -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
-  peartone-migrator:1.0.0 db:migrate
+  peartone-migrator:1.0.1 db:migrate
 
-podman run --rm --network peartone-net \
+podman run --rm --network backend-net \
   --userns=keep-id \
   -e DATABASE_DEV_URL="postgres://peartone_user:peartone_password@peartone-db:5432/peartone_db" \
   -v peartone-storage:/app/storage:Z \
-  peartone-migrator:1.0.0 db:seed:all
+  peartone-migrator:1.0.1 db:seed:all
 
 # 4. Jalankan Backend (dengan --userns=keep-id agar user non-root UID 1000 bisa menulis storage)
 podman run -d --name peartone-backend \
-  --network peartone-net \
+  --network backend-net \
   --userns=keep-id \
   -p 3000:3000 \
   -e NODE_ENV=development \
@@ -807,13 +847,14 @@ podman run -d --name peartone-backend \
   -e GOOGLE_CLIENT_ID="dummy_id" \
   -e GOOGLE_CLIENT_SECRET="dummy_secret" \
   -v peartone-storage:/app/storage:Z \
-  peartone-backend:1.0.0
+  peartone-backend:1.0.1
+podman network connect frontend-net peartone-backend
 
 # 5. Jalankan Frontend
 podman run -d --name peartone-frontend \
-  --network peartone-net \
+  --network frontend-net \
   -p 8080:8080 \
-  peartone-frontend:1.0.0
+  peartone-frontend:1.0.1
 ```
 
 ---
@@ -826,13 +867,14 @@ podman run -d --name peartone-frontend \
 | **REST API Direct** | `http://localhost:3000/api` | Pengujian curl / Postman direct ke Express |
 | **Healthcheck** | `http://localhost:8080/api/health` | Status monitoring uptime service (`{"status":"healthy"}`) |
 
-### 🛡️ DevSecOps & Security Hardening Highlights
+### 🛡️ DevSecOps & Security Hardening Highlights (`v1.0.1`)
 
-- **Multi-Stage Builds:** Development dependencies, compilers, and CLI tools are completely eliminated from the final production images, shrinking image footprints by up to 97%.
-- **Non-Root Execution:** All processes execute strictly as non-privileged users (`node` UID 1000 and `nginx` UID 101) to mitigate container breakout risks.
-- **Zero Hardcoded Secrets:** No sensitive credentials or JWT keys exist in `Containerfile` / `Dockerfile` layers. All secrets are injected dynamically at runtime.
-- **Reverse Proxy Architecture:** Nginx serves static assets, provides SPA HTML5 history fallback (`try_files`), handles WebSocket upgrades (`/socket.io/`), and proxies API and audio streaming requests (`/api/`, `/storage/`) without CORS friction.
-- **Glibc Native Compatibility:** Backend uses Debian Bookworm Slim to ensure 100% binary stability for native audio processing tools (`ffmpeg` and `ffprobe`).
+- **Zero Fixable Critical/High Supply-Chain CVEs:** Unused heavy dependencies (`@huggingface/transformers`, `onnxruntime-node`, `sharp`, `adm-zip`) were audited and removed, and production lockfiles were patched (`npm audit --omit=dev`: **0 Critical, 0 High** across both backend and frontend).
+- **Multi-Stage Builds & OS Patching:** Development dependencies and build tools are stripped from production runtime images (`35.24 MB` frontend image), while base OS packages receive latest security updates via `apt-get upgrade -y` and `apk upgrade --no-cache` alongside `--ignore-scripts` supply-chain protection.
+- **Zero-Curl Native Healthcheck:** Removed `curl` and its shared libraries from the backend runtime image, using native Node.js 22 `fetch()` for container health monitoring.
+- **Non-Root, Read-Only Rootfs & Capability Dropping:** Processes run strictly as non-root users (`node` UID 1000 and `nginx` UID 101) with `read_only: true` root filesystems, `cap_drop: [ALL]`, and `no-new-privileges:true`.
+- **Network Segmentation:** Isolated `frontend-net` from `backend-net` so the public-facing Nginx container has no direct network path to PostgreSQL (`peartone-db`).
+- **Automated GHCR CI/CD Pipeline:** GitHub Actions ([`.github/workflows/build-images.yml`](.github/workflows/build-images.yml)) automatically builds and publishes versioned (`1.0.1`) and `latest` OCI images to `ghcr.io`.
 
 For complete technical documentation, security audit commands, and rubrics verification, see [LAPORAN_CONTAINERISASI_LOUIS_UTS.md](LAPORAN_CONTAINERISASI_LOUIS_UTS.md).
 

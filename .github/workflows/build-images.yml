@@ -3,6 +3,13 @@ name: Build and Push Container Images
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - "**.md"
+      - "documents_peartone/**"
+      - "compose.yaml"
+      - ".env.example"
+      - ".gitignore"
+      - ".github/**"
   workflow_dispatch: # Allows triggering manually from the GitHub Actions tab
 
 env:
