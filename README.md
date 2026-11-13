@@ -867,6 +867,75 @@ podman run -d --name peartone-frontend \
 | **REST API Direct** | `http://localhost:3000/api` | Pengujian curl / Postman direct ke Express |
 | **Healthcheck** | `http://localhost:8080/api/health` | Status monitoring uptime service (`{"status":"healthy"}`) |
 
+---
+
+### 📦 OCI Registry Versioning, Push, Pull & Run Verification (`docker.io/gungil06`)
+
+Image kontainer PeartOne diberi tag versi semantik (`1.0.1` dan `latest`) dan dipublikasikan ke **Docker Hub Container Registry** (`docker.io/gungil06/*`) serta terintegrasi dengan **GitHub Container Registry (GHCR)** (`ghcr.io/kasanee-teto/*` melalui [`.github/workflows/build-images.yml`](.github/workflows/build-images.yml)):
+
+| Service | Local Tag (`compose.yaml`) | Docker Hub Registry URI (`1.0.1`) | Docker Hub Registry URI (`latest`) |
+| :--- | :--- | :--- | :--- |
+| **Backend Runtime** | `peartone-backend:1.0.1` | `docker.io/gungil06/peartone-backend:1.0.1` | `docker.io/gungil06/peartone-backend:latest` |
+| **Database Migrator** | `peartone-migrator:1.0.1` | `docker.io/gungil06/peartone-migrator:1.0.1` | `docker.io/gungil06/peartone-migrator:latest` |
+| **Frontend (Nginx)** | `peartone-frontend:1.0.1` | `docker.io/gungil06/peartone-frontend:1.0.1` | `docker.io/gungil06/peartone-frontend:latest` |
+
+#### 1. Pemberian Tag Versi & Push ke Docker Hub Registry (`docker.io/gungil06`)
+```bash
+# 1. Beri tag versi (1.0.1 & latest) ke namespace Docker Hub docker.io/gungil06
+podman tag peartone-migrator:1.0.1 docker.io/gungil06/peartone-migrator:1.0.1
+podman tag peartone-migrator:1.0.1 docker.io/gungil06/peartone-migrator:latest
+
+podman tag peartone-backend:1.0.1 docker.io/gungil06/peartone-backend:1.0.1
+podman tag peartone-backend:1.0.1 docker.io/gungil06/peartone-backend:latest
+
+podman tag peartone-frontend:1.0.1 docker.io/gungil06/peartone-frontend:1.0.1
+podman tag peartone-frontend:1.0.1 docker.io/gungil06/peartone-frontend:latest
+
+# 2. Login dan Push ke Docker Hub Registry
+podman login docker.io
+
+podman push docker.io/gungil06/peartone-migrator:1.0.1
+podman push docker.io/gungil06/peartone-migrator:latest
+
+podman push docker.io/gungil06/peartone-backend:1.0.1
+podman push docker.io/gungil06/peartone-backend:latest
+
+podman push docker.io/gungil06/peartone-frontend:1.0.1
+podman push docker.io/gungil06/peartone-frontend:latest
+```
+
+#### 2. Hapus Image Lokal & Pull Ulang dari Docker Hub Registry
+Untuk membuktikan aplikasi berjalan murni dari image hasil pull tanpa build lokal:
+```bash
+# Hapus image lokal terlebih dahulu
+podman rmi -f docker.io/gungil06/peartone-migrator:1.0.1 docker.io/gungil06/peartone-migrator:latest
+podman rmi -f docker.io/gungil06/peartone-backend:1.0.1 docker.io/gungil06/peartone-backend:latest
+podman rmi -f docker.io/gungil06/peartone-frontend:1.0.1 docker.io/gungil06/peartone-frontend:latest
+
+# Pull image versi 1.0.1 dari Docker Hub
+podman pull docker.io/gungil06/peartone-migrator:1.0.1
+podman pull docker.io/gungil06/peartone-backend:1.0.1
+podman pull docker.io/gungil06/peartone-frontend:1.0.1
+
+# Verifikasi daftar image hasil pull
+podman images
+```
+
+#### 3. Membuktikan Aplikasi Berjalan dari Image Hasil Pull (`compose.registry.yaml`)
+Berkas [`compose.registry.yaml`](compose.registry.yaml) disediakan khusus untuk menjalankan seluruh stack murni dari image hasil pull (`docker.io/gungil06/peartone-*:1.0.1`) **tanpa** instruksi `build:` lokal:
+```bash
+# 1. Jalankan seluruh stack menggunakan image hasil pull dari Docker Hub
+podman compose -f compose.registry.yaml up -d
+
+# 2. (Opsional) Jalankan seeder lagu demo menggunakan image migrator hasil pull
+podman compose -f compose.registry.yaml run --rm migrate db:seed:all
+
+# 3. Verifikasi container berjalan sehat dari image registry
+podman ps
+curl http://localhost:3000/api/health
+curl http://localhost:8080/api/health
+```
+
 ### 🛡️ DevSecOps & Security Hardening Highlights (`v1.0.1`)
 
 - **Zero Fixable Critical/High Supply-Chain CVEs:** Unused heavy dependencies (`@huggingface/transformers`, `onnxruntime-node`, `sharp`, `adm-zip`) were audited and removed, and production lockfiles were patched (`npm audit --omit=dev`: **0 Critical, 0 High** across both backend and frontend).
