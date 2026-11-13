@@ -1,98 +1,111 @@
 # syntax=docker/dockerfile:1.7
 
 # ==============================================================================
-# STAGE 1: Dependencies Cache (deps)
-# Mengunduh dan mengompilasi dependency produksi dan migrator
+# STAGE 1: Dependencies Untuk Migrator (Termasuk devDependencies: sequelize-cli)
+# Alasan: Dipisahkan agar stage runtime produksi tidak terkontaminasi paket dev
 # ==============================================================================
-FROM node:22.14.0-bookworm-slim AS deps
+# Catatan Digest: Ganti/tambahkan @sha256:<digest> hasil `docker inspect` di mesin Anda
+FROM node:22.14.0-bookworm-slim AS deps-migrator
 WORKDIR /app
 
-# Menginstal dependensi build OS bila dibutuhkan oleh modul native
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package manifests terlebih dahulu untuk memanfaatkan OCI layer caching
 COPY package.json package-lock.json ./
 
-# Install SEMUA dependensi (termasuk devDependencies untuk sequelize-cli di migrator)
-RUN npm ci --include=dev
-
-# Buat salinan modul produksi bersih (tanpa devDependencies) untuk runtime final
-RUN cp -R node_modules /tmp/node_modules_all && \
-    npm prune --omit=dev && \
-    cp -R node_modules /tmp/node_modules_prod
+# Gunakan --ignore-scripts untuk mencegah postinstall supply-chain attack,
+# lalu aktifkan izin eksekusi hanya untuk binary ffprobe/ffmpeg yang dibutuhkan
+RUN npm ci --include=dev --ignore-scripts && \
+    chmod +x node_modules/@ffprobe-installer/*/ffprobe \
+             node_modules/@ffmpeg-installer/*/ffmpeg 2>/dev/null || true
 
 # ==============================================================================
-# STAGE 2: Migrator (Target one-off untuk migrasi database dan seeding)
+# STAGE 2: Dependencies Produksi Bersih (Hanya dependencies, tanpa devDependencies)
+# Alasan: Lebih bersih & deterministik dibanding `cp -R` + `npm prune`
+# ==============================================================================
+FROM node:22.14.0-bookworm-slim AS deps-prod
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci --omit=dev --ignore-scripts && \
+    chmod +x node_modules/@ffprobe-installer/*/ffprobe \
+             node_modules/@ffmpeg-installer/*/ffmpeg 2>/dev/null || true && \
+    npm cache clean --force
+
+# ==============================================================================
+# STAGE 3: Migrator (Target one-off untuk migrasi database dan seeding)
 # ==============================================================================
 FROM node:22.14.0-bookworm-slim AS migrator
+
+# Hardening OS: tarik patch keamanan Debian terbaru untuk libc6/libssl3/dll
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
 WORKDIR /app
 ENV NODE_ENV=development
 
-# Salin modul lengkap (berisi sequelize-cli) dari stage deps
-COPY --from=deps /tmp/node_modules_all ./node_modules
-COPY package.json .sequelizerc ./
-COPY config ./config
-COPY migrations ./migrations
-COPY seeders ./seeders
-COPY src ./src
+# Perbaikan A-03: Gunakan --chown=node:node sejak awal agar tidak ada file milik root
+COPY --chown=node:node --from=deps-migrator /app/node_modules ./node_modules
+COPY --chown=node:node package.json .sequelizerc ./
+COPY --chown=node:node config ./config
+COPY --chown=node:node migrations ./migrations
+COPY --chown=node:node seeders ./seeders
+COPY --chown=node:node src ./src
 
-# Buat folder storage dummy agar seeder ffprobe tidak gagal jika storage di-mount
-RUN mkdir -p storage/audio storage/covers storage/artists
+# Perbaikan A-03: Pastikan folder storage dimiliki oleh node:node (UID 1000)
+# agar saat volume pertama kali di-mount oleh migrator, kepemilikannya tidak root
+RUN mkdir -p storage/audio storage/covers storage/artists storage/albums && \
+    chown -R node:node /app/storage && \
+    chmod -R 755 /app/storage
 
 USER node
 ENTRYPOINT ["npx", "sequelize-cli"]
 CMD ["db:migrate"]
 
 # ==============================================================================
-# STAGE 3: Runtime Final (Minimal attack surface, non-root, production hardened)
+# STAGE 4: Runtime Final (Minimal attack surface, non-root, zero curl, hardened)
 # ==============================================================================
 FROM node:22.14.0-bookworm-slim AS runtime
 
-# Label metadata OCI standar
 LABEL org.opencontainers.image.title="Peartone Backend" \
-      org.opencontainers.image.description="Music streaming backend service" \
+      org.opencontainers.image.version="1.0.1" \
+      org.opencontainers.image.description="Hardened music streaming backend service" \
       org.opencontainers.image.authors="Louis <louis@peartone.local>"
 
-# Install dumb-init untuk menangani PID 1 signal forwarding (SIGTERM / SIGINT)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    dumb-init \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Perbaikan A-01:
+# 1. Jalankan apt-get upgrade -y untuk menambal CVE OS Debian yang fixable
+# 2. Hanya instal dumb-init (~50 KB); HAPUS curl untuk memangkas puluhan library rentan
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get install -y --no-install-recommends dumb-init && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 WORKDIR /app
 
-# Atur environment produksi dasar
 ENV NODE_ENV=production \
     PORT=3000
 
-# Salin HANYA modul produksi dari stage deps
-COPY --chown=node:node --from=deps /tmp/node_modules_prod ./node_modules
+# Salin HANYA node_modules produksi yang sudah bersih
+COPY --chown=node:node --from=deps-prod /app/node_modules ./node_modules
 COPY --chown=node:node package.json ./
 COPY --chown=node:node config ./config
 COPY --chown=node:node src ./src
 
 # Siapkan direktori storage stateful dengan ownership user non-root 'node' (UID 1000)
+# Perbaikan A-03: Instruksi VOLUME ["/app/storage"] dihapus dari Containerfile
+# agar deklarasi volume dikelola secara eksplisit oleh compose.yaml
 RUN mkdir -p storage/audio storage/covers storage/artists storage/albums && \
     chown -R node:node /app/storage && \
     chmod -R 755 /app/storage
 
-# Deklarasikan volume stateful
-VOLUME ["/app/storage"]
-
-# Pindah ke user non-root bawaan Node.js
+# Jalankan sebagai non-root user bawaan Node (UID 1000 / GID 1000)
 USER node
 
-# Expose port aplikasi
 EXPOSE 3000
 
-# Healthcheck menggunakan endpoint /api/health
+# Perbaikan A-01: Healthcheck native Node.js tanpa butuh paket curl/wget eksternal
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
 
-# Gunakan exec form dumb-init untuk meneruskan sinyal graceful shutdown ke Node.js
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "src/server.js"]

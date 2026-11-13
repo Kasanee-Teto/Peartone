@@ -2,7 +2,7 @@ name: peartone-stack
 
 services:
   # ============================================================================
-  # DATABASE SERVICE (PostgreSQL)
+  # DATABASE SERVICE (PostgreSQL 17 - Terisolasi di backend-net)
   # ============================================================================
   db:
     image: postgres:17.4-alpine
@@ -15,18 +15,35 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data:Z
     networks:
-      - peartone-net
+      - backend-net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # Postgres entrypoint membutuhkan kapabilitas ini sesaat sebelum drop ke UID 70 (postgres)
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - FOWNER
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-peartone_user} -d ${POSTGRES_DB:-peartone_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    # Port sengaja TIDAK dipublikasikan ke host demi keamanan (least privilege)
+    # Port 5432 TIDAK dipublikasikan ke host (least privilege)
 
   # ============================================================================
-  # MIGRATION SERVICE (One-off execution)
+  # MIGRATION SERVICE (One-off execution, non-root UID 1000)
   # ============================================================================
   migrate:
+    image: peartone-migrator:1.0.1
     build:
       context: ./backend
       dockerfile: Containerfile
@@ -39,16 +56,23 @@ services:
       db:
         condition: service_healthy
     networks:
-      - peartone-net
+      - backend-net
     volumes:
       - storage_data:/app/storage:Z
-    # Menjalankan migrasi lalu exit dengan code 0
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M,mode=1777
     command: ["db:migrate"]
 
   # ============================================================================
-  # BACKEND SERVICE (Express 5 + Socket.IO)
+  # BACKEND SERVICE (Express 5 + Socket.IO, non-root UID 1000, read-only rootfs)
   # ============================================================================
   backend:
+    image: peartone-backend:1.0.1
     build:
       context: ./backend
       dockerfile: Containerfile
@@ -56,7 +80,9 @@ services:
     container_name: peartone-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      # Catatan: NODE_ENV=development dipertahankan karena config/config.json
+      # mewajibkan SSL pada mode production. Untuk produksi riil dengan DB SSL, ubah ke production.
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
       DATABASE_DEV_URL: postgres://${POSTGRES_USER:-peartone_user}:${POSTGRES_PASSWORD:-peartone_password_change_me}@db:5432/${POSTGRES_DB:-peartone_db}
       JWT_SECRET: ${JWT_SECRET:-dummy_jwt_secret_min_32_characters_long_for_security}
@@ -74,15 +100,30 @@ services:
     volumes:
       - storage_data:/app/storage:Z
     networks:
-      - peartone-net
-    # Port 3000 dipublikasikan agar Jessica bisa menguji direct endpoint via curl
+      - backend-net
+      - frontend-net
+    # Hardening Runtime: cabut semua Linux capabilities, cegah privilege escalation,
+    # dan kunci root filesystem menjadi read-only (hanya /app/storage & /tmp yang writable)
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M,mode=1777
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     ports:
       - "3000:3000"
 
   # ============================================================================
-  # FRONTEND SERVICE (Vite Static + Nginx Unprivileged)
+  # FRONTEND SERVICE (Vite Static + Nginx Unprivileged UID 101, read-only rootfs)
   # ============================================================================
   frontend:
+    image: peartone-frontend:1.0.1
     build:
       context: ./frontend
       dockerfile: Containerfile
@@ -96,10 +137,26 @@ services:
     depends_on:
       - backend
     networks:
-      - peartone-net
+      - frontend-net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=32M,mode=1777
+      - /var/cache/nginx:size=32M,uid=101,gid=101,mode=755
+      - /var/run:size=16M,uid=101,gid=101,mode=755
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
 
 networks:
-  peartone-net:
+  frontend-net:
+    driver: bridge
+  backend-net:
     driver: bridge
 
 volumes:
